@@ -740,7 +740,8 @@ git commit -m "feat(ui): 技能栏与冷却显示"
 | **按 Play 后场景里什么都没有** | `RoomManager` 没挂，或者 `Room Prefabs` 是空的 | 选中 `RoomManager` → `Room Prefabs` 至少要有 1 项 |
 | **场景里出现了两个重叠的房间** | 你把 `Room_01` 存成预制体之后**没有从 Hierarchy 里删掉** | 删掉 Hierarchy 里的那个 `Room_01` |
 | **玩家出生在奇怪的位置** | `Room_01` 的根物体不在 `(0,0,0)`，导致子物体相对坐标错位 | 双击 `Room_01.prefab` 进预制体模式 → 看根物体的 Transform 是不是 `(0,0,0)` |
-| **门永远是灰的，敌人死光了也不开** | ① 敌人没有被登记（不是 `Room` 的子物体）② `Health.Died` 没触发（敌人有 `CharacterStats` 但 `Health` 的引用断了）③ 那个「敌人」其实是你复制出来但没挂 `Health` 的靶子 | 在 Play 模式下选中 `Room_01`，看 Inspector 里 `Room` 组件的 `Alive Enemies` 数字是不是 0 |
+| **门永远是灰的，敌人死光了也不开** | ① 敌人没有被登记（不是 `Room` 的子物体）② `Health.Died` 没触发，或者那个「敌人」其实是你复制出来但没挂 `Health` 的靶子 | 在 Play 模式下选中 `Room_01`，看 Console 打印的 `[Room] Room_01：敌人 N 个`，N 是不是等于房间里敌人的实际数量 |
+| **反过来：敌人还活着，门却能碰，一碰就传回出生点**（2026/10/8 已修） | `Room.Awake()` 里就数了敌人，可 `Health.Current` 要到 `Health.Awake()` 才被赋值。`Room` 在房间根物体上、`Enemy` 是子物体，**根物体的 `Awake` 先跑** → 敌人全被判成「已死」→ `AliveEnemies = 0` → `Start()` 当场开门 | 用修好的 `Room.cs`（`RecountAlive()` 已从 `Awake` 挪进 `Start`）。判据：Console 里 `[Room] Room_01：敌人 1 个，门锁着` |
 | **门是青色的，但走进去没反应** | `Door` 的 `Box Collider 2D` 的 `Is Trigger` 没被脚本接管，或者 Player 的 Tag 不是 `Player` | 确认 `Player` 的 Tag 是 `Player`；`Door` 上的 `Advance On Enter` 是勾的 |
 | **换房间时黑幕卡在半黑不动了** | `ScreenFader` 组件挂在了 `ScreenFade` 那张图上（见 6.2 的警告） | 把 `ScreenFader` 组件从 `ScreenFade` 上删掉，改挂到 `Canvas` 上 |
 | **换房间后上一间的火球跟着飞过来** | `RoomManager` 的 `Cleanup Projectiles` 没勾 | 勾上 |

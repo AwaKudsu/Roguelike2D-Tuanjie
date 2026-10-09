@@ -70,7 +70,17 @@ public class Room : MonoBehaviour
             _enemies.Add(health);
         }
 
-        RecountAlive();
+        // ★ 这里绝对不能调 RecountAlive()。
+        //
+        // RecountAlive() 读的是 Health.Current，而 Current 是在 Health.Awake() 里
+        // 才被赋成 maxHealth 的。Room 挂在房间根物体上、Enemy 是子物体，
+        // Unity 实例化预制体时【根物体的 Awake 先跑】—— 这一刻 Health.Current 还是 0，
+        // 所有敌人都会被判成「已经死了」，AliveEnemies 算出来是 0，
+        // 紧接着 Start() 就认定「已清场」，门一开局就是开的。
+        //
+        // 症状：敌人明明活着，走过去碰一下门就被传回出生点。
+        // 教训：Unity 只保证「所有 Awake 跑完才跑 Start」，**跨物体的 Awake 顺序不能假设**。
+        // 凡是「我要读的值是别的组件在 Awake 里写的」，就必须挪到 Start 去读。
     }
 
     private void OnEnable()
@@ -85,9 +95,17 @@ public class Room : MonoBehaviour
 
     private void Start()
     {
+        // 数「还活着几个敌人」必须在这里数，不能放在 Awake —— 理由见 Awake 里的注释。
+        // 此刻所有物体的 Awake 都已经跑完，Health.Current 一定是 maxHealth
+        RecountAlive();
+
         // 开局先判一次：没有敌人的房间（奖励房、走廊）应该一进来门就是开的，
         // 否则玩家会被永久关在里面 —— 这种 bug 很致命而且不容易想到
         EvaluateClear();
+
+        // 留一行开局日志。房间这类「门为什么开了/没开」的问题，
+        // 光看画面很难判断，看数字一眼就清楚
+        Debug.Log($"[Room] {name}：敌人 {AliveEnemies} 个，门{(IsCleared ? "已开" : "锁着")}", this);
     }
 
     private void OnEnemyDied()
