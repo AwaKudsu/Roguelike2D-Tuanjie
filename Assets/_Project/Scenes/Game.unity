@@ -242,6 +242,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::RoomManager
   roomPrefabs:
   - {fileID: 8580136282930471505, guid: 193a506dcc1989040827d51987d4fa9b, type: 3}
+  - {fileID: 8580136282930471505, guid: fcfb240064a07ff42998b1631cf722d7, type: 3}
   roomAnchor: {fileID: 0}
   fader: {fileID: 0}
   useBagRandom: 1
