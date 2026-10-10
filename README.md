@@ -62,7 +62,7 @@
 | 渲染管线 | Built-in Render Pipeline（2D） |
 | 输入 | Input System 1.7.0（`PlayerInputActions` 包装类随包版本自动重生成） |
 | 测试 | Unity Test Framework（`Assets/_Project/Tests/`，尚未编写用例） |
-| 版本管理 | Git（场景/预制体走团结 YAML 合并驱动） |
+| 版本管理 | Git（`main` @ [AwaKudsu/Roguelike2D-Tuanjie](https://github.com/AwaKudsu/Roguelike2D-Tuanjie)，场景/预制体走团结 YAML 合并驱动） |
 
 ## 如何运行
 
@@ -74,7 +74,8 @@
 ### 方式二：从源码运行
 
 ```bash
-git clone git@github.com:AwaKudsu/Roguelike2D-Tuanjie.git
+# 本机 github.com 走代理，SSH 22 端口会被 reset，所以用 GitHub 的 443 端点
+git clone ssh://git@ssh.github.com:443/AwaKudsu/Roguelike2D-Tuanjie.git
 cd Roguelike2D-Tuanjie
 ```
 
