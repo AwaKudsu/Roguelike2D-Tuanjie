@@ -76,7 +76,7 @@ public class HitReaction : MonoBehaviour
             if (away.sqrMagnitude < 0.0001f) away = Vector2.right;   // 完全重合时给个默认方向
             away.Normalize();
 
-            _rb.linearVelocity = new Vector2(
+            _rb.velocity = new Vector2(
                 away.x * info.KnockbackForce,
                 info.KnockbackForce * verticalRatio
             );

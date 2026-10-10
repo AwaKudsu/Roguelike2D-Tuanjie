@@ -79,7 +79,7 @@ public class Projectile : MonoBehaviour
             transform.rotation = Quaternion.Euler(0f, 0f, angle);
         }
 
-        _rb.linearVelocity = direction * speed;
+        _rb.velocity = direction * speed;
     }
 
     private void Update()
@@ -124,7 +124,7 @@ public class Projectile : MonoBehaviour
         if (_dead) return;
 
         _dead = true;
-        _rb.linearVelocity = Vector2.zero;
+        _rb.velocity = Vector2.zero;
         _rb.simulated = false;      // 关掉物理，避免等销毁的这几帧继续触发碰撞
 
         Destroy(gameObject, destroyDelay);
@@ -143,7 +143,7 @@ public class Projectile : MonoBehaviour
         if (!Application.isPlaying) return;
         if (_rb == null) return;
 
-        Vector2 v = _rb.linearVelocity;
+        Vector2 v = _rb.velocity;
         if (v.sqrMagnitude < 0.0001f) return;
 
         Gizmos.color = new Color(1f, 0.5f, 0.1f, 0.9f);

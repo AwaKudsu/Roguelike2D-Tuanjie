@@ -25,7 +25,15 @@
 
 ## 玩法
 
-- **横板动作战斗**：冲刺、连击、闪避无敌帧，强调操作手感
+**已经能玩的**（当前可运行版本）
+
+- **横板动作战斗**：近战挥砍带判定框与命中闪白、击退硬直；法师职业发射投射物
+- **房间流水线**：清场 → 开门 → 换房，房间池用「袋子随机」抽，抽完一轮才重复
+- **三名职业 + 技能栏**：战士（旋风斩）/ 法师（火球、魔弹），技能走 `SkillData` 数据驱动
+- **资源条**：血量 / 蓝量 HUD，技能进入冷却时技能栏实时反馈
+
+**设计目标**（还没实现，见 [docs/00-行动清单.md](docs/00-行动清单.md)）
+
 - **程序生成关卡**：每局房间布局与敌人配置随机，且支持固定种子复现
 - **词条构筑**：局内获取遗物/词条，词条之间存在乘算联动，构筑决定强度上限
 - **永久成长**：局外解锁新武器与词条，死亡不等于白玩
@@ -33,41 +41,46 @@
 
 ## 操作
 
-| 按键 | 动作 |
-| --- | --- |
-| `A` / `D` 或 `←` / `→` | 移动 |
-| `Space` | 跳跃（支持二段跳 / 土狼时间 / 跳跃缓冲） |
-| `J` 或 鼠标左键 | 攻击 |
-| `K` 或 鼠标右键 | 冲刺（含无敌帧） |
-| `Esc` | 暂停 |
+绑定表就是 `Assets/_Project/Settings/PlayerInputActions.inputactions` 里的 8 个 Action（1 个 `Player` ActionMap / 17 条 binding），改键直接改这个文件。
+
+| 按键 | 动作 | Action |
+| --- | --- | --- |
+| `A` / `D`（或 `←` / `→`） | 左右移动 | `Move` |
+| `W` / `S`（或 `↑` / `↓`） | 上下（跳跃/下蹲预留） | `Move` |
+| `Space` | 跳跃（含土狼时间与跳跃缓冲） | `Jump` |
+| `LeftShift` | 冲刺 | `Dash` |
+| `J` | 普通攻击 | `Attack` |
+| `K` / `L` / `U` / `I` | 技能 1 / 2 / 3 / 4 | `Skill1` ~ `Skill4` |
 
 ## 技术栈
 
 | 项目 | 选择 |
 | --- | --- |
-| 引擎 | Unity **6000.3.22f1**（版本锁定，不要随意升级） |
+| 引擎 | **团结引擎 2022.3.62t16**（Tuanjie Editor 1.10.4，版本锁定，不要随意升级） |
+| 宿主工程 | Unity **6000.3.22f1** → 已于 2026-10-10 迁移到团结（见 [docs/09](docs/09-迁移到团结引擎.md)） |
 | 语言 | C# |
 | 渲染管线 | Built-in Render Pipeline（2D） |
-| 输入 | Unity Input System |
-| 测试 | Unity Test Framework |
-| 版本管理 | Git + Git LFS（场景/预制体走 Unity SmartMerge） |
+| 输入 | Input System 1.7.0（`PlayerInputActions` 包装类随包版本自动重生成） |
+| 测试 | Unity Test Framework（`Assets/_Project/Tests/`，尚未编写用例） |
+| 版本管理 | Git（场景/预制体走团结 YAML 合并驱动） |
 
 ## 如何运行
 
 ### 方式一：直接下载（推荐给面试官 / 老师）
 
 前往 [Releases](../../releases/latest) 下载 `Roguelike2D-v1.0-win64.zip`，解压后运行 `Roguelike2D.exe`。
-无需安装 Unity。
+无需安装团结引擎（打包还没做，链接先占位）。
 
 ### 方式二：从源码运行
 
 ```bash
-git clone <你的仓库地址>
-cd Roguelike2D
-git lfs pull          # 拉取 LFS 管理的大体积素材，漏了这步美术会变成占位图
+git clone git@github.com:AwaKudsu/Roguelike2D-Tuanjie.git
+cd Roguelike2D-Tuanjie
 ```
 
-然后用 **Unity Hub → Add → 选择该文件夹**，使用 `6000.3.22f1` 打开。首次打开需要几分钟导入资源。
+然后用 **团结 Hub（或团结 Cowork）→ 添加工程 → 选择该文件夹**，使用 `2022.3.62t16` 打开。首次打开需要几分钟导入资源并重建 `Library/`。
+
+> 仓库不含 `Library/`、`Logs/`、`.codely-cli/`（团结 Cowork 的本地代码索引），这些都是本机可重建的缓存。
 
 ## 目录结构
 
@@ -92,11 +105,14 @@ Roguelike2D/
 │   │   ├── Tests/             # 单元测试
 │   │   └── UI/
 │   └── ThirdParty/            # 第三方免费素材，每个包必须带 SOURCE.md 标注授权
-├── docs/                      # 设计文档、开发清单、Git 手册
+├── docs/                      # 设计文档、开发清单、Git 手册、迁移记录
 ├── Tools/                     # 开发辅助脚本
 ├── Packages/                  # 包依赖清单
-└── ProjectSettings/           # 工程设置（必须提交）
+├── ProjectSettings/           # 工程设置（必须提交）
+└── _Tuanjie/                  # 迁移自检报告与设置备份（54 MB 的安装清单不入库）
 ```
+
+`Assets/_Project/_Tuanjie/` 下有一个编辑器专用目录，装的是迁移期的自检工具 `Editor/MigrationVerifier.cs`（菜单 `团结/`）：跑一遍会输出脚本编译、预制体、场景引用、内置资源等检查报告到 `_Tuanjie/`，用来在迁移后证明「没有断引用、没有 Missing Script」。它不是游戏逻辑，可以随时删掉。
 
 **为什么这么分**：`Assets` 根目录下的东西越少越好。所有自己的东西塞进 `_Project/`，第三方素材塞进 `ThirdParty/`，以后要删素材包、要迁移、要给别人看代码，都不会误伤。
 
@@ -105,7 +121,7 @@ Roguelike2D/
 | 阶段 | 内容 | 状态 |
 | --- | --- | --- |
 | 0 | 工程与版本管理地基 | ✅ |
-| 1 | 垂直切片：移动 / 战斗 / 一个敌人 | ⬜ |
+| 1 | 垂直切片：移动 / 战斗 / 一个敌人 | ✅ |
 | 2 | 肉鸽骨架：关卡生成 / 掉落 / Boss | ⬜ |
 | 3 | 构筑深度 + 局外成长 | ⬜ |
 | 4 | 打磨：美术 / 音效 / UI | ⬜ |
@@ -120,11 +136,21 @@ Roguelike2D/
 - 设计并实现了基于**房间模板池 + 方向匹配**的程序化关卡生成，支持固定种子复现（可写单元测试验证）
 - 实现了数据驱动的词条系统（`ScriptableObject` + 多态效果），新增词条无需修改战斗代码
 - 实现了角色动作手感细节：土狼时间、跳跃缓冲、可变跳跃高度、命中顿帧
-- 用 Git 管理项目，配置 Unity SmartMerge 解决场景合并冲突，用 Git LFS 管理二进制素材
+- 用 Git 管理项目，配置 UnityYAMLMerge 作为场景/预制体的合并驱动，处理 `.unity` 与 `.prefab` 的多人协同时的冲突
+- 把工程从 Unity 6000.3 迁移到团结引擎 2022.3（含 22 处 API 降级与内置资源引用重映射），全程保持原 Unity 工程零改动，见 [docs/09-迁移到团结引擎.md](docs/09-迁移到团结引擎.md)
 
 ## 素材来源
 
 见 [Assets/ThirdParty/](Assets/ThirdParty/) 下各素材包的 `SOURCE.md`。
+
+当前版本**还没有接入任何美术素材**，画面全部由 `Assets/_Project/Art/Placeholder/` 下的两张程序生成的占位图承担：
+
+| 占位图 | 尺寸 | 用途 |
+| --- | --- | --- |
+| `Square.png` | 32×32，32 PPU | 玩家、地面、门、敌人、尖刺（靠 `SpriteRenderer.m_Color` 染色区分） |
+| `Circle.png` | 32×32，32 PPU | 火球、魔弹两个投射物 |
+
+迁移前这些位置引用的是 Unity 的内置图形（`Square` / `Knob`），团结引擎把内置资源包重新打包成了 `tuanjie_builtin_extra`，原 GUID 全部失效 —— 详见迁移记录。
 
 ## License
 

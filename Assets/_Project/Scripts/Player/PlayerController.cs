@@ -129,7 +129,7 @@ public class PlayerController : MonoBehaviour
         // 两个计时器都还有剩余 = 玩家「想跳」且「跳得了」
         if (_jumpBufferCounter <= 0f || _coyoteCounter <= 0f) return;
 
-        _rb.linearVelocity = new Vector2(_rb.linearVelocity.x, jumpForce);
+        _rb.velocity = new Vector2(_rb.velocity.x, jumpForce);
 
         // 立刻清零，避免同一次按键触发多次起跳
         _jumpBufferCounter = 0f;
@@ -146,12 +146,12 @@ public class PlayerController : MonoBehaviour
         float rate = Mathf.Abs(targetSpeed) > 0.01f ? acceleration : deceleration;
 
         float newSpeedX = Mathf.MoveTowards(
-            _rb.linearVelocity.x,
+            _rb.velocity.x,
             targetSpeed,
             rate * Time.fixedDeltaTime
         );
 
-        _rb.linearVelocity = new Vector2(newSpeedX, _rb.linearVelocity.y);
+        _rb.velocity = new Vector2(newSpeedX, _rb.velocity.y);
     }
 
     // ---------------- 重力与可变跳跃高度 ----------------
@@ -159,22 +159,22 @@ public class PlayerController : MonoBehaviour
     private void ApplyGravityAndJumpCut()
     {
         // 上升和下落用不同重力：下落更快，落地更利落
-        _rb.gravityScale = _rb.linearVelocity.y < 0f ? fallGravityScale : riseGravityScale;
+        _rb.gravityScale = _rb.velocity.y < 0f ? fallGravityScale : riseGravityScale;
 
         // 还在上升时松开跳跃键 → 立刻削掉一部分上升速度，跳得就矮
-        if (_input.ConsumeJumpReleased() && _rb.linearVelocity.y > 0f)
+        if (_input.ConsumeJumpReleased() && _rb.velocity.y > 0f)
         {
-            _rb.linearVelocity = new Vector2(
-                _rb.linearVelocity.x,
-                _rb.linearVelocity.y * jumpCutMultiplier
+            _rb.velocity = new Vector2(
+                _rb.velocity.x,
+                _rb.velocity.y * jumpCutMultiplier
             );
         }
     }
 
     private void ClampFallSpeed()
     {
-        if (_rb.linearVelocity.y < -maxFallSpeed)
-            _rb.linearVelocity = new Vector2(_rb.linearVelocity.x, -maxFallSpeed);
+        if (_rb.velocity.y < -maxFallSpeed)
+            _rb.velocity = new Vector2(_rb.velocity.x, -maxFallSpeed);
     }
 
     // ---------------- 调试可视化 ----------------

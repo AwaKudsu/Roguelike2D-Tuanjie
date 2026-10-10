@@ -1,7 +1,7 @@
 ﻿# ============================================================
-#  Roguelike2D - 开发环境一键配置脚本
+#  Roguelike2D（团结引擎版）- 开发环境一键配置脚本
 #
-#  用途：在新机器上克隆仓库后，一条命令配好 Git / LFS / Unity SmartMerge。
+#  用途：在新机器上克隆仓库后，一条命令配好 Git / LFS / 场景合并驱动。
 #        脚本是幂等的，可重复执行。
 #
 #  用法（必须在工程根目录，用 -ExecutionPolicy Bypass 绕过执行策略限制）：
@@ -21,30 +21,49 @@ function Write-Warn2 { param($m) Write-Host "      [警告] $m" -ForegroundColor
 function Write-Bad   { param($m) Write-Host "      [错误] $m" -ForegroundColor Red }
 
 Write-Host ""
-Write-Step "=== Roguelike2D 开发环境配置 ==="
+Write-Step "=== Roguelike2D（团结引擎版）开发环境配置 ==="
 Write-Host ""
 
 # ---------- 1. 定位工程根目录 ----------
 $repoRoot = Split-Path -Parent $PSScriptRoot
 if (-not (Test-Path (Join-Path $repoRoot 'ProjectSettings\ProjectVersion.txt'))) {
-    Write-Bad "找不到 ProjectSettings\ProjectVersion.txt，请在 Unity 工程根目录下运行本脚本"
+    Write-Bad "找不到 ProjectSettings\ProjectVersion.txt，请在团结工程根目录下运行本脚本"
     exit 1
 }
 Write-Step "[1/5] 工程根目录：$repoRoot"
 
-# ---------- 2. 读取 Unity 版本，定位 SmartMerge ----------
-$versionFile  = Join-Path $repoRoot 'ProjectSettings\ProjectVersion.txt'
-$versionLine  = Select-String -Path $versionFile -Pattern '^m_EditorVersion:\s*(.+)$'
-$unityVersion = $versionLine.Matches[0].Groups[1].Value.Trim()
-Write-Step "[2/5] 工程锁定的 Unity 版本：$unityVersion"
+# ---------- 2. 读取引擎版本，定位 YAML 合并工具 ----------
+# 本工程用团结引擎，ProjectVersion.txt 里的 m_TuanjieEditorVersion 是团结自有的版本号。
+$versionFile   = Join-Path $repoRoot 'ProjectSettings\ProjectVersion.txt'
+$versionLine   = Select-String -Path $versionFile -Pattern '^m_EditorVersion:\s*(.+)$'
+$engineVersion = $versionLine.Matches[0].Groups[1].Value.Trim()
+$tuanjieLine   = Select-String -Path $versionFile -Pattern '^m_TuanjieEditorVersion:\s*(.+)$'
+$tuanjieVer    = if ($tuanjieLine) { $tuanjieLine.Matches[0].Groups[1].Value.Trim() } else { '' }
+Write-Step "[2/5] 工程锁定的引擎版本：$engineVersion$(if ($tuanjieVer) { "（Tuanjie Editor $tuanjieVer）" })"
+Write-Host "      团结 Hub 的编辑器装在 D:\Tuanjie\Editor\<版本>\Editor\ ，不在 Unity Hub 的目录下。"
 
-$mergeExe = "C:\Program Files\Unity\Hub\Editor\$unityVersion\Editor\Data\Tools\UnityYAMLMerge.exe"
-if (-not (Test-Path $mergeExe)) {
-    Write-Warn2 "未找到 SmartMerge：$mergeExe"
-    Write-Warn2 "场景合并冲突将无法自动处理，请确认 Unity $unityVersion 已安装"
-    $mergeExe = $null
+# 团结 2022.3.62t16 的 Editor\Data\Tools 下【没有】UnityYAMLMerge.exe，
+# 因此这里按「团结目录 → Unity Hub 目录」的顺序找第一个存在的工具。
+$candidates = @(
+    "D:\Tuanjie\Editor\$engineVersion\Editor\Data\Tools\UnityYAMLMerge.exe",
+    "$env:ProgramFiles\Tuanjie\Hub\Editor\$engineVersion\Editor\Data\Tools\UnityYAMLMerge.exe",
+    "$env:ProgramFiles\Unity\Hub\Editor\$engineVersion\Editor\Data\Tools\UnityYAMLMerge.exe"
+)
+$mergeExe = $null
+foreach ($c in $candidates) {
+    if (Test-Path $c) { $mergeExe = $c; break }
+}
+if (-not $mergeExe) {
+    # 本机装了任何一版 Unity，就能白嫖它的 YAMLMerge（工具本身与引擎版本无关）
+    $any = Get-ChildItem "$env:ProgramFiles\Unity\Hub\Editor\*\Editor\Data\Tools\UnityYAMLMerge.exe" -ErrorAction SilentlyContinue |
+           Sort-Object FullName -Descending | Select-Object -First 1
+    if ($any) { $mergeExe = $any.FullName }
+}
+if (-not $mergeExe) {
+    Write-Warn2 "未找到 YAML 合并工具（UnityYAMLMerge.exe）"
+    Write-Warn2 "场景 / 预制体的合并冲突将无法自动处理"
 } else {
-    Write-Ok "SmartMerge：$mergeExe"
+    Write-Ok "合并工具：$mergeExe"
 }
 
 # ---------- 3. Git 基础配置 ----------
@@ -65,35 +84,36 @@ foreach ($k in $gitSettings.Keys) {
 }
 Write-Ok "已应用 $($gitSettings.Count) 项 Git 配置"
 
-# ---------- 4. Unity SmartMerge ----------
-Write-Step "[4/5] 配置 Unity SmartMerge..."
+# ---------- 4. YAML 合并驱动 ----------
+# 注意：这里写进【本仓库】的 .git/config，不改全局设置。
+# 路径含空格时 git 会存成断开的 "C:/Program"，所以统一转成 8.3 短路径。
+Write-Step "[4/5] 注册场景/预制体合并驱动（merge.unityyamlmerge）..."
 if ($mergeExe) {
-    $mergePath = $mergeExe -replace '\\', '/'
-    $driver    = '"' + $mergePath + '" merge -p %O %B %A %A'
-    git config --global merge.unityyamlmerge.name      "Unity SmartMerge" 2>&1 | Out-Null
-    git config --global merge.unityyamlmerge.driver    $driver            2>&1 | Out-Null
-    git config --global merge.unityyamlmerge.recursive binary             2>&1 | Out-Null
-    Write-Ok "已注册合并驱动（.gitattributes 中的 *.unity / *.prefab 将走此工具）"
+    $shortExe = $mergeExe
+    try {
+        $fso = New-Object -ComObject Scripting.FileSystemObject
+        $shortExe = $fso.GetFile($mergeExe).ShortPath
+    } catch {
+        Write-Warn2 "取短路径失败，改用原始路径（含空格时可能失效）"
+    }
+    $driver = ('"' + ($shortExe -replace '\\', '/') + '" merge -p "%O" "%B" "%A" "%A"')
+    git config --local merge.unityyamlmerge.name      "Unity SmartMerge" 2>&1 | Out-Null
+    git config --local merge.unityyamlmerge.driver    $driver            2>&1 | Out-Null
+    git config --local merge.unityyamlmerge.recursive binary             2>&1 | Out-Null
+    Write-Ok "已注册（.gitattributes 中的 *.unity / *.prefab / *.asset 将走此工具）"
+    Write-Host "      实际写入：$(git config --local --get merge.unityyamlmerge.driver)"
 }
 
 # ---------- 5. Git LFS ----------
 Write-Step "[5/5] 配置 Git LFS..."
 if (-not (Get-Command git-lfs -ErrorAction SilentlyContinue)) {
-    Write-Warn2 "未安装 git-lfs，请先安装：https://git-lfs.com/"
+    Write-Warn2 "未安装 git-lfs。.gitattributes 里的 filter=lfs 规则需要它，"
+    Write-Warn2 "否则 git add 会报 \"filter 'lfs' failed\"。安装：winget install GitHub.GitLFS"
 } else {
-    git lfs install 2>&1 | Out-Null
-    $patterns = @(
-        '*.png', '*.jpg', '*.jpeg', '*.psd', '*.tga', '*.tif', '*.tiff', '*.bmp', '*.gif', '*.exr', '*.hdr',
-        '*.wav', '*.mp3', '*.ogg', '*.aiff',
-        '*.fbx', '*.obj', '*.blend', '*.max', '*.ma', '*.mb',
-        '*.ttf', '*.otf',
-        '*.mp4', '*.mov', '*.webm',
-        '*.cubemap', '*.unitypackage'
-    )
-    Push-Location $repoRoot
-    foreach ($p in $patterns) { git lfs track $p 2>&1 | Out-Null }
-    Pop-Location
-    Write-Ok "已追踪 $($patterns.Count) 种二进制素材类型"
+    git lfs install --local 2>&1 | Out-Null
+    $trackedInAttrs = (Select-String -Path (Join-Path $repoRoot '.gitattributes') -Pattern 'filter=lfs').Count
+    Write-Ok "git-lfs 已启用（$(git lfs version)）"
+    Write-Ok ".gitattributes 中已有 $trackedInAttrs 条 LFS 规则，无需重新 track"
 }
 
 # ---------- 自检 ----------
@@ -104,8 +124,8 @@ Push-Location $repoRoot
 
 Write-Host ("Git 身份   : {0} [{1}]" -f (git config user.name), (git config user.email))
 
-$drv = git config --global --get merge.unityyamlmerge.driver
-Write-Host ("SmartMerge : {0}" -f $(if ($drv) { '已配置' } else { '未配置' }))
+$drv = git config --local --get merge.unityyamlmerge.driver
+Write-Host ("合并驱动   : {0}" -f $(if ($drv) { '已配置（本仓库）' } else { '未配置' }))
 
 if (Get-Command git-lfs -ErrorAction SilentlyContinue) {
     Write-Host ("Git LFS    : {0}" -f (git lfs version))
@@ -113,14 +133,16 @@ if (Get-Command git-lfs -ErrorAction SilentlyContinue) {
     Write-Host "Git LFS    : 未安装"
 }
 
+Write-Host ("远端       : {0}" -f ((git remote -v | Select-Object -First 1) -replace '\s+', ' '))
+
 Write-Host ""
 Write-Host "忽略规则检查（用 git check-ignore --no-index 判断，不依赖文件是否真实存在）："
-foreach ($d in @('Library/', 'Temp/', 'Logs/', 'UserSettings/', 'Build/', 'obj/')) {
+foreach ($d in @('Library/', 'Temp/', 'Logs/', 'UserSettings/', 'Build/', 'obj/', '.codely-cli/', '_Tuanjie/install-1.10.4.json')) {
     git check-ignore --no-index -q $d 2>&1 | Out-Null
     if ($LASTEXITCODE -eq 0) { Write-Ok "$d 已忽略" }
     else { Write-Bad "$d 未被忽略，请检查 .gitignore" }
 }
-foreach ($d in @('ProjectSettings/', 'Assets/', 'Packages/')) {
+foreach ($d in @('ProjectSettings/', 'Assets/', 'Packages/', 'docs/')) {
     git check-ignore --no-index -q $d 2>&1 | Out-Null
     if ($LASTEXITCODE -eq 0) { Write-Bad "$d 被忽略了！它必须提交" }
     else { Write-Ok "$d 会被提交" }

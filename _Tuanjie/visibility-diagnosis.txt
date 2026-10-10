@@ -1,0 +1,97 @@
+===== 相机 =====
+相机 'Main Camera' 位置=(-0.03, -0.03, -10.00) 旋转=(0.00, 0.00, 0.00) 正交=True size=5 fov=60 aspect=1.333 near=0.3 far=1000 clearFlags=Skybox bg=RGBA(0.192, 0.302, 0.475, 0.000) cullingMask=0xFFFFFFFF
+  可视范围(世界) X[-6.70, 6.64] Y[-5.03, 4.97]
+
+===== SpriteRenderer =====
+总数 = 1
+[激活] 启用 'Player' 世界坐标=(-0.03, -0.03, 0.00) 缩放=(1.00, 1.00, 1.00) sprite=★null 颜色=RGBA(0.198, 0.925, 0.084, 1.000) 排序层ID=0 排序层名='Default' 排序序号=0 layer=Player(6) 无sprite→无包围盒
+
+===== UI =====
+Canvas 'Canvas/ManaBar' 渲染模式=ScreenSpaceOverlay 世界相机=null 排序序号=0 缩放=(0.38, 0.38, 0.38) CanvasScaler 模式=ConstantPixelSize 参考分辨率=(800.00, 600.00) match=0
+Canvas 'Canvas' 渲染模式=ScreenSpaceOverlay 世界相机=null 排序序号=0 缩放=(0.38, 0.38, 0.38) CanvasScaler 模式=ScaleWithScreenSize 参考分辨率=(1920.00, 1080.00) match=0.5
+[激活] Image 'Canvas/HealthBar/HealthFill' sprite='UISprite' 颜色=RGBA(1.000, 0.060, 0.000, 1.000) 世界坐标=(80.83, 475.00, 0.00) 尺寸=(420.00, 26.00) 屏幕像素=(80.83, 475.00)
+[激活] Image 'Canvas/HealthBar' sprite=★null 颜色=RGBA(0.296, 0.296, 0.296, 1.000) 世界坐标=(0.00, 480.00, 0.00) 尺寸=(420.00, 26.00) 屏幕像素=(0.00, 480.00)
+
+===== 场景根物体 =====
+'Player' [Player] 激活=True 坐标=(-0.03, -0.03, 0.00) 缩放=(1.00, 1.00, 1.00)
+    - Transform
+    - SpriteRenderer
+    - Rigidbody2D 类型=Dynamic 重力=3 模拟=True
+    - CapsuleCollider2D 尺寸=(1.00, 1.00, 0.00) 中心=(-0.03, -0.03, 0.00)
+    - PlayerInputReader
+    - PlayerController
+    - CharacterStats
+    - Health
+    - HitReaction
+    - PlayerAttacker
+    - ManaPool
+    - CharacterVisual
+    - SkillCaster
+    - Transform
+    - Camera
+    - AudioListener
+'RunManager' [RunManager] 激活=True 坐标=(9.07, -2.67, 0.00) 缩放=(1.00, 1.00, 1.00)
+    - Transform
+    - RunManager
+'RoomManager' [RoomManager] 激活=True 坐标=(15.31, 0.75, 0.00) 缩放=(1.00, 1.00, 1.00)
+    - Transform
+    - RoomManager
+'Canvas' [Canvas] 激活=True 坐标=(320.00, 240.00, 0.00) 缩放=(0.38, 0.38, 0.38)
+    - RectTransform
+    - Canvas
+    - CanvasScaler
+    - GraphicRaycaster
+    - HUDController
+    - RectTransform
+    - CanvasRenderer
+    - Image
+    - StatBar
+    - RectTransform
+    - CanvasRenderer
+    - Image
+    - RectTransform
+    - Canvas
+    - CanvasScaler
+    - GraphicRaycaster
+'EventSystem' [EventSystem] 激活=True 坐标=(0.00, 0.00, 0.00) 缩放=(1.00, 1.00, 1.00)
+    - Transform
+    - EventSystem
+    - InputSystemUIInputModule
+
+===== 工程里的 Sprite 资产 =====
+t:Sprite 命中 = 81
+
+===== 排序层 (Sorting Layers) =====
+  id=0 name='Default' value=0
+
+===== 内置 Sprite 解析 =====
+AssetDatabase.GUIDToAssetPath("311925a002f4447b3a28927169b83ea6") = ''
+GUIDToAssetPath 是否为空 = True
+  guid=311925a002f4447b3a28927169b83ea6 → path=''
+  guid=0000000000000000f000000000000000 → path='Resources/tuanjie_builtin_extra'
+  guid=fe87c0e1cc204ed48ad3b37840f39efc → path='Packages/com.unity.ugui/Runtime/UI/Core/Image.cs'
+Player.SpriteRenderer.sprite = ★null
+  SerializedProperty m_Sprite: objectReferenceValue=★null instanceID=20914 类型=?
+
+===== 编辑器内置 Sprite（Resources/unity_builtin_extra 等）=====
+  'UISprite' 尺寸=32x32 path='Resources/tuanjie_builtin_extra'
+  合计列出 1 个内置精灵
+
+===== 按名字定位「内置 UISprite」=====
+  'UISprite' 尺寸=32x32 rect=(x:0.00, y:0.00, width:32.00, height:32.00) pixelsPerUnit=200 path='Resources/tuanjie_builtin_extra' instanceID=718
+
+===== 内置资源包路径 =====
+  'Resources/tuanjie_builtin_extra' → ★null
+  'Resources/unity_builtin_extra' → ★null
+  'Resources/tuanjie default resources' → ★null
+  'Resources/unity default resources' → ★null
+  'Library/tuanjie_builtin_extra' → ★null
+  'Library/unity_builtin_extra' → ★null
+
+===== 内置资源包里的全部 Sprite（用于挑替代品）=====
+  id=718 'UISprite' 尺寸=32x32 rect=32x32 ppu=200 path='Resources/tuanjie_builtin_extra'
+  合计 1 个
+
+===== 失配的那个 fileID 在团结里是什么 =====
+  fileID=7482667652216324306 → ★null（不存在）
+  fileID=10905 → ★null（不存在）

@@ -258,9 +258,9 @@ PlayerSettings:
   iOSAutomaticallyDetectAndAddCapabilities: 1
   appleEnableProMotion: 0
   shaderPrecisionModel: 0
-  clonedFromGUID: 10ad67313f4034357812315f3c407484
-  templatePackageId: com.unity.template.2d@11.0.0
-  templateDefaultScene: Assets/Scenes/SampleScene.unity
+  clonedFromGUID: 00000000000000000000000000000000
+  templatePackageId: 
+  templateDefaultScene: 
   useCustomMainManifest: 0
   useCustomLauncherManifest: 0
   useCustomMainGradleTemplate: 0

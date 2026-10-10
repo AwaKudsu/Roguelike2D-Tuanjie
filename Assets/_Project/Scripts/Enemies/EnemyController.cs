@@ -113,16 +113,16 @@ public class EnemyController : MonoBehaviour
     private void Chase(int dir)
     {
         float targetSpeed = dir * MoveSpeed;
-        float newX = Mathf.MoveTowards(_rb.linearVelocity.x, targetSpeed,
+        float newX = Mathf.MoveTowards(_rb.velocity.x, targetSpeed,
                                        acceleration * Time.fixedDeltaTime);
-        _rb.linearVelocity = new Vector2(newX, _rb.linearVelocity.y);
+        _rb.velocity = new Vector2(newX, _rb.velocity.y);
     }
 
     private void Brake()
     {
-        float newX = Mathf.MoveTowards(_rb.linearVelocity.x, 0f,
+        float newX = Mathf.MoveTowards(_rb.velocity.x, 0f,
                                        acceleration * Time.fixedDeltaTime);
-        _rb.linearVelocity = new Vector2(newX, _rb.linearVelocity.y);
+        _rb.velocity = new Vector2(newX, _rb.velocity.y);
     }
 
     // ---------------- 攻击 ----------------
@@ -167,7 +167,7 @@ public class EnemyController : MonoBehaviour
 
     private void OnDied()
     {
-        _rb.linearVelocity = Vector2.zero;
+        _rb.velocity = Vector2.zero;
         _rb.simulated = false;         // 停掉物理，尸体不会继续滑
 
         Destroy(gameObject, deathDelay);

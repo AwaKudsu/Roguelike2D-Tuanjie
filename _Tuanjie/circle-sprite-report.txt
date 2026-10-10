@@ -1,0 +1,6 @@
+[INFO] 圆精灵资产 | Assets/_Project/Art/Placeholder/Circle.png
+[INFO] guid | 7d50da08d6c27ad4698f347ac2d3181a
+[PASS] 资产加载 | sprite='Circle' 贴图=32x32 rect=32x32 ppu=32
+[PASS] MageBolt.prefab | sprite='Circle'（32x32）颜色=RGBA(0.015, 0.891, 0.962, 1.000)
+[PASS] Fireball.prefab | sprite='Circle'（32x32）颜色=RGBA(1.000, 0.507, 0.000, 1.000)
+[SUMMARY] 属性校验 | 全部通过

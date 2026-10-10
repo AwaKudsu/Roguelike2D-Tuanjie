@@ -89,3 +89,14 @@ crashlytics-build.properties
 # 本地日志与崩溃转储
 *.log
 crash-*.txt
+
+# ---------- 团结（Tuanjie）相关 ----------
+
+# 团结 Cowork 的工程扩展与本地代码索引库。
+# .codely-cli 内含 UnityInsight 索引数据库（100 MB+）与本机专属路径，可重建，绝不入库。
+/.codely-cli/
+/.codely.packages/
+/.codelyignore
+
+# 迁移/自检脚本产出的报告保留，但团结编辑器的安装清单有 54 MB，必须忽略
+/_Tuanjie/install-*.json

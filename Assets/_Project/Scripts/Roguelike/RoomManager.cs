@@ -85,7 +85,7 @@ public class RoomManager : MonoBehaviour
         else if (_currentRoom == null)
         {
             // 场景里已经手摆了一间，把它认领过来，这样它也能触发换房间
-            _currentRoom = FindFirstObjectByType<Room>();
+            _currentRoom = FindObjectOfType<Room>();
             if (_currentRoom != null) _currentRoom.Initialize(this);
         }
     }
@@ -179,7 +179,7 @@ public class RoomManager : MonoBehaviour
         if (_playerBody != null)
         {
             _playerBody.position = target;
-            _playerBody.linearVelocity = Vector2.zero;
+            _playerBody.velocity = Vector2.zero;
         }
 
         _player.position = target;
@@ -191,7 +191,7 @@ public class RoomManager : MonoBehaviour
     /// </summary>
     private void CleanupProjectiles()
     {
-        var flying = FindObjectsByType<Projectile>(FindObjectsSortMode.None);
+        var flying = FindObjectsOfType<Projectile>();
         for (int i = 0; i < flying.Length; i++)
         {
             if (flying[i] != null) Destroy(flying[i].gameObject);
