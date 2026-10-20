@@ -128,7 +128,19 @@ public class RoomManager : MonoBehaviour
 
         if (fader != null) yield return fader.FadeOut();
 
-        BuildRoom(PickIndex());
+        // ★ 这一层 try/catch 是有血的教训的：
+        //   BuildRoom 末尾会 Invoke RoomChanged，任何订阅者抛异常都会把协程当场炸停。
+        //   那样 fader.FadeIn() 永远跑不到，画面就永久停在黑幕上，
+        //   而且 _switching 卡在 true，之后按门再也没反应。
+        //   订阅者是外挂的（词条、成就、统计……），不能让它决定换房能不能收尾。
+        try
+        {
+            BuildRoom(PickIndex());
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogException(e, this);
+        }
 
         if (fader != null) yield return fader.FadeIn();
 

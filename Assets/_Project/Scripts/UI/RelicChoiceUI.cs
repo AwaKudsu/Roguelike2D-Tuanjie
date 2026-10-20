@@ -59,7 +59,10 @@ public class RelicChoiceUI : MonoBehaviour
     private void Awake()
     {
         Build();
-        _panel.gameObject.SetActive(false);
+
+        // Build 万一中途失败，_panel 会是 null —— 别在这里再抛一个空引用，
+        // 那只会把真正的错误埋掉。
+        if (_panel != null) _panel.gameObject.SetActive(false);
     }
 
     private void Update()
@@ -152,11 +155,20 @@ public class RelicChoiceUI : MonoBehaviour
     private void Build()
     {
         // 1. 自己和画布
-        RectTransform self = (RectTransform)transform;
+        //
+        // ★ 这里绝不能写 (RectTransform)transform ——
+        //   用 new GameObject(...) 建出来的物体挂的是普通 Transform，
+        //   强制转换会抛 InvalidCastException，整个 Build 当场中断：
+        //   面板一张卡都建不出来，而异常还会顺着 RoomChanged 事件
+        //   一路炸穿 RoomManager.AdvanceRoutine，让黑幕再也淡不回去。
+        //   （这个坑已经踩过一次：上一关结束切下一关时画面永久全黑。）
+        RectTransform self = transform as RectTransform;
         if (self == null)
         {
-            Debug.LogError("[Relic UI] RelicChoiceUI 必须挂在一个带 RectTransform 的物体上（或由代码创建）");
-            return;
+            // 没有 RectTransform 也能搭：子节点自己带 RectTransform，
+            // 只要父级是 Canvas 就行。正常情况下 RelicManager 会建出带
+            // RectTransform 的物体，走到这里说明是手挂的，留个提示即可。
+            Debug.LogWarning("[Relic UI] 本物体没有 RectTransform，按普通 Transform 继续搭界面。", this);
         }
 
         Canvas canvas = gameObject.GetComponent<Canvas>();

@@ -127,7 +127,19 @@ public class RelicManager : MonoBehaviour
         }
 
         _offering = true;
-        EnsureUI().Show(choices, OnPicked);
+
+        // 面板是运行时用代码搭的，万一搭失败，异常会顺着 RoomChanged 事件
+        // 一路炸穿 RoomManager.AdvanceRoutine —— 表现就是「换房间后黑屏再也不散」。
+        // 这里兜住它：面板坏了顶多这一次没词条可选，不能让整个换房流程崩掉。
+        try
+        {
+            EnsureUI().Show(choices, OnPicked);
+        }
+        catch (Exception e)
+        {
+            _offering = false;
+            Debug.LogException(e, this);
+        }
     }
 
     private void OnPicked(RelicData relic)
@@ -209,7 +221,9 @@ public class RelicManager : MonoBehaviour
     {
         if (choiceUI != null) return choiceUI;
 
-        GameObject go = new GameObject("RelicChoiceUI");
+        // ★ 必须带 RectTransform：new GameObject("名字") 建出来的是普通 Transform，
+        //   面板根节点既没法铺满屏幕，RelicChoiceUI.Build 里强转 RectTransform 还会抛异常。
+        GameObject go = new GameObject("RelicChoiceUI", typeof(RectTransform));
         choiceUI = go.AddComponent<RelicChoiceUI>();
         return choiceUI;
     }
