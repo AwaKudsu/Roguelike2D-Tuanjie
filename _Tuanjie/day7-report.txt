@@ -1,0 +1,23 @@
+===== Day 7 装配报告 =====
+时间：2026-10-20 15:38:12
+[PASS] 已打开场景 | Assets/_Project/Scenes/Game.unity
+
+----- 词条资产 -----
+[PASS] 锋利的爪（Relic_SharpClaw）| 攻击力 +10 | 修饰符 1 条 | 已存在，覆盖
+[PASS] 厚皮（Relic_ThickHide）| 最大生命 +30，防御 +8% | 修饰符 2 条 | 已存在，覆盖
+[PASS] 疾风靴（Relic_SwiftBoots）| 移动速度 +12% | 修饰符 1 条 | 已存在，覆盖
+[PASS] 深井（Relic_DeepWell）| 最大法力 +30，每秒回蓝 +2 | 修饰符 2 条 | 已存在，覆盖
+[PASS] 狂怒（Relic_Berserk）| 攻击力 +25%，但最大生命 -15 | 修饰符 2 条 | 已存在，覆盖
+[PASS] 锐眼（Relic_KeenEye）| 暴击率 +12% | 修饰符 1 条 | 已存在，覆盖
+[PASS] 冷静（Relic_ColdBlood）| 冷却缩减 +15% | 修饰符 1 条 | 已存在，覆盖
+[PASS] 超载（Relic_Overload）| 攻击力 ×1.4，但冷却缩减 -10% | 修饰符 2 条 | 已存在，覆盖
+
+----- 场景装配 -----
+[PASS] 新建物体 | RelicManager
+[PASS] 挂上组件 | RelicManager
+[PASS] 词条池 | 8 个
+[PASS] 数值来源 | Player
+[PASS] 场景已存盘 | Assets/_Project/Scenes/Game.unity
+[INFO] RelicManager 位置 | RelicManager
+[SUMMARY] 词条资产：8 个
+[SUMMARY] 词条池已接：是

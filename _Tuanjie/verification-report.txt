@@ -1,8 +1,8 @@
 [INFO]|编辑器版本|2022.3.62t16
 [INFO]|工程路径|D:\TuanjieRoguelike2D
-[INFO]|Assets/_Project 下脚本总数|30
-[INFO]|被场景/预制体引用的脚本数|26
-[PASS]|全部被引用的脚本均能编译并加载出组件类|26 个
+[INFO]|Assets/_Project 下脚本总数|36
+[INFO]|被场景/预制体引用的脚本数|30
+[PASS]|全部被引用的脚本均能编译并加载出组件类|30 个
 [INFO]|非组件类脚本（不含 MonoBehaviour，GetClass 返回 null 属正常）|Assets/_Project/Settings/PlayerInputActions.cs
 [PASS]|输入包装类 PlayerInputActions|PlayerInputActions @ Assembly-CSharp；asset 属性=有
 [INFO]|运行时程序集数量|134
@@ -11,7 +11,7 @@
 [PASS]|9 个 ScriptableObject 全部可加载|9
 [PASS]|4 个预制体全部可加载且无 Missing Script|4
 [PASS]|场景可被识别为 SceneAsset|Assets/_Project/Scenes/Game.unity
-[INFO]|场景根物体数|5
+[INFO]|场景根物体数|6
 [PASS]|场景内 Missing Script 数|0
 [PASS]|场景内指向已丢失资产的引用数|0
 [PASS]|场景内存在 EventSystem|找到
@@ -22,7 +22,7 @@
 [PASS]|输入资产解析|Assets/_Project/Settings/PlayerInputActions.inputactions：1 个 ActionMap / 8 个 Action
 [PASS]|输入资产解析|Packages/com.unity.inputsystem/InputSystem/Plugins/PlayerInput/DefaultInputActions.inputactions：2 个 ActionMap / 13 个 Action
 [INFO]|Input System 程序集版本|1.7.0.0 @ D:\TuanjieRoguelike2D\Library\ScriptAssemblies\Unity.InputSystem.dll
-[INFO]|扫描的资产引用数|106
+[INFO]|扫描的资产引用数|152
 [PASS]|失效资产引用|0 处
 [SUMMARY]|失败|0
 [SUMMARY]|警告|0

@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:yousandi.cn,2023:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b32b2bfdf7cb546428eca2385a255c8a, type: 3}
+  m_Name: Relic_Overload
+  m_EditorClassIdentifier: 
+  displayName: "\u8D85\u8F7D"
+  description: "\u653B\u51FB\u529B \xD71.4\uFF0C\u4F46\u51B7\u5374\u7F29\u51CF -10%"
+  icon: {fileID: 0}
+  rarity: 2
+  modifiers:
+  - Type: 1
+    Mode: 2
+    Value: 0.4
+  - Type: 7
+    Mode: 0
+    Value: -0.1
