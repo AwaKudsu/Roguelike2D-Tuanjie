@@ -195,9 +195,70 @@ namespace Tuanjie.PortCheck
                 "Initialize(RoomManager, RoomType)=" + (roomInit != null) + " Type 属性=" + (roomType != null),
                 "Room 上没有带 RoomType 的 Initialize 重载，池子里的类型注入不下去");
 
-            // ---------- 10. 还原现场 ----------
+            // ---------- 10. 真的实例化一间房（验证池子 → 预制体 → 类型 → 玩家落点 整条链） ----------
+            MethodInfo buildRoom = typeof(RoomManager).GetMethod("BuildRoom", Private, null, new[] { typeof(int) }, null);
+            FieldInfo currentRoomField = typeof(RoomManager).GetField("_currentRoom", Private);
+            if (buildRoom == null || currentRoomField == null)
+            {
+                Fail("反射拿 BuildRoom", "buildRoom=" + (buildRoom != null) + " _currentRoom=" + (currentRoomField != null));
+            }
+            else
+            {
+                ResetRandom(rm, rngField, lastPickField, seedProp, fixedSeed);
+                buildRoom.Invoke(rm, new object[] { 0 });
+
+                var room = currentRoomField.GetValue(rm) as Room;
+                if (room == null)
+                {
+                    Fail("实例化房间", "BuildRoom(0) 之后 _currentRoom 还是空的");
+                }
+                else
+                {
+                    Info("实例化的房间", room.name + " | 类型=" + RoomTypeNames.Of(room.Type) +
+                                        " | 敌人=" + room.AliveEnemies +
+                                        " | 位置=" + room.transform.position);
+
+                    Check(room.Type == pool.Entries[0].type, "房间类型来自池子条目",
+                        "条目类型=" + RoomTypeNames.Of(pool.Entries[0].type) + "，房间实际类型=" + RoomTypeNames.Of(room.Type),
+                        "房间类型和池子条目对不上：条目=" + RoomTypeNames.Of(pool.Entries[0].type) +
+                        " 房间=" + RoomTypeNames.Of(room.Type));
+
+                    Check(rm.RoomsCleared == 1, "RoomsCleared 递增", "RoomsCleared=" + rm.RoomsCleared,
+                        "进第一间房之后 RoomsCleared 应该是 1，实际 " + rm.RoomsCleared);
+
+                    Check(room.SpawnPoint != null, "房间有出生点",
+                        room.SpawnPoint != null ? "SpawnPoint=" + room.SpawnPoint.position : "（空）",
+                        "这个房间预制体没有配出生点，进房后玩家会被放到锚点上");
+
+                    // 玩家应该被挪到出生点（MovePlayerToSpawn）
+                    GameObject player = null;
+                    try
+                    {
+                        player = GameObject.FindGameObjectWithTag("Player");
+                    }
+                    catch (UnityException)
+                    {
+                        // Tag 没定义时 Unity 会抛异常，下面会当成没找到
+                    }
+
+                    if (player != null && room.SpawnPoint != null)
+                    {
+                        float distance = Vector3.Distance(player.transform.position, room.SpawnPoint.position);
+                        Check(distance < 0.5f, "玩家被移到出生点",
+                            "玩家=" + player.transform.position + "，出生点=" + room.SpawnPoint.position +
+                            "，相距 " + distance.ToString("0.00"),
+                            "玩家没有落在出生点上，相距 " + distance.ToString("0.00") + " —— 检查 MovePlayerToSpawn");
+                    }
+                    else
+                    {
+                        Warn("玩家落点", "找不到 Tag=Player 的物体，跳过这一项");
+                    }
+                }
+            }
+
+            // ---------- 11. 还原现场 ----------
             ResetRandom(rm, rngField, lastPickField, seedProp, 0);
-            Info("还原", "Seed 已还原成 0（场景没有存盘）");
+            Info("还原", "Seed 已还原成 0（场景没有存盘，实例化的房间不会留下）");
 
             Write();
         }
