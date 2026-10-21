@@ -1448,9 +1448,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d249d6a907569524bb6212e4ed8d0a1e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::RoomManager
+  roomPool: {fileID: 11400000, guid: 35d62df21a5ba0b4ea9928ae4d2abaf1, type: 2}
   roomPrefabs:
   - {fileID: 8580136282930471505, guid: 193a506dcc1989040827d51987d4fa9b, type: 3}
   - {fileID: 8580136282930471505, guid: fcfb240064a07ff42998b1631cf722d7, type: 3}
+  seed: 0
   roomAnchor: {fileID: 0}
   fader: {fileID: 1077956576}
   useBagRandom: 1

@@ -28,6 +28,13 @@ public class Room : MonoBehaviour
     /// <summary>玩家进入本房间时的落点</summary>
     public Transform SpawnPoint => spawnPoint != null ? spawnPoint : transform;
 
+    /// <summary>
+    /// 本房间的类型（战斗 / 精英 / 商店 / 宝箱 / Boss）。
+    /// 由 RoomManager 在实例化后注入，房间自己不写死 —— 同一个预制体
+    /// 可以当普通房也能当精英房，区别只在外面的房间池配置。
+    /// </summary>
+    public RoomType Type { get; private set; } = RoomType.Battle;
+
     /// <summary>本房间的门</summary>
     public Door Door => door;
 
@@ -53,7 +60,17 @@ public class Room : MonoBehaviour
     /// </summary>
     public void Initialize(RoomManager manager)
     {
+        Initialize(manager, RoomType.Battle);
+    }
+
+    /// <summary>
+    /// 带类型的版本：RoomManager 按房间池里配的类型注入。
+    /// 保留上面那个单参数重载，是为了不打断任何还在用旧签名的调用。
+    /// </summary>
+    public void Initialize(RoomManager manager, RoomType type)
+    {
         _manager = manager;
+        Type = type;
     }
 
     private void Awake()
@@ -105,7 +122,7 @@ public class Room : MonoBehaviour
 
         // 留一行开局日志。房间这类「门为什么开了/没开」的问题，
         // 光看画面很难判断，看数字一眼就清楚
-        Debug.Log($"[Room] {name}：敌人 {AliveEnemies} 个，门{(IsCleared ? "已开" : "锁着")}", this);
+        Debug.Log($"[Room] {name}（{RoomTypeNames.Of(Type)}）：敌人 {AliveEnemies} 个，门{(IsCleared ? "已开" : "锁着")}", this);
     }
 
     private void OnEnemyDied()

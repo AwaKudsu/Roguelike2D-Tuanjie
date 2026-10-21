@@ -1,0 +1,17 @@
+[Day8] 房间池装配报告
+
+[PASS] 已打开场景 | Assets/_Project/Scenes/Game.unity
+[INFO] 发现房间预制体 | Assets/_Project/Prefabs/Rooms/Room_01.prefab
+[INFO] 发现房间预制体 | Assets/_Project/Prefabs/Rooms/Room_02.prefab
+[PASS] 新建房间池资产 | Assets/_Project/Data/Rooms/RoomPool_Default.asset
+[PASS] 写入条目 | 2 条（全部「战斗」，权重 1，第 1 间起可出）
+[PASS] 第 1 条 | Room_01　类型=战斗　权重=1　第 1~∞ 间
+[PASS] 第 2 条 | Room_02　类型=战斗　权重=1　第 1~∞ 间
+[PASS] 接入 RoomManager | Room Pool = Assets/_Project/Data/Rooms/RoomPool_Default.asset
+[PASS] 种子 | 0（每局随机，开局会打印到 Console）
+[INFO] 旧列表还有 2 条 —— 池子非空时会被忽略，留着不影响，想干净可以手动清空
+[PASS] 场景已存盘
+
+[SUMMARY] 全部通过
+
+下一步：回到编辑器按 Play。Console 里会打印「本局种子 = xxxx」和「进入第 1 间：战斗「Room_xx」」。

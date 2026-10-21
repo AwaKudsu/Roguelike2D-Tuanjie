@@ -1,0 +1,12 @@
+[Day8] 关卡随机校验
+
+[PASS] 同种子 → 同序列
+        种子 20261021：Room_02 → Room_01 → Room_02 → Room_01 → Room_02 → Room_01 → Room_02 → Room_01 → Room_02 → Room_01
+
+[INFO] 种子 20261022：Room_02 → Room_01 → Room_02 → Room_01 → Room_02 → Room_01 → Room_02 → Room_01 → Room_02 → Room_01
+[INFO] 不同种子 → 不同序列 | 池子里可选项太少，两次碰巧一样
+
+[PASS] 相邻两间不重复 | 连抽 20 间
+[INFO] 池子条目 | 2 条
+
+[SUMMARY] 见上方逐条结果
