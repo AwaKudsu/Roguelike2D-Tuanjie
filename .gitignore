@@ -100,3 +100,6 @@ crash-*.txt
 
 # 迁移/自检脚本产出的报告保留，但团结编辑器的安装清单有 54 MB，必须忽略
 /_Tuanjie/install-*.json
+
+# 离线编译校验的产物（DayCheck 等脚本编出来的 dll / rsp），可随时重新生成，不入库
+/_Tuanjie/out-*/
