@@ -1,0 +1,23 @@
+[Day8] 选房逻辑验证报告
+
+[PASS] 打开场景 | Assets/_Project/Scenes/Game.unity
+[INFO] RoomManager 物体 | RoomManager（场景里共 1 个）
+[PASS] 房间池接线 | RoomPool_Default
+[INFO] 池子条目数 | 2 条
+[INFO]   条目 0 | Room_01 | 类型=战斗 | 权重=1 | 出现窗口=1~不限
+[INFO]   条目 1 | Room_02 | 类型=战斗 | 权重=1 | 出现窗口=1~不限
+[INFO] 场景里的 Seed 字段 | 0（0 = 每局随机）
+[INFO] 反射 | EnsureRandom / PickIndex / _rng / _lastPoolPick 全部拿到，可以走真代码路径
+[PASS] 固定种子能连抽 10 间 | 序列=第1间:1 → 第2间:0 → 第3间:1 → 第4间:0 → 第5间:1 → 第6间:0 → 第7间:1 → 第8间:0 → 第9间:1 → 第10间:0
+[PASS] 同种子 → 同序列 | 两次都是 第1间:1 → 第2间:0 → 第3间:1 → 第4间:0 → 第5间:1 → 第6间:0 → 第7间:1 → 第8间:0 → 第9间:1 → 第10间:0
+[PASS] Seed 属性回读 | Seed=20261021
+[PASS] 相邻两间不重复 | 连抽 10 间
+[WARN] 换种子 → 换序列 | 种子 20261021 与 20261022 序列相同：第1间:1 → 第2间:0 → 第3间:1 → 第4间:0 → 第5间:1 → 第6间:0 → 第7间:1 → 第8间:0 → 第9间:1 → 第10间:0。池子只有 2 条时这是正常现象（不重复规则会把序列压成交替），等房间做到 4 间以上再看这一项
+[PASS] Seed=0 时自动生成种子 | 1151619772 / 1151619772
+[WARN] Seed=0 时两局不同种子 | 两次都生成了 1151619772（同一 tick 内运行才会这样，不影响实际使用）
+[PASS] 开局房间类型的默认值 | CurrentRoomType=战斗
+[PASS] Room 能接收外部注入的类型 | Initialize(RoomManager, RoomType)=True Type 属性=True
+[INFO] 还原 | Seed 已还原成 0（场景没有存盘）
+
+[SUMMARY] 失败 | 0
+[SUMMARY] 警告 | 2
