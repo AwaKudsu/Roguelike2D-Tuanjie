@@ -30,7 +30,14 @@ public class PlayerInputReader : MonoBehaviour
     private void Awake()
     {
         _actions = new PlayerInputActions();
+
+        // 玩家在设置里改过的按键存在本机，这里读回来覆盖默认绑定。
+        // 放在 Awake 而不是 OnEnable：暂停菜单会反复开关本组件，OnEnable 会被调很多次。
+        InputBindingStore.Apply(_actions.asset);
     }
+
+    /// <summary>给设置界面做改键用：拿到本组件持有的 Action 集合</summary>
+    public PlayerInputActions Actions => _actions;
 
     private void OnEnable()
     {

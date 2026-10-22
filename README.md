@@ -31,6 +31,7 @@
 - **房间流水线**：清场 → 开门 → 换房，房间池用「袋子随机」抽，抽完一轮才重复
 - **三名职业 + 技能栏**：战士（旋风斩）/ 法师（火球、魔弹），技能走 `SkillData` 数据驱动
 - **资源条**：血量 / 蓝量 HUD，技能进入冷却时技能栏实时反馈
+- **大厅与暂停菜单**：启动先进大厅，`Esc` 随时暂停；可调主音量/音乐/音效、重绑 7 个按钮动作、返回大厅、退出游戏
 
 **设计目标**（还没实现，见 [docs/00-行动清单.md](docs/00-行动清单.md)）
 
@@ -41,7 +42,7 @@
 
 ## 操作
 
-绑定表就是 `Assets/_Project/Settings/PlayerInputActions.inputactions` 里的 8 个 Action（1 个 `Player` ActionMap / 17 条 binding），改键直接改这个文件。
+默认绑定表就是 `Assets/_Project/Settings/PlayerInputActions.inputactions` 里的 8 个 Action（1 个 `Player` ActionMap / 17 条 binding）。除了直接改这个文件，也可以在游戏里 **`Esc` → 按键调整** 重新绑定，改完存进注册表（`PlayerPrefs`），下次启动自动生效，见 [docs/12](docs/12-Esc菜单与设置.md)。
 
 | 按键 | 动作 | Action |
 | --- | --- | --- |
@@ -51,6 +52,7 @@
 | `LeftShift` | 冲刺 | `Dash` |
 | `J` | 普通攻击 | `Attack` |
 | `K` / `L` / `U` / `I` | 技能 1 / 2 / 3 / 4 | `Skill1` ~ `Skill4` |
+| `Esc` | 暂停菜单（设置 / 按键调整 / 返回大厅 / 退出游戏） | — |
 
 ## 技术栈
 

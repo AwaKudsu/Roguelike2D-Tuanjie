@@ -1,0 +1,16 @@
+=== Esc 菜单 / 大厅 / 设置 自检 ===
+工程 = D:/TuanjieRoguelike2D/Assets
+[PASS]|新增类型齐全|TimeFreeze / GameSettings / InputBindingStore / GameMenuUI / GameBootstrap
+[PASS]|GameBootstrap 自动启动|[RuntimeInitializeOnLoadMethod(AfterSceneLoad)] 已挂上
+[PASS]|PlayerInputReader.Actions|可用于设置界面改键
+[PASS]|TimeFreeze 仲裁|两人冻结 → 只解一个仍冻结 → 全解才还原 1.0
+[PASS]|主音量已交给 AudioListener|AudioListener.volume = 0.80
+[PASS]|音量写盘|settings.audio.master = 0.35
+[PASS]|音量已还原|0.80
+[PASS]|七条动作都读得出当前按键|跳跃=Space  冲刺=Left Shift  攻击=J  技能1=K  技能2=L  技能3=U  技能4=I
+[PASS]|改键存档往返|保存 → 读回 → 全部恢复默认，三步都不报错
+[PASS]|场景可点按钮|EventSystem + InputSystemUIInputModule 都在
+[PASS]|RoomManager 房间池仍在|RoomPool_Default
+
+[SUMMARY] 失败|0
+[SUMMARY] 警告|0

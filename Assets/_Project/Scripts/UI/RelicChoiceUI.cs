@@ -52,7 +52,6 @@ public class RelicChoiceUI : MonoBehaviour
     private IReadOnlyList<RelicData> _choices;
     private Action<RelicData> _onPick;
     private bool _visible;
-    private float _previousTimeScale = 1f;
 
     // ---------------- 生命周期 ----------------
 
@@ -120,9 +119,10 @@ public class RelicChoiceUI : MonoBehaviour
         _panel.gameObject.SetActive(true);
         _panel.SetAsLastSibling();
 
-        // 选之前把世界停住：不这么做，玩家会一边选一边被敌人打死
-        _previousTimeScale = Time.timeScale;
-        Time.timeScale = 0f;
+        // 选之前把世界停住：不这么做，玩家会一边选一边被敌人打死。
+        // 走 TimeFreeze 而不是直接写 timeScale —— 暂停菜单也会冻结时间，
+        // 各自直接写 0/1 会互相覆盖：谁后关谁说了算，另一个弹窗会被提前解冻。
+        TimeFreeze.Freeze(this);
     }
 
     /// <summary>关掉面板并恢复时间</summary>
@@ -134,8 +134,7 @@ public class RelicChoiceUI : MonoBehaviour
 
         if (_panel != null) _panel.gameObject.SetActive(false);
 
-        Time.timeScale = _previousTimeScale > 0f ? _previousTimeScale : 1f;
-        _previousTimeScale = 1f;
+        TimeFreeze.Unfreeze(this);
     }
 
     private void Pick(int index)
