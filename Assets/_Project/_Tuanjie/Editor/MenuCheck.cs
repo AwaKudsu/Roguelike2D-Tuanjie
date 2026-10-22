@@ -7,6 +7,7 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.UI;
+using UnityEngine.UI;
 
 namespace Tuanjie.PortCheck
 {
@@ -261,6 +262,61 @@ namespace Tuanjie.PortCheck
             catch (Exception e)
             {
                 Warn(sb, "检查 RoomManager 失败", e.Message, ref warn);
+            }
+
+            // ---------- 9. 真的把菜单搭一遍（反射调 Build，验证不抛异常且结构完整） ----------
+            // 光有类型不代表界面搭得出来：上一轮「(RectTransform)transform」就是编译通过、运行时炸。
+            GameObject menuProbe = null;
+            try
+            {
+                menuProbe = new GameObject("__MenuBuildProbe", typeof(RectTransform));
+                GameMenuUI menu = menuProbe.AddComponent<GameMenuUI>();
+
+                MethodInfo build = typeof(GameMenuUI).GetMethod("Build", BindingFlags.Instance | BindingFlags.NonPublic);
+                if (build == null)
+                {
+                    Fail(sb, "菜单能搭起来", "找不到私有方法 Build()", ref fail);
+                }
+                else
+                {
+                    build.Invoke(menu, null);
+
+                    Canvas canvas = menuProbe.GetComponent<Canvas>();
+                    CanvasScaler scaler = menuProbe.GetComponent<CanvasScaler>();
+                    GraphicRaycaster raycaster = menuProbe.GetComponent<GraphicRaycaster>();
+                    Transform panel = menuProbe.transform.Find("Panel");
+
+                    bool canvasOk = canvas != null && canvas.sortingOrder == 400
+                                    && canvas.renderMode == RenderMode.ScreenSpaceOverlay;
+                    bool scalerOk = scaler != null
+                                    && scaler.uiScaleMode == CanvasScaler.ScaleMode.ScaleWithScreenSize
+                                    && Mathf.Approximately(scaler.referenceResolution.x, 1920f)
+                                    && Mathf.Approximately(scaler.referenceResolution.y, 1080f);
+                    bool pagesOk = panel != null
+                                   && panel.Find("MainPage") != null
+                                   && panel.Find("SettingsPage") != null
+                                   && panel.Find("KeysPage") != null;
+                    int buttons = menuProbe.GetComponentsInChildren<Button>(true).Length;
+                    int texts = menuProbe.GetComponentsInChildren<Text>(true).Length;
+
+                    if (canvasOk && scalerOk && raycaster != null && pagesOk && buttons >= 10)
+                        Pass(sb, "菜单能搭起来",
+                            "Canvas 排序 400 / 缩放 1920×1080 / 三页齐全 / 按钮 " + buttons + " 个 / 文字 " + texts + " 个");
+                    else
+                        Fail(sb, "菜单结构不完整",
+                            "canvas=" + canvasOk + " scaler=" + scalerOk + " raycaster=" + (raycaster != null)
+                            + " pages=" + pagesOk + " buttons=" + buttons, ref fail);
+                }
+            }
+            catch (Exception e)
+            {
+                Exception inner = (e is TargetInvocationException && e.InnerException != null) ? e.InnerException : e;
+                Fail(sb, "菜单搭建抛异常", inner.GetType().Name + ": " + inner.Message, ref fail);
+                sb.AppendLine("    " + inner.StackTrace);
+            }
+            finally
+            {
+                if (menuProbe != null) UnityEngine.Object.DestroyImmediate(menuProbe);
             }
 
             sb.AppendLine();

@@ -384,21 +384,33 @@ public class GameMenuUI : MonoBehaviour
 
     private void Build()
     {
-        Canvas canvas = gameObject.GetComponent<Canvas>();
-        if (canvas == null) canvas = gameObject.AddComponent<Canvas>();
+        // UI 的根必须是 RectTransform：挂到普通 Transform 上时锚点不生效，整块面板会缩成 0×0
+        // （症状就是「代码没报错，但屏幕上一个像素都没有」）。这里兜底再建一层，绝不假设调用方建对了。
+        RectTransform root = transform as RectTransform;
+        if (root == null)
+        {
+            Debug.LogWarning("[菜单] GameMenuUI 挂在了没有 RectTransform 的物体上，已自动新建一层 __MenuCanvas。", this);
+            root = NewRect("__MenuCanvas", transform);
+            Stretch(root);
+        }
+
+        GameObject host = root.gameObject;
+
+        Canvas canvas = host.GetComponent<Canvas>();
+        if (canvas == null) canvas = host.AddComponent<Canvas>();
         canvas.renderMode = RenderMode.ScreenSpaceOverlay;
         canvas.sortingOrder = 400;   // 必须压过 HUD(默认 0) 和词条面板(300)
 
-        CanvasScaler scaler = gameObject.GetComponent<CanvasScaler>();
-        if (scaler == null) scaler = gameObject.AddComponent<CanvasScaler>();
+        CanvasScaler scaler = host.GetComponent<CanvasScaler>();
+        if (scaler == null) scaler = host.AddComponent<CanvasScaler>();
         scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
         scaler.referenceResolution = new Vector2(1920f, 1080f);
         scaler.matchWidthOrHeight = 0.5f;
 
-        if (gameObject.GetComponent<GraphicRaycaster>() == null)
-            gameObject.AddComponent<GraphicRaycaster>();
+        if (host.GetComponent<GraphicRaycaster>() == null)
+            host.AddComponent<GraphicRaycaster>();
 
-        _panel = NewRect("Panel", transform);
+        _panel = NewRect("Panel", root);
         Stretch(_panel);
         Image backdrop = NewImage(_panel, BackdropColor);
         backdrop.raycastTarget = true;   // 挡住背后的一切点击

@@ -29,7 +29,8 @@ public static class GameBootstrap
 
         GameSettings.Load();
 
-        _root = new GameObject("__GameMenu");
+        // 带 RectTransform 建出来：GameMenuUI 的整块界面靠锚点铺满屏幕，普通 Transform 撑不起来
+        _root = new GameObject("__GameMenu", typeof(RectTransform));
         Object.DontDestroyOnLoad(_root);
 
         _menu = _root.AddComponent<GameMenuUI>();
