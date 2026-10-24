@@ -363,6 +363,12 @@ public class GameMenuUI : MonoBehaviour
         if (_settingsPage != null) _settingsPage.gameObject.SetActive(page == Page.Settings);
         if (_keysPage != null) _keysPage.gameObject.SetActive(page == Page.Keys);
 
+        // 大标题 / 副标题只属于主菜单。设置页和按键页各自有页头，
+        // 不藏起来就会直接叠字 —— 表现是「Roguelike2D」压在「按键调整」上、两行说明糊成一片。
+        bool showHeader = page == Page.Main;
+        if (_title != null) _title.gameObject.SetActive(showHeader);
+        if (_subtitle != null) _subtitle.gameObject.SetActive(showHeader);
+
         if (page == Page.Settings) RefreshVolumes();
 
         if (page == Page.Keys)

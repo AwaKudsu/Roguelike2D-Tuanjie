@@ -12,6 +12,7 @@
 [PASS]|场景可点按钮|EventSystem + InputSystemUIInputModule 都在
 [PASS]|RoomManager 房间池仍在|RoomPool_Default
 [PASS]|菜单能搭起来|Canvas 排序 400 / 缩放 1920×1080 / 三页齐全 / 按钮 22 个 / 文字 48 个
+[PASS]|切页不叠字|按键页藏起大标题/副标题，回主菜单再显示
 
 [SUMMARY] 失败|0
 [SUMMARY] 警告|0

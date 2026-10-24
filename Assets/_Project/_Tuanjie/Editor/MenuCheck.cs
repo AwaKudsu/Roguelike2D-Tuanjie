@@ -306,6 +306,40 @@ namespace Tuanjie.PortCheck
                         Fail(sb, "菜单结构不完整",
                             "canvas=" + canvasOk + " scaler=" + scalerOk + " raycaster=" + (raycaster != null)
                             + " pages=" + pagesOk + " buttons=" + buttons, ref fail);
+
+                    // ---------- 9b. 切页不能叠字 ----------
+                    // 大标题/副标题是 _panel 的直接子物体，三页共用一块底。
+                    // 如果切到设置/按键页时不把它们藏起来，「Roguelike2D」就会压在「按键调整」上、
+                    // 两行说明糊成一片（上一轮真的这么上线了）。
+                    Type pageType = typeof(GameMenuUI).GetNestedType("Page", BindingFlags.NonPublic);
+                    MethodInfo setPage = typeof(GameMenuUI).GetMethod("SetPage", BindingFlags.Instance | BindingFlags.NonPublic);
+
+                    Transform titleT = panel != null ? panel.Find("Title") : null;
+                    Transform subtitleT = panel != null ? panel.Find("Subtitle") : null;
+                    Transform keysPage = panel != null ? panel.Find("KeysPage") : null;
+
+                    if (pageType == null || setPage == null || titleT == null || subtitleT == null || keysPage == null)
+                    {
+                        Fail(sb, "切页不叠字", "拿不到 Page / SetPage / Title / Subtitle / KeysPage", ref fail);
+                    }
+                    else
+                    {
+                        setPage.Invoke(menu, new[] { Enum.Parse(pageType, "Keys") });
+
+                        bool hiddenOnKeys = !titleT.gameObject.activeSelf && !subtitleT.gameObject.activeSelf;
+                        bool keysShown = keysPage.gameObject.activeSelf;
+
+                        setPage.Invoke(menu, new[] { Enum.Parse(pageType, "Main") });
+
+                        bool shownOnMain = titleT.gameObject.activeSelf && subtitleT.gameObject.activeSelf;
+
+                        if (hiddenOnKeys && keysShown && shownOnMain)
+                            Pass(sb, "切页不叠字", "按键页藏起大标题/副标题，回主菜单再显示");
+                        else
+                            Fail(sb, "切页会叠字",
+                                "hiddenOnKeys=" + hiddenOnKeys + " keysShown=" + keysShown
+                                + " shownOnMain=" + shownOnMain, ref fail);
+                    }
                 }
             }
             catch (Exception e)
