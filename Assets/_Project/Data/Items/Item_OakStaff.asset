@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:yousandi.cn,2023:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 17603a50ceece1d42a4118c6c02830b0, type: 3}
+  m_Name: Item_OakStaff
+  m_EditorClassIdentifier: 
+  displayName: "\u6A61\u6728\u6CD5\u6756"
+  description: "\u88C5\u4E0A\u5B83\u4EE5\u540E\uFF0C\u666E\u901A\u653B\u51FB\u4F1A\u53D8\u6210\u53D1\u5C04\u6CD5\u7403\u2014\u2014\u4E0D\u518D\u8FD1\u8EAB\u6325\u780D\u3002"
+  icon: {fileID: 0}
+  rarity: 1
+  slot: 0
+  weaponAttack: {fileID: 11400000, guid: a91ae24e2c5412c429b0267716cecf23, type: 2}
+  modifiers:
+  - Type: 1
+    Mode: 1
+    Value: 0.1
+  - Type: 4
+    Mode: 0
+    Value: 0.05

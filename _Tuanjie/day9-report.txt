@@ -1,0 +1,13 @@
+===== Day 9 背包与装备装配报告 =====
+[PASS] 已打开场景 | Assets/_Project/Scenes/Game.unity
+[PASS] 法杖用的远程攻击 | Attack_MageBolt
+[PASS] 物品资产 | 6 件（2 武器 / 2 护甲 / 2 饰品）
+[PASS] 新建组件 | Inventory
+[PASS] 新建组件 | Equipment
+[PASS] 背包初始物品 | 铁剑 / 皮甲 / 力量指环 / 橡木法杖（4 件，容量 12）
+[PASS] 装备槽引用 | stats / attacker / inventory 已接
+[PASS] 新建物体 | InventoryUI
+[PASS] 挂上组件 | InventoryUI
+[PASS] 界面引用 | inventory / equipment / inputReader 已接（按 Tab 打开）
+[PASS] 场景已存盘 | Assets/_Project/Scenes/Game.unity
+[SUMMARY] 失败 | 0

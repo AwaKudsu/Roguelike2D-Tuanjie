@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:yousandi.cn,2023:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 17603a50ceece1d42a4118c6c02830b0, type: 3}
+  m_Name: Item_PowerRing
+  m_EditorClassIdentifier: 
+  displayName: "\u529B\u91CF\u6307\u73AF"
+  description: "\u6234\u4E0A\u5B83\uFF0C\u4F60\u7684\u6BCF\u4E00\u51FB\u90FD\u66F4\u91CD\u4E00\u70B9\u3002"
+  icon: {fileID: 0}
+  rarity: 1
+  slot: 2
+  weaponAttack: {fileID: 0}
+  modifiers:
+  - Type: 1
+    Mode: 1
+    Value: 0.15
