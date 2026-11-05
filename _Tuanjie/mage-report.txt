@@ -1,0 +1,16 @@
+[PASS] 已打开场景 | Assets/_Project/Scenes/Game.unity
+[INFO] 导入贴图 | 21 张，全部 160 PPU + 居中 pivot
+[PASS] Sprite 资产齐全 | 21 张
+[PASS] 挂上组件 | MageVisual
+[PASS] 序列 | idleFrames 3 帧
+[PASS] 序列 | run 6 帧
+[PASS] 序列 | attackFrames 4 帧
+[PASS] 序列 | castFrames 3 帧
+[PASS] 挂上组件 | PlayerVisualSwitcher
+[PASS] 职业表 | 战士 有 / 法师 有
+[PASS] 新建回复技能 | Assets/_Project/Data/Skills/Skill_Heal.asset
+[PASS] 回复技能已配置 | 2.4 秒内每 0.3 秒回 6 点（共 8 次 / 48 点），耗蓝 20 / 冷却 8 秒
+[PASS] 火球改成可蓄力 | 按住 1.1 秒蓄满：球 2.2 倍、速度 1.9 倍、伤害 2.0 倍
+[PASS] 法师职业技能 | 2 个：火球（可蓄力）/ 回复
+[PASS] 场景已存盘 | Assets/_Project/Scenes/Game.unity
+[SUMMARY] 失败 | 0

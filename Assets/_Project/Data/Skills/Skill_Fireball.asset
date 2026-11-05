@@ -21,6 +21,25 @@ MonoBehaviour:
   cooldown: 1.5
   castType: 1
   attack: {fileID: 11400000, guid: b5e866757c4e26a41b416e26492f8000, type: 2}
+  duration: 0
+  tickInterval: 0.22
+  fearDuration: 3.5
+  fearRadius: 12
+  ringDuration: 0.45
+  ringSprite: {fileID: 0}
+  swordSprite: {fileID: 0}
   projectilePrefab: {fileID: 746189112167610233, guid: cf66a174280d700498f18475c2a52d2c, type: 3}
   projectileCount: 1
   spreadAngle: 10
+  chargeable: 1
+  chargeTime: 1.1
+  chargeMinScale: 0.7
+  chargeMaxScale: 2.2
+  chargeMaxSpeedBonus: 1.9
+  chargeMaxDamageBonus: 2
+  healAmount: 6
+  healDuration: 2.4
+  healTickInterval: 0.3
+  circleSprite: {fileID: 0}
+  circleDiameter: 3.2
+  healColor: {r: 0.45, g: 1, b: 0.55, a: 1}

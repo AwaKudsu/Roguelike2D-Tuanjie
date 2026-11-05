@@ -62,6 +62,7 @@ public class GameMenuUI : MonoBehaviour
     private Text _title;
     private Text _subtitle;
     private Text _continueLabel;
+    private Text _classLabel;
     private Button _lobbyButton;
 
     private static Sprite _whiteSprite;
@@ -442,14 +443,32 @@ public class GameMenuUI : MonoBehaviour
         _mainPage = NewRect("MainPage", _panel);
         Stretch(_mainPage);
 
-        const float startY = -330f;
-        const float step = 92f;
+        const float startY = -300f;
+        const float step = 86f;
 
         MenuButton(_mainPage, "继续游戏", startY, OnContinue, out _continueLabel);
         MenuButton(_mainPage, "设置", startY - step, () => SetPage(Page.Settings), out _);
         MenuButton(_mainPage, "按键调整", startY - step * 2f, () => SetPage(Page.Keys), out _);
-        _lobbyButton = MenuButton(_mainPage, "返回大厅", startY - step * 3f, OnReturnToLobby, out _);
-        MenuButton(_mainPage, "退出游戏", startY - step * 4f, OnQuit, out _);
+        MenuButton(_mainPage, "切换职业", startY - step * 3f, OnSwitchClass, out _classLabel);
+        _lobbyButton = MenuButton(_mainPage, "返回大厅", startY - step * 4f, OnReturnToLobby, out _);
+        MenuButton(_mainPage, "退出游戏", startY - step * 5f, OnQuit, out _);
+    }
+
+    /// <summary>
+    /// 切换职业：战士 ↔ 法师。
+    /// 换职业不只是换数值 —— 动画、普通攻击、技能栏都会跟着换，
+    /// 所以这里调 stats.ApplyClass，其余由各自的 ClassChanged 订阅者接手。
+    /// </summary>
+    private void OnSwitchClass()
+    {
+        var switcher = FindObjectOfType<PlayerVisualSwitcher>();
+        if (switcher == null)
+        {
+            Debug.LogWarning("[GameMenuUI] 场上没有 PlayerVisualSwitcher，切不了职业");
+            return;
+        }
+
+        switcher.CycleClass();
     }
 
     private void BuildSettingsPage()

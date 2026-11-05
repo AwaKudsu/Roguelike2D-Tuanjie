@@ -27,6 +27,12 @@ public class PlayerInputReader : MonoBehaviour
     // 每个技能键一个锁存位：0 = K，1 = L，2 = U，3 = I
     private readonly bool[] _skillPressedLatch = new bool[SkillSlotCount];
 
+    // 松手也要锁存：长按蓄力（火球）靠它判断「什么时候放」
+    private readonly bool[] _skillReleasedLatch = new bool[SkillSlotCount];
+
+    // 「现在是否按着」是电平，不是事件 —— 蓄力时每帧都要问「还按着吗」
+    private readonly bool[] _skillHeld = new bool[SkillSlotCount];
+
     private void Awake()
     {
         _actions = new PlayerInputActions();
@@ -52,6 +58,11 @@ public class PlayerInputReader : MonoBehaviour
         _actions.Player.Skill2.performed += OnSkill2Performed;
         _actions.Player.Skill3.performed += OnSkill3Performed;
         _actions.Player.Skill4.performed += OnSkill4Performed;
+
+        _actions.Player.Skill1.canceled += OnSkill1Canceled;
+        _actions.Player.Skill2.canceled += OnSkill2Canceled;
+        _actions.Player.Skill3.canceled += OnSkill3Canceled;
+        _actions.Player.Skill4.canceled += OnSkill4Canceled;
     }
 
     private void OnDisable()
@@ -65,6 +76,20 @@ public class PlayerInputReader : MonoBehaviour
         _actions.Player.Skill2.performed -= OnSkill2Performed;
         _actions.Player.Skill3.performed -= OnSkill3Performed;
         _actions.Player.Skill4.performed -= OnSkill4Performed;
+
+        _actions.Player.Skill1.canceled -= OnSkill1Canceled;
+        _actions.Player.Skill2.canceled -= OnSkill2Canceled;
+        _actions.Player.Skill3.canceled -= OnSkill3Canceled;
+        _actions.Player.Skill4.canceled -= OnSkill4Canceled;
+
+        // 组件被关掉（暂停菜单、切职业）时把「按着」的状态清掉，
+        // 否则松手事件收不到，下次开回来会以为玩家一直按着技能键。
+        for (int i = 0; i < SkillSlotCount; i++)
+        {
+            _skillHeld[i] = false;
+            _skillReleasedLatch[i] = false;
+            _skillPressedLatch[i] = false;
+        }
 
         _actions.Player.Disable();
     }
@@ -119,6 +144,23 @@ public class PlayerInputReader : MonoBehaviour
         return true;
     }
 
+    /// <summary>取走「松开第 slot 个技能键」事件 —— 长按蓄力靠它决定什么时候放出去</summary>
+    public bool ConsumeSkillReleased(int slot)
+    {
+        if (slot < 0 || slot >= SkillSlotCount) return false;
+        if (!_skillReleasedLatch[slot]) return false;
+
+        _skillReleasedLatch[slot] = false;
+        return true;
+    }
+
+    /// <summary>第 slot 个技能键现在是否按着（电平，不是事件）</summary>
+    public bool IsSkillHeld(int slot)
+    {
+        if (slot < 0 || slot >= SkillSlotCount) return false;
+        return _skillHeld[slot];
+    }
+
     // ---------------- 回调 ----------------
 
     private void OnJumpPerformed  (InputAction.CallbackContext _) => _jumpPressedLatch  = true;
@@ -126,8 +168,13 @@ public class PlayerInputReader : MonoBehaviour
     private void OnAttackPerformed(InputAction.CallbackContext _) => _attackPressedLatch = true;
     private void OnDashPerformed  (InputAction.CallbackContext _) => _dashPressedLatch   = true;
 
-    private void OnSkill1Performed(InputAction.CallbackContext _) => _skillPressedLatch[0] = true;
-    private void OnSkill2Performed(InputAction.CallbackContext _) => _skillPressedLatch[1] = true;
-    private void OnSkill3Performed(InputAction.CallbackContext _) => _skillPressedLatch[2] = true;
-    private void OnSkill4Performed(InputAction.CallbackContext _) => _skillPressedLatch[3] = true;
+    private void OnSkill1Performed(InputAction.CallbackContext _) { _skillPressedLatch[0] = true; _skillHeld[0] = true; }
+    private void OnSkill2Performed(InputAction.CallbackContext _) { _skillPressedLatch[1] = true; _skillHeld[1] = true; }
+    private void OnSkill3Performed(InputAction.CallbackContext _) { _skillPressedLatch[2] = true; _skillHeld[2] = true; }
+    private void OnSkill4Performed(InputAction.CallbackContext _) { _skillPressedLatch[3] = true; _skillHeld[3] = true; }
+
+    private void OnSkill1Canceled(InputAction.CallbackContext _) { _skillReleasedLatch[0] = true; _skillHeld[0] = false; }
+    private void OnSkill2Canceled(InputAction.CallbackContext _) { _skillReleasedLatch[1] = true; _skillHeld[1] = false; }
+    private void OnSkill3Canceled(InputAction.CallbackContext _) { _skillReleasedLatch[2] = true; _skillHeld[2] = false; }
+    private void OnSkill4Canceled(InputAction.CallbackContext _) { _skillReleasedLatch[3] = true; _skillHeld[3] = false; }
 }

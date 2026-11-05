@@ -30,6 +30,9 @@ public class Health : MonoBehaviour, IDamageable
     /// <summary>血量归零时触发</summary>
     public event Action Died;
 
+    /// <summary>回血成功时触发，参数是这一下**实际**回了多少</summary>
+    public event Action<float> Healed;
+
     private CharacterStats _stats;
     private float _invincibilityTimer;
 
@@ -83,6 +86,24 @@ public class Health : MonoBehaviour, IDamageable
         float ratio = maxHealth > 0f ? Current / maxHealth : 1f;
         maxHealth = newMax;
         Current = keepRatio ? maxHealth * ratio : Mathf.Min(Current, maxHealth);
+    }
+
+    /// <summary>
+    /// 回血，返回**实际**回了多少（满血时返回 0，不是传入值）。
+    /// 回血不触发 <see cref="Damaged"/>，也不吃无敌帧 —— 那是挨打才有的规则。
+    /// 返回值让技能能显示「+12」而不是「+20 结果只回了一半」。
+    /// </summary>
+    public float Heal(float amount)
+    {
+        if (!IsAlive || amount <= 0f) return 0f;
+
+        float before = Current;
+        Current = Mathf.Min(maxHealth, Current + amount);
+        float healed = Current - before;
+
+        if (healed > 0f) Healed?.Invoke(healed);
+
+        return healed;
     }
 
     /// <summary>回满血 / 重置</summary>

@@ -34,7 +34,10 @@ public static class ProjectileLauncher
         Vector2 origin,
         int facing,
         int count = 1,
-        float spreadAngle = 10f)
+        float spreadAngle = 10f,
+        float damageMultiplier = 1f,
+        float sizeScale = 1f,
+        float speedScale = 1f)
     {
         if (data == null)
         {
@@ -71,7 +74,13 @@ public static class ProjectileLauncher
             // 伤害在发射这一瞬间就算死 —— 飞行途中玩家换装备也不会改变已经打出去的火球
             DamageInfo damage = DamageCalculator.Build(stats, data, owner, origin);
 
-            projectile.Launch(direction, damage, data.targetLayers);
+            // 蓄力火球：伤害、大小、速度三样一起加，不然「蓄力」只是视觉上的自我安慰
+            if (!Mathf.Approximately(damageMultiplier, 1f))
+            {
+                damage.Amount *= damageMultiplier;
+            }
+
+            projectile.Launch(direction, damage, data.targetLayers, sizeScale, speedScale);
             fired++;
         }
 

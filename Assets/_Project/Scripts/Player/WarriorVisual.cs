@@ -16,7 +16,7 @@ using UnityEngine;
 /// 优先级（上面的赢）：死亡 &gt; 受击 &gt; 旋风斩 &gt; 攻击 &gt; 冲刺 &gt; 胜利 &gt; 空中 &gt; 跑 &gt; 待机
 /// </summary>
 [DisallowMultipleComponent]
-public class WarriorVisual : MonoBehaviour
+public class WarriorVisual : MonoBehaviour, IPlayerAnim
 {
     [Header("引用")]
     [SerializeField] private SpriteRenderer sprite;
@@ -404,6 +404,17 @@ public class WarriorVisual : MonoBehaviour
     {
         if (_dead) return;
         PlayClip(new[] { warcry }, hold, victory);
+    }
+
+    /// <summary>战士没有蓄力招式：空实现，让 SkillCaster 不必区分职业</summary>
+    public void PlayCharge(bool on)
+    {
+    }
+
+    /// <summary>施法姿态：战士没有法杖，借用一次举剑动作顶替</summary>
+    public void PlayCast(float hold)
+    {
+        PlayWarcry(hold);
     }
 
     // ---------------- 工具 ----------------

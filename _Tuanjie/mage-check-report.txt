@@ -1,0 +1,40 @@
+[PASS] 已打开场景 | Assets/_Project/Scenes/Game.unity
+[PASS] Sprite 资产 | 21 张
+[PASS] 人物帧参数一致 | 19 张都是 320x480 / 160 PPU
+[PASS] 法阵贴图 | 186x186 ppu=160
+[PASS] 火球贴图 | 97x97 ppu=160
+[PASS] 玩家身上有 MageVisual
+[PASS] 待机序列 | 3 帧
+[PASS] 跑动序列 | 6 帧
+[PASS] 攻击序列 | 4 帧
+[PASS] 施法序列 | 3 帧
+[PASS] 组件引用 | 5/5 已接
+[PASS] 单帧姿势 | 3/3 已接（跳/受击/死亡）
+[PASS] 两套动画都实现 IPlayerAnim | 技能层不用区分职业
+[PASS] 玩家身上有 PlayerVisualSwitcher
+[PASS] 职业表 | 2 个职业可切
+[PASS] 切换器引用 | 战士 / 法师 两套动画都指到了
+[INFO] 当前职业 | 战士
+[PASS] 发射器支持倍率 | ProjectileLauncher.Fire(..., damageMultiplier, sizeScale, speedScale)
+[PASS] 投射物支持缩放 | Projectile.Launch(direction, damage, targets, sizeScale, speedScale)
+[PASS] 玩家身上有 SkillCaster
+[PASS] 蓄力状态字段 | _chargeSlot / _chargeTimer 都在
+[PASS] 法师技能栏有可蓄力技能 | 火球术
+[PASS] 法师技能栏有回复技能 | 回复
+[PASS] 蓄力参数 | 最大 2.2 倍大小 / 2.0 倍伤害 / 1.9 倍速度
+[PASS] 蓄力进度 | 按住一半时 ChargeRatio=0.50
+[PASS] 蓄力复位 | 清掉槽位后不再蓄力
+[PASS] Health 支持回血 | Heal() + Healed 事件都在
+[PASS] 一次回血 | 40 + 25 -> 65（实回 25）
+[PASS] 回血封顶 | 满血不会超过上限，实回 35
+[PASS] 满血再回 | 返回 0 且不刷屏
+[PASS] 法阵能放出来 | HealCircle.Play 返回实例
+[PASS] 法阵回血 | 跳了 2 次，共回 12
+[PASS] 回血飘字 | 生成了 FloatingTextCanvas（绿色 +N 会挂在这上面）
+[PASS] 回复技能资产 | Skill_Heal.asset 存在
+[PASS] 回复技能类型 | Heal
+[PASS] 回复技能法阵图 | 已接 Mage_Ring
+[PASS] 回复节奏 | 2.4 秒 / 每 0.3 秒 6 点
+[PASS] 火球可蓄力 | chargeable = true
+[PASS] 法师职业技能 | 2 个
+[SUMMARY] 失败 | 0

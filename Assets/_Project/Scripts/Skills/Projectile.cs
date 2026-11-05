@@ -62,7 +62,9 @@ public class Projectile : MonoBehaviour
     /// <param name="direction">飞行方向，内部会自动归一化</param>
     /// <param name="damage">发射瞬间就算好的伤害，飞行途中不再改变</param>
     /// <param name="targets">能打到的层，来自技能的 AttackData</param>
-    public void Launch(Vector2 direction, DamageInfo damage, LayerMask targets)
+    /// <param name="sizeScale">整体缩放倍率，蓄力火球靠它变大（碰撞体也跟着变）</param>
+    /// <param name="speedScale">速度倍率，蓄得越久飞得越快</param>
+    public void Launch(Vector2 direction, DamageInfo damage, LayerMask targets, float sizeScale = 1f, float speedScale = 1f)
     {
         _damage    = damage;
         _lifeTimer = lifeTime;
@@ -73,13 +75,23 @@ public class Projectile : MonoBehaviour
 
         direction = direction.sqrMagnitude > 0.0001f ? direction.normalized : Vector2.right;
 
+        if (sizeScale > 0f && !Mathf.Approximately(sizeScale, 1f))
+        {
+            // 缩放整个物体：CircleCollider2D 跟着变大，所以大球天生更容易撞到人
+            transform.localScale *= sizeScale;
+
+            // 只放大贴图不放大碰撞体会「看着打中了却没伤害」，反过来更糟；
+            // 所以这里两者一起缩放，判定和画面永远一致。
+            _lifeTimer = lifeTime / Mathf.Max(0.5f, speedScale);   // 飞得快，存活时间同比缩短，射程不变
+        }
+
         if (rotateToDirection)
         {
             float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
             transform.rotation = Quaternion.Euler(0f, 0f, angle);
         }
 
-        _rb.velocity = direction * speed;
+        _rb.velocity = direction * speed * Mathf.Max(0.1f, speedScale);
     }
 
     private void Update()

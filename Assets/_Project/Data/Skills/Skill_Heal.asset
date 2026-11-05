@@ -1,0 +1,44 @@
+%YAML 1.1
+%TAG !u! tag:yousandi.cn,2023:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 83d985721c7f2114c89426c6a47067ad, type: 3}
+  m_Name: Skill_Heal
+  m_EditorClassIdentifier: 
+  skillId: mage_heal
+  displayName: "\u56DE\u590D"
+  icon: {fileID: 21300000, guid: 421744ef49b06014996cbf6ea3f5bf66, type: 3}
+  description: "\u4E3E\u8D77\u6CD5\u6756\uFF0C\u5728\u811A\u4E0B\u6491\u5F00\u4E00\u5708\u6CD5\u9635\uFF0C\u6301\u7EED\u56DE\u590D\u751F\u547D\u3002"
+  manaCost: 20
+  cooldown: 8
+  castType: 3
+  attack: {fileID: 0}
+  duration: 0
+  tickInterval: 0.22
+  fearDuration: 3.5
+  fearRadius: 12
+  ringDuration: 0.45
+  ringSprite: {fileID: 0}
+  swordSprite: {fileID: 0}
+  projectilePrefab: {fileID: 0}
+  projectileCount: 1
+  spreadAngle: 10
+  chargeable: 0
+  chargeTime: 1.1
+  chargeMinScale: 0.7
+  chargeMaxScale: 2.2
+  chargeMaxSpeedBonus: 1.9
+  chargeMaxDamageBonus: 2
+  healAmount: 6
+  healDuration: 2.4
+  healTickInterval: 0.3
+  circleSprite: {fileID: 21300000, guid: 511977f09018f8e44946a8091b28aaed, type: 3}
+  circleDiameter: 3.2
+  healColor: {r: 0.45, g: 1, b: 0.55, a: 1}

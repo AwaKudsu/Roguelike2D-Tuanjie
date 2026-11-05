@@ -1613,6 +1613,8 @@ GameObject:
   - component: {fileID: 1728500185}
   - component: {fileID: 1728500184}
   - component: {fileID: 1728500186}
+  - component: {fileID: 1728500188}
+  - component: {fileID: 1728500187}
   m_Layer: 6
   m_HasEditorInfo: 1
   m_Name: Player
@@ -2025,6 +2027,76 @@ MonoBehaviour:
   hurtHold: 0.22
   victoryHold: 1.4
   runSpeedThreshold: 0.6
+--- !u!114 &1728500187
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1728500170}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e81e0aea9d46ac94db0c8f7a2278787d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  stats: {fileID: 1728500180}
+  warrior: {fileID: 1728500186}
+  mage: {fileID: 1728500188}
+  sprite: {fileID: 1728500173}
+  classes:
+  - {fileID: 11400000, guid: 3d950d16934b05644ba9f817abe4af69, type: 2}
+  - {fileID: 11400000, guid: b5fc4f381e18e3d4a9f3535e0119b2be, type: 2}
+  currentIndex: 0
+--- !u!114 &1728500188
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1728500170}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7a914c25bc14a5d4a8f2f67a62d20157, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  sprite: {fileID: 1728500173}
+  controller: {fileID: 1728500175}
+  health: {fileID: 1728500179}
+  attacker: {fileID: 1728500177}
+  body: {fileID: 1728500172}
+  idleFrames:
+  - {fileID: 21300000, guid: efdb662b06da80c41ab2f4db22ae68d3, type: 3}
+  - {fileID: 21300000, guid: 8a78836ea1df8364abb4887d0b52abe1, type: 3}
+  - {fileID: 21300000, guid: cc6cff98b564c344790bbf483e70f0ea, type: 3}
+  idleFrameInterval: 0.62
+  run:
+  - {fileID: 21300000, guid: a5b851df306ed6049bb37535247a29f2, type: 3}
+  - {fileID: 21300000, guid: 6b3c3b0b21810d9468427ea585165f70, type: 3}
+  - {fileID: 21300000, guid: 97d2fdb6eef441047b21c825e5dc499f, type: 3}
+  - {fileID: 21300000, guid: 59527cb24d6666c419ea986aaf5f1ef9, type: 3}
+  - {fileID: 21300000, guid: 759b8ac40913c7841804a5b616a8dbad, type: 3}
+  - {fileID: 21300000, guid: 3d343448ac54dcd48ae4a7aa1febefc1, type: 3}
+  runFpsMin: 10
+  runFpsMax: 20
+  runSpeedThreshold: 0.6
+  jump: {fileID: 21300000, guid: 65334a5e49f3c6d468db6fb2bf3934b4, type: 3}
+  fall: {fileID: 0}
+  hurt: {fileID: 21300000, guid: 8216be954176cce4dbafed2010e4fa85, type: 3}
+  death: {fileID: 21300000, guid: 116c1ae9934cc2e4fa5e34eba3d21790, type: 3}
+  victory: {fileID: 0}
+  attackFrames:
+  - {fileID: 21300000, guid: e1bdc69a9f61ed04cada3780f2f48868, type: 3}
+  - {fileID: 21300000, guid: b14a5249df7b4f445b262950a7b6f0b4, type: 3}
+  - {fileID: 21300000, guid: b1c97adbad558a84ebba7ca7a9b944a7, type: 3}
+  - {fileID: 21300000, guid: f9fa7379294cfdd4bbe74b005083cd39, type: 3}
+  attackHold: 0.34
+  castFrames:
+  - {fileID: 21300000, guid: 68b31c5fe23dc594399a280c2642a7a5, type: 3}
+  - {fileID: 21300000, guid: 421744ef49b06014996cbf6ea3f5bf66, type: 3}
+  - {fileID: 21300000, guid: eaf18c2dec7a08449b54b46180bfe83c, type: 3}
+  castHold: 0.55
+  hurtHold: 0.22
+  victoryHold: 1.4
 --- !u!1 &1762385687
 GameObject:
   m_ObjectHideFlags: 0

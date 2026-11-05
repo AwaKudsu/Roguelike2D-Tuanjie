@@ -17,6 +17,12 @@ public enum SkillCastType
     /// 见 SkillCaster.CastWarcry 和 WarCryEffect。
     /// </summary>
     Warcry,
+
+    /// <summary>
+    /// 回复：以自身为圆心撑开一个法阵，在一段时间里一点点回血。
+    /// 见 SkillCaster.CastHeal 和 HealCircle。
+    /// </summary>
+    Heal,
 }
 
 /// <summary>
@@ -90,6 +96,45 @@ public class SkillData : ScriptableObject
 
     [Tooltip("发多发时的扇形张角（度）。3 发 + 10 度 = -10° / 0° / +10°")]
     public float spreadAngle = 10f;
+
+    [Header("蓄力（castType = Projectile 且 chargeable 时使用）")]
+    [Tooltip("勾上后：按住技能键开始蓄力，火球越蓄越大，松手才发出去")]
+    public bool chargeable = false;
+
+    [Tooltip("蓄满要按多久（秒）。到时间后不再变大")]
+    public float chargeTime = 1.1f;
+
+    [Tooltip("刚按下时投射物多大（1 = 原尺寸）")]
+    public float chargeMinScale = 0.7f;
+
+    [Tooltip("蓄满时投射物多大")]
+    public float chargeMaxScale = 2.2f;
+
+    [Tooltip("蓄满时的飞行速度倍率。蓄得越久飞得越快，不然大球只是慢吞吞飘过去")]
+    public float chargeMaxSpeedBonus = 1.9f;
+
+    [Tooltip("蓄满时的伤害倍率（乘在 AttackData 的伤害上）")]
+    public float chargeMaxDamageBonus = 2.0f;
+
+    [Header("回复（castType = Heal 时使用）")]
+    [Tooltip("每次跳多少血。总回复 = healAmount × (healDuration / healTickInterval)")]
+    public float healAmount = 6f;
+
+    [Tooltip("法阵持续多久（秒）")]
+    public float healDuration = 2.4f;
+
+    [Tooltip("每隔多久回一次血（秒）")]
+    [Min(0.05f)]
+    public float healTickInterval = 0.3f;
+
+    [Tooltip("法阵贴图（那张金色圆环）")]
+    public Sprite circleSprite;
+
+    [Tooltip("法阵最大直径（世界单位）")]
+    public float circleDiameter = 3.2f;
+
+    [Tooltip("治疗数字的颜色")]
+    public Color healColor = new Color(0.45f, 1f, 0.55f, 1f);
 
     /// <summary>
     /// 实际冷却。
