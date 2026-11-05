@@ -24,10 +24,13 @@
 [PASS]|恐慌实测|ApplyFear 之后 IsFeared = true
 [PASS]|恐慌实测|攻击目标被清空（丢失目标）
 [PASS]|恐慌实测|战吼半径内吓到 1 个敌人
-[PASS]|跑动帧序|往复播放 0→1→2→1（不是 0→1→2→3）
+[PASS]|跑动帧序|旧的往复 RunCycle 已移除（6 帧顺播）
+[PASS]|跑动帧数|6 帧（4 张原姿势 + 2 张落地压缩）
 [PASS]|跑动帧率|有 runFpsMin（慢走时帧率）
 [PASS]|跑动帧率|有 runFpsMax（全速时帧率）
 [PASS]|跑动帧率|旧的定速 runFps 已移除
+[PASS]|待机呼吸|3 帧
+[PASS]|攻击序列|劈砍 3 帧（起手 / 命中 / 收招）
 [PASS]|飞行刀风已移除|SlashWave 已删（改成贴着武器扫）
 [SUMMARY] 失败 | 0
 [SUMMARY] 警告 | 0

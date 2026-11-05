@@ -1,15 +1,22 @@
 === 战士动作自检 ===
 [PASS] 已打开场景 | Assets/_Project/Scenes/Game.unity
-[PASS] Sprite 资产 | 16 张
-[PASS] 16 张图导入参数一致 | 人物帧 320x480，刀风紧贴裁切，全部 160 PPU + 居中 pivot
+[PASS] Sprite 资产 | 27 张
+[PASS] 27 张图导入参数一致 | 人物帧 320x480，刀风紧贴裁切，全部 160 PPU + 居中 pivot
 [PASS] 像素风设置 | 全部 Point 过滤、无 mipmap、无压缩
 [INFO] 画布高度 | 3 单位，pivot 在脚底上方 0.5 单位
 [PASS] 脚底对齐 | 脚底在 pivot 下方 0.5 单位，正好落在胶囊体底边
 [PASS] 画布尺寸 | 3 单位高（骑士本体 1 单位，上下留白）
 [PASS] 组件存在 | WarriorVisual
 [PASS] 五个基础引用已接 | sprite/controller/health/attacker/body
-[PASS] 十一个单帧姿势已接
-[PASS] 跑动序列 | 4 帧
+[PASS] 十二个单帧姿势已接
+[PASS] 序列 | idleFrames 3 帧
+[PASS] 序列 | slashFrames 3 帧
+[PASS] 序列 | liftFrames 3 帧
+[PASS] 序列 | thrustFrames 3 帧
+[PASS] 序列 | spinFrames 2 帧
+[PASS] 跑动序列 | 6 帧（含 2 张落地压缩帧）
+[PASS] 序列帧不重复 | slashFrames 3 帧各不相同
+[PASS] 序列帧不重复 | idleFrames 3 帧各不相同
 [PASS] 刀风已接 | Warrior_SlashArc
 [PASS] 出刀时放刀风 | PlaySlash 存在
 [PASS] 姿势切换事件 | AttackStarted 存在

@@ -1,25 +1,41 @@
 === 战士素材接入 ===
 [INFO] 工程 | D:/TuanjieRoguelike2D/Assets
 [PASS] 已打开场景 | Assets/_Project/Scenes/Game.unity
-[PASS] Sprite 资产齐全 | 16 张（15 张姿势帧 + 1 张上挑，刀风那张是紧贴裁切的）
+[PASS] Sprite 资产齐全 | 27 张（16 张基础姿势 + 11 张派生帧：呼吸 2、跑动落地压缩 2、三段攻击的起手/收招 6、战吼 1）
 [INFO] Warrior_AttackHeavy | 320x480 ppu=160 pivot=(160,240)
 [INFO] Warrior_AttackLift | 320x480 ppu=160 pivot=(160,240)
+[INFO] Warrior_AttackLift_Follow | 320x480 ppu=160 pivot=(160,240)
+[INFO] Warrior_AttackLift_Windup | 320x480 ppu=160 pivot=(160,240)
 [INFO] Warrior_AttackSlash | 320x480 ppu=160 pivot=(160,240)
+[INFO] Warrior_AttackSlash_Follow | 320x480 ppu=160 pivot=(160,240)
+[INFO] Warrior_AttackSlash_Windup | 320x480 ppu=160 pivot=(160,240)
 [INFO] Warrior_AttackThrust | 320x480 ppu=160 pivot=(160,240)
+[INFO] Warrior_AttackThrust_Follow | 320x480 ppu=160 pivot=(160,240)
+[INFO] Warrior_AttackThrust_Windup | 320x480 ppu=160 pivot=(160,240)
 [INFO] Warrior_Dash | 320x480 ppu=160 pivot=(160,240)
 [INFO] Warrior_Death | 320x480 ppu=160 pivot=(160,240)
 [INFO] Warrior_Fall | 320x480 ppu=160 pivot=(160,240)
 [INFO] Warrior_Hurt | 320x480 ppu=160 pivot=(160,240)
 [INFO] Warrior_Idle | 320x480 ppu=160 pivot=(160,240)
+[INFO] Warrior_Idle_2 | 320x480 ppu=160 pivot=(160,240)
+[INFO] Warrior_Idle_3 | 320x480 ppu=160 pivot=(160,240)
 [INFO] Warrior_Jump | 320x480 ppu=160 pivot=(160,240)
 [INFO] Warrior_Run_0 | 320x480 ppu=160 pivot=(160,240)
 [INFO] Warrior_Run_1 | 320x480 ppu=160 pivot=(160,240)
 [INFO] Warrior_Run_2 | 320x480 ppu=160 pivot=(160,240)
 [INFO] Warrior_Run_3 | 320x480 ppu=160 pivot=(160,240)
+[INFO] Warrior_Run_4 | 320x480 ppu=160 pivot=(160,240)
+[INFO] Warrior_Run_5 | 320x480 ppu=160 pivot=(160,240)
 [INFO] Warrior_SlashArc | 189x189 ppu=160 pivot=(94.5,94.5)
 [INFO] Warrior_Victory | 320x480 ppu=160 pivot=(160,240)
+[INFO] Warrior_Warcry | 320x480 ppu=160 pivot=(160,240)
 [PASS] 组件已存在 | WarriorVisual
-[PASS] 跑动序列 | 4 帧
+[PASS] 序列 | idleFrames 3 帧
+[PASS] 序列 | slashFrames 3 帧
+[PASS] 序列 | liftFrames 3 帧
+[PASS] 序列 | thrustFrames 3 帧
+[PASS] 序列 | spinFrames 2 帧
+[PASS] 序列 | run 6 帧
 [PASS] 刀风已接 | Warrior_SlashArc
 [PASS] 技能图标 | 旋风斩 → Warrior_AttackHeavy
 [PASS] 玩家贴图 | Warrior_Idle

@@ -278,28 +278,22 @@ namespace Tuanjie.PortCheck
                 return;
             }
 
+            // 2026-11-05：跑动从「4 帧往复」升级成「6 帧顺播」——
+            // 补了两张落地压缩帧，往复会把压缩帧播成倒放，所以改成顺序播 6 帧。
             FieldInfo cycle = visual.GetField("RunCycle", BindingFlags.Static | BindingFlags.NonPublic);
-            var expected = new[] { 0, 1, 2, 1 };
+            Check(cycle == null, "跑动帧序", "旧的往复 RunCycle 已移除（6 帧顺播）",
+                  "RunCycle 还在，会把落地压缩帧倒着播");
 
-            if (cycle == null)
+            MethodInfo debugRun = visual.GetMethod("DebugRunFrames", BindingFlags.Instance | BindingFlags.Public);
+            GameObject player = GameObject.FindGameObjectWithTag("Player");
+            Component component = player != null ? player.GetComponent(visual) : null;
+
+            if (debugRun != null && component != null)
             {
-                Check(false, "跑动帧序", "有 RunCycle", "没有 RunCycle 字段");
-                return;
+                var frames = debugRun.Invoke(component, null) as Sprite[];
+                int count = frames != null ? frames.Length : 0;
+                Check(count == 6, "跑动帧数", $"6 帧（4 张原姿势 + 2 张落地压缩）", $"只有 {count} 帧，应为 6");
             }
-
-            var actual = cycle.GetValue(null) as int[];
-            bool same = actual != null && actual.Length == expected.Length;
-            if (same)
-            {
-                for (int i = 0; i < expected.Length; i++)
-                {
-                    if (actual[i] != expected[i]) same = false;
-                }
-            }
-
-            Check(same, "跑动帧序",
-                  $"往复播放 {string.Join("→", actual ?? Array.Empty<int>())}（不是 0→1→2→3）",
-                  "RunCycle 不是 0→1→2→1");
 
             Check(visual.GetField("runFpsMin", BindingFlags.Instance | BindingFlags.NonPublic) != null,
                   "跑动帧率", "有 runFpsMin（慢走时帧率）", "没有 runFpsMin");
@@ -307,6 +301,24 @@ namespace Tuanjie.PortCheck
                   "跑动帧率", "有 runFpsMax（全速时帧率）", "没有 runFpsMax");
             Check(visual.GetField("runFps", BindingFlags.Instance | BindingFlags.NonPublic) == null,
                   "跑动帧率", "旧的定速 runFps 已移除", "旧的 runFps 还留着（会和速度自适应打架）");
+
+            // 待机呼吸 + 一刀三帧，是这一轮「更多动作」的两个落点
+            MethodInfo debugIdle = visual.GetMethod("DebugIdleFrames", BindingFlags.Instance | BindingFlags.Public);
+            MethodInfo debugSlash = visual.GetMethod("DebugSlashFrames", BindingFlags.Instance | BindingFlags.Public);
+
+            if (debugIdle != null && component != null)
+            {
+                var frames = debugIdle.Invoke(component, null) as Sprite[];
+                int count = frames != null ? frames.Length : 0;
+                Check(count == 3, "待机呼吸", "3 帧", $"只有 {count} 帧，应为 3");
+            }
+
+            if (debugSlash != null && component != null)
+            {
+                var frames = debugSlash.Invoke(component, null) as Sprite[];
+                int count = frames != null ? frames.Length : 0;
+                Check(count == 3, "攻击序列", "劈砍 3 帧（起手 / 命中 / 收招）", $"只有 {count} 帧，应为 3");
+            }
         }
 
         // ---------------- 工具 ----------------

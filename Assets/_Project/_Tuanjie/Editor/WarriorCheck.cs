@@ -33,10 +33,16 @@ namespace Tuanjie.PortCheck
 
         private static readonly string[] AllFrames =
         {
-            "Warrior_Idle", "Warrior_Jump", "Warrior_Fall", "Warrior_Dash", "Warrior_Hurt",
-            "Warrior_Death", "Warrior_Victory", "Warrior_AttackSlash", "Warrior_AttackLift",
-            "Warrior_AttackHeavy", "Warrior_AttackThrust", "Warrior_SlashArc",
-            "Warrior_Run_0", "Warrior_Run_1", "Warrior_Run_2", "Warrior_Run_3"
+            "Warrior_Idle", "Warrior_Idle_2", "Warrior_Idle_3",
+            "Warrior_Jump", "Warrior_Fall", "Warrior_Dash", "Warrior_Hurt",
+            "Warrior_Death", "Warrior_Victory", "Warrior_Warcry",
+            "Warrior_AttackSlash", "Warrior_AttackSlash_Windup", "Warrior_AttackSlash_Follow",
+            "Warrior_AttackLift", "Warrior_AttackLift_Windup", "Warrior_AttackLift_Follow",
+            "Warrior_AttackHeavy", "Warrior_AttackThrust",
+            "Warrior_AttackThrust_Windup", "Warrior_AttackThrust_Follow",
+            "Warrior_SlashArc",
+            "Warrior_Run_0", "Warrior_Run_1", "Warrior_Run_2", "Warrior_Run_3",
+            "Warrior_Run_4", "Warrior_Run_5"
         };
 
         /// <summary>刀风不是人物帧，它被裁成了紧贴弧光的正方形，不能按 320x480 校验</summary>
@@ -93,7 +99,7 @@ namespace Tuanjie.PortCheck
             }
 
             sb.AppendLine(good == AllFrames.Length
-                ? "[PASS] 16 张图导入参数一致 | 人物帧 320x480，刀风紧贴裁切，全部 160 PPU + 居中 pivot"
+                ? "[PASS] " + AllFrames.Length + " 张图导入参数一致 | 人物帧 320x480，刀风紧贴裁切，全部 160 PPU + 居中 pivot"
                 : "[INFO] 参数正确的图 | " + good + " / " + AllFrames.Length);
 
             // ---------- 过滤与压缩 ----------
@@ -180,7 +186,7 @@ namespace Tuanjie.PortCheck
             foreach (string field in new[]
                      {
                          "idle", "jump", "fall", "dash", "hurt", "death", "victory",
-                         "attackSlash", "attackLift", "attackHeavy", "attackThrust"
+                         "attackSlash", "attackLift", "attackHeavy", "attackThrust", "warcry"
                      })
             {
                 SerializedProperty p = so.FindProperty(field);
@@ -188,9 +194,16 @@ namespace Tuanjie.PortCheck
                 else sb.AppendLine("[FAIL] 姿势没接 | " + field);
             }
 
-            sb.AppendLine(frameWired == 11 ? "[PASS] 十一个单帧姿势已接"
-                                           : "[INFO] 单帧姿势 | " + frameWired + " / 11");
-            if (frameWired != 11) fail++;
+            sb.AppendLine(frameWired == 12 ? "[PASS] 十二个单帧姿势已接"
+                                           : "[INFO] 单帧姿势 | " + frameWired + " / 12");
+            if (frameWired != 12) fail++;
+
+            // ---------- 短序列（2026-11-05：一刀三帧、待机呼吸、跑动 6 帧）----------
+            CheckArray(sb, so, "idleFrames", 3, ref fail);
+            CheckArray(sb, so, "slashFrames", 3, ref fail);
+            CheckArray(sb, so, "liftFrames", 3, ref fail);
+            CheckArray(sb, so, "thrustFrames", 3, ref fail);
+            CheckArray(sb, so, "spinFrames", 2, ref fail);
 
             SerializedProperty runProp = so.FindProperty("run");
             int runWired = 0;
@@ -200,8 +213,13 @@ namespace Tuanjie.PortCheck
                     if (runProp.GetArrayElementAtIndex(i).objectReferenceValue != null) runWired++;
             }
 
-            sb.AppendLine(runWired == 4 ? "[PASS] 跑动序列 | 4 帧" : "[FAIL] 跑动序列 | " + runWired + " / 4");
-            if (runWired != 4) fail++;
+            sb.AppendLine(runWired == 6 ? "[PASS] 跑动序列 | 6 帧（含 2 张落地压缩帧）"
+                                        : "[FAIL] 跑动序列 | " + runWired + " / 6");
+            if (runWired != 6) fail++;
+
+            // 序列帧不能重复引用同一张图 —— 重复就等于少一帧，而且从报告上看不出来
+            CheckDistinct(sb, so, "slashFrames", ref fail);
+            CheckDistinct(sb, so, "idleFrames", ref fail);
 
             // ---------- 刀风 / 技能图标 / 渲染器 ----------
             var attacker = player.GetComponent<PlayerAttacker>();
@@ -404,14 +422,64 @@ namespace Tuanjie.PortCheck
                 sprites[Path.GetFileNameWithoutExtension(path)] = sprite;
             }
 
-            if (sprites.Count == 16) sb.AppendLine("[PASS] Sprite 资产 | 16 张");
+            if (sprites.Count == 27) sb.AppendLine("[PASS] Sprite 资产 | 27 张");
             else
             {
-                sb.AppendLine("[FAIL] Sprite 资产数量 | " + sprites.Count + " 张（应为 16）");
+                sb.AppendLine("[FAIL] Sprite 资产数量 | " + sprites.Count + " 张（应为 27）");
                 fail++;
             }
 
             return sprites;
+        }
+
+        /// <summary>检查一个 Sprite 数组字段接到了几帧</summary>
+        private static void CheckArray(StringBuilder sb, SerializedObject so, string field, int expected, ref int fail)
+        {
+            SerializedProperty prop = so.FindProperty(field);
+            if (prop == null)
+            {
+                sb.AppendLine("[FAIL] 找不到序列字段 | " + field);
+                fail++;
+                return;
+            }
+
+            int filled = 0;
+            for (int i = 0; i < prop.arraySize; i++)
+            {
+                if (prop.GetArrayElementAtIndex(i).objectReferenceValue != null) filled++;
+            }
+
+            if (prop.arraySize == expected && filled == expected)
+            {
+                sb.AppendLine("[PASS] 序列 | " + field + " " + expected + " 帧");
+                return;
+            }
+
+            sb.AppendLine("[FAIL] 序列帧数不对 | " + field + " 槽位 " + prop.arraySize + " / 已接 " + filled
+                          + "（应为 " + expected + "）");
+            fail++;
+        }
+
+        /// <summary>同一张图在序列里出现两次 = 白占一格，肉眼看不出来，报告里也只会显示帧数正常</summary>
+        private static void CheckDistinct(StringBuilder sb, SerializedObject so, string field, ref int fail)
+        {
+            SerializedProperty prop = so.FindProperty(field);
+            if (prop == null || prop.arraySize < 2) return;
+
+            var seen = new HashSet<UnityEngine.Object>();
+            for (int i = 0; i < prop.arraySize; i++)
+            {
+                UnityEngine.Object reference = prop.GetArrayElementAtIndex(i).objectReferenceValue;
+                if (reference == null) continue;
+                if (!seen.Add(reference))
+                {
+                    sb.AppendLine("[FAIL] 序列里有重复帧 | " + field + " 第 " + (i + 1) + " 格重复了 " + reference.name);
+                    fail++;
+                    return;
+                }
+            }
+
+            sb.AppendLine("[PASS] 序列帧不重复 | " + field + " " + prop.arraySize + " 帧各不相同");
         }
 
         private static void Write(StringBuilder sb, int fail, int warn)

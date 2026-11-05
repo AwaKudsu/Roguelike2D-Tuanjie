@@ -92,11 +92,11 @@ namespace Tuanjie.PortCheck
                 sprites[Path.GetFileNameWithoutExtension(path)] = sprite;
             }
 
-            sb.AppendLine(sprites.Count == 16
-                ? "[PASS] Sprite 资产齐全 | 16 张（15 张姿势帧 + 1 张上挑，刀风那张是紧贴裁切的）"
-                : "[FAIL] Sprite 资产数量不对 | " + sprites.Count + " 张（应为 16）");
+            sb.AppendLine(sprites.Count == 27
+                ? "[PASS] Sprite 资产齐全 | 27 张（16 张基础姿势 + 11 张派生帧：呼吸 2、跑动落地压缩 2、三段攻击的起手/收招 6、战吼 1）"
+                : "[FAIL] Sprite 资产数量不对 | " + sprites.Count + " 张（应为 27）");
 
-            if (sprites.Count != 16) fail++;
+            if (sprites.Count != 27) fail++;
 
             foreach (var pair in sprites)
             {
@@ -151,26 +151,32 @@ namespace Tuanjie.PortCheck
             SetRef(so, "attackLift", Get(sprites, "Warrior_AttackLift"));
             SetRef(so, "attackHeavy", Get(sprites, "Warrior_AttackHeavy"));
             SetRef(so, "attackThrust", Get(sprites, "Warrior_AttackThrust"));
+            SetRef(so, "warcry", Get(sprites, "Warrior_Warcry"));
 
+            // ---------- 3b. 短序列（2026-11-05 新增：多帧动作）----------
+            if (!WireArray(so, "idleFrames", sb, sprites,
+                    "Warrior_Idle", "Warrior_Idle_2", "Warrior_Idle_3")) fail++;
+
+            if (!WireArray(so, "slashFrames", sb, sprites,
+                    "Warrior_AttackSlash_Windup", "Warrior_AttackSlash", "Warrior_AttackSlash_Follow")) fail++;
+
+            if (!WireArray(so, "liftFrames", sb, sprites,
+                    "Warrior_AttackLift_Windup", "Warrior_AttackLift", "Warrior_AttackLift_Follow")) fail++;
+
+            if (!WireArray(so, "thrustFrames", sb, sprites,
+                    "Warrior_AttackThrust_Windup", "Warrior_AttackThrust", "Warrior_AttackThrust_Follow")) fail++;
+
+            if (!WireArray(so, "spinFrames", sb, sprites,
+                    "Warrior_AttackHeavy", "Warrior_AttackSlash")) fail++;
+
+            // 跑动 6 帧：落地压缩帧（_4/_5）紧跟在落地姿势（_1/_3）后面
             string[] runNames =
             {
-                "Warrior_Run_0", "Warrior_Run_1", "Warrior_Run_2", "Warrior_Run_3"
+                "Warrior_Run_0", "Warrior_Run_1", "Warrior_Run_4",
+                "Warrior_Run_2", "Warrior_Run_3", "Warrior_Run_5"
             };
 
-            SerializedProperty runProp = so.FindProperty("run");
-            if (runProp != null)
-            {
-                runProp.arraySize = runNames.Length;
-                for (int i = 0; i < runNames.Length; i++)
-                    runProp.GetArrayElementAtIndex(i).objectReferenceValue = Get(sprites, runNames[i]);
-
-                sb.AppendLine("[PASS] 跑动序列 | " + runNames.Length + " 帧");
-            }
-            else
-            {
-                sb.AppendLine("[FAIL] 找不到 run 字段");
-                fail++;
-            }
+            if (!WireArray(so, "run", sb, sprites, runNames)) fail++;
 
             so.ApplyModifiedPropertiesWithoutUndo();
 
@@ -246,6 +252,44 @@ namespace Tuanjie.PortCheck
             SerializedProperty prop = so.FindProperty(field);
             if (prop == null) return;
             prop.objectReferenceValue = value;
+        }
+
+        /// <summary>
+        /// 按名字把一串 Sprite 写进数组字段。缺任何一张都算失败 —— 缺帧只会表现为
+        /// 「动作少一截」，运行时不报错，所以必须在这里拦住。
+        /// </summary>
+        private static bool WireArray(SerializedObject so, string field, StringBuilder sb,
+                                      Dictionary<string, Sprite> sprites, params string[] names)
+        {
+            SerializedProperty prop = so.FindProperty(field);
+            if (prop == null) return false;
+
+            prop.arraySize = names.Length;
+
+            bool ok = true;
+            var missing = "";
+            for (int i = 0; i < names.Length; i++)
+            {
+                Sprite sprite = Get(sprites, names[i]);
+                if (sprite == null)
+                {
+                    ok = false;
+                    missing += (missing.Length > 0 ? ", " : "") + names[i];
+                }
+
+                prop.GetArrayElementAtIndex(i).objectReferenceValue = sprite;
+            }
+
+            if (ok)
+            {
+                sb.AppendLine("[PASS] 序列 | " + field + " " + names.Length + " 帧");
+            }
+            else
+            {
+                sb.AppendLine("[FAIL] 序列缺帧 | " + field + "：" + missing);
+            }
+
+            return ok;
         }
 
         private static void Write(StringBuilder sb, int fail)

@@ -211,6 +211,10 @@ public class SkillCaster : MonoBehaviour
             arc:          attacker.SlashArc,
             color:        attacker.SlashColor,
             scale:        1f);
+
+        // 动作也跟着转：两帧交替（蹲扫 / 举砍），旋风的弧光本来就在绕圈
+        var visual = GetComponent<WarriorVisual>();
+        if (visual != null) visual.PlaySpin(skill.duration);
     }
 
     /// <summary>
@@ -221,6 +225,9 @@ public class SkillCaster : MonoBehaviour
     {
         var effect = gameObject.AddComponent<WarCryEffect>();
         effect.Setup(skill, transform.position);
+
+        var visual = GetComponent<WarriorVisual>();
+        if (visual != null) visual.PlayWarcry(skill.ringDuration > 0f ? skill.ringDuration : 0.45f);
     }
 
     /// <summary>投射物技能：算好伤害 → 生成预制体 → 剩下交给 Projectile 自己飞</summary>

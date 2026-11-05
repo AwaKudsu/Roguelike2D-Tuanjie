@@ -22,7 +22,7 @@
 [PASS]|输入资产解析|Assets/_Project/Settings/PlayerInputActions.inputactions：1 个 ActionMap / 8 个 Action
 [PASS]|输入资产解析|Packages/com.unity.inputsystem/InputSystem/Plugins/PlayerInput/DefaultInputActions.inputactions：2 个 ActionMap / 13 个 Action
 [INFO]|Input System 程序集版本|1.7.0.0 @ D:\TuanjieRoguelike2D\Library\ScriptAssemblies\Unity.InputSystem.dll
-[INFO]|扫描的资产引用数|193
+[INFO]|扫描的资产引用数|210
 [PASS]|失效资产引用|0 处
 [SUMMARY]|失败|0
 [SUMMARY]|警告|0
