@@ -167,10 +167,19 @@ public class SkillCaster : MonoBehaviour
         {
             case SkillCastType.Melee:      CastMelee(skill);      break;
             case SkillCastType.Projectile: CastProjectile(skill); break;
+            case SkillCastType.Warcry:     CastWarcry(skill);     break;
         }
     }
 
-    /// <summary>近战技能：完全复用普通攻击的判定代码，不重写一遍</summary>
+    /// <summary>
+    /// 近战技能：完全复用普通攻击的判定代码，不重写一遍。
+    ///
+    /// 分两种：
+    ///   · duration ≤ 0 —— 打一下就结束（火球式的瞬发近战）
+    ///   · duration &gt; 0 —— 挂一个 WhirlwindCast，在 duration 秒里按 tickInterval 反复打。
+    ///     旋风斩就是这一种：它不是一个「大判定框」，而是「一段时间里一直在转」，
+    ///     所以敌人后走进圈里也会被扫到 —— 这才是旋风斩该有的手感。
+    /// </summary>
     private void CastMelee(SkillData skill)
     {
         if (skill.attack == null)
@@ -185,7 +194,33 @@ public class SkillCaster : MonoBehaviour
             return;
         }
 
-        attacker.Execute(skill.attack);
+        if (skill.duration <= 0f)
+        {
+            attacker.Execute(skill.attack);
+            return;
+        }
+
+        var spin = GetComponent<WhirlwindCast>();
+        if (spin == null) spin = gameObject.AddComponent<WhirlwindCast>();
+
+        spin.Setup(
+            attacker:     attacker,
+            attack:       skill.attack,
+            duration:     skill.duration,
+            tickInterval: skill.tickInterval,
+            arc:          attacker.SlashArc,
+            color:        attacker.SlashColor,
+            scale:        1f);
+    }
+
+    /// <summary>
+    /// 战吼：不打伤害，从自身炸出一圈冲击波把敌人吓跑。
+    /// 表现（巨剑 + 扩散圆环）和被吓到的逻辑分别在 WarCryEffect / EnemyController 里。
+    /// </summary>
+    private void CastWarcry(SkillData skill)
+    {
+        var effect = gameObject.AddComponent<WarCryEffect>();
+        effect.Setup(skill, transform.position);
     }
 
     /// <summary>投射物技能：算好伤害 → 生成预制体 → 剩下交给 Projectile 自己飞</summary>

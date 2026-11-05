@@ -32,6 +32,16 @@ public class EnemyController : MonoBehaviour
     [Header("死亡")]
     [SerializeField] private float deathDelay = 0.3f;
 
+    [Header("恐慌（被战吼吓到）")]
+    [Tooltip("恐慌时的移速倍率。恐慌就是「不管不顾地跑」，所以要比平时快")]
+    [SerializeField] private float fearSpeedMultiplier = 2.2f;
+
+    [Tooltip("一次恐慌里「闷头跑」那一小步要跑多久")]
+    [SerializeField] private Vector2 fearRunStep = new Vector2(0.35f, 0.60f);
+
+    [Tooltip("一次恐慌里「慌不择路掉头两步」那一小步要跑多久")]
+    [SerializeField] private Vector2 fearBackStep = new Vector2(0.10f, 0.20f);
+
     private Rigidbody2D _rb;
     private CharacterStats _stats;
     private Health _health;
@@ -40,6 +50,15 @@ public class EnemyController : MonoBehaviour
     private CharacterVisual _visual;
     private float _attackCooldownTimer;
     private int _facing = 1;
+
+    // ---------------- 恐慌状态 ----------------
+    // 恐慌不走协程：就三个数字（还剩多久、这一小步还剩多久、这一小步往哪边跑），
+    // 每帧重新算一次方向 —— 这样玩家跑过去也吓不到它之外的东西，行为完全可预测。
+    private float _fearTimer;
+    private float _fearStepTimer;
+    private int _fearStepDir;
+    private Vector2 _fearSourcePosition;
+    private bool _hasFearSource;
 
     private void Awake()
     {
@@ -61,6 +80,13 @@ public class EnemyController : MonoBehaviour
 
         // 受击硬直期间不移动也不攻击 —— 否则敌人会顶着击退往前走，打击感全无
         if (_hitReaction != null && _hitReaction.IsStunned) return;
+
+        // 被战吼吓住时，谁也不追、也不打，只顾着跑（优先级在硬直之下）
+        if (_fearTimer > 0f)
+        {
+            FearUpdate();
+            return;
+        }
 
         AcquireTarget();
 
@@ -104,6 +130,98 @@ public class EnemyController : MonoBehaviour
         if (hit.TryGetComponent(out IDamageable d) && !d.IsAlive) return;
 
         _target = hit.transform;
+    }
+
+    // ---------------- 恐慌 ----------------
+
+    /// <summary>正在被吓住（战吼期间）。外部（自检、UI）可以看这个值</summary>
+    public bool IsFeared => _fearTimer > 0f;
+
+    /// <summary>还活着（战吼要跳过尸体）</summary>
+    public bool IsAlive => _health != null && _health.IsAlive;
+
+    /// <summary>剩下的恐慌时间，秒</summary>
+    public float FearRemaining => Mathf.Max(0f, _fearTimer);
+
+    /// <summary>
+    /// 被战吼吓到：丢掉目标、原地开始跑。
+    ///
+    /// 多个战吼叠加时取「更长的那个」，而不是把时间加起来 ——
+    /// 否则连着放两次就能把敌人永久钉在恐慌里，那就变成控制技能了。
+    /// </summary>
+    public void ApplyFear(float duration, Vector2 source)
+    {
+        if (!_health.IsAlive) return;
+
+        _fearTimer = Mathf.Max(_fearTimer, duration);
+        _target = null;                    // 丢失攻击目标
+
+        _fearSourcePosition = source;
+        _hasFearSource = true;
+
+        _fearStepTimer = 0f;               // 立刻决定第一步往哪跑
+        _fearStepDir = 0;
+    }
+
+    private void FearUpdate()
+    {
+        _fearTimer -= Time.fixedDeltaTime;
+
+        if (_fearTimer <= 0f)
+        {
+            // 吓完了：停在原地先回气，目标会在下一帧重新找
+            _fearStepDir = 0;
+            _target = null;
+            Brake();
+            return;
+        }
+
+        _fearStepTimer -= Time.fixedDeltaTime;
+        if (_fearStepTimer <= 0f) BeginFearStep();
+
+        if (_fearStepDir == 0) return;
+
+        float speed = MoveSpeed * fearSpeedMultiplier;
+        float newX = Mathf.MoveTowards(_rb.velocity.x, _fearStepDir * speed,
+                                       acceleration * Time.fixedDeltaTime);
+        _rb.velocity = new Vector2(newX, _rb.velocity.y);
+
+        // 朝哪跑就朝哪看 —— 恐慌最直观的表现就是「一直背对着你」
+        _facing = _fearStepDir;
+        if (_visual != null) _visual.SetFacing(_facing);
+    }
+
+    /// <summary>
+    /// 决定接下来这一小步往哪跑。
+    ///
+    /// 大部分时候是「远离玩家」，偶尔（38%）掉头往回冲两步再掉回去 ——
+    /// 这就是「来回快跑」的来源。整体方向仍然是远离，所以玩家会觉得它在逃命，
+    /// 而不是站在原地抽搐。
+    /// </summary>
+    private void BeginFearStep()
+    {
+        int away = 1;
+        if (_hasFearSource)
+        {
+            away = transform.position.x >= _fearSourcePosition.x ? 1 : -1;
+        }
+        else if (_target != null)
+        {
+            away = transform.position.x >= _target.position.x ? 1 : -1;
+        }
+
+        bool turnBack = Random.value < 0.38f;
+
+        if (turnBack)
+        {
+            _fearStepDir = -away;
+            _fearStepTimer = Random.Range(fearBackStep.x, fearBackStep.y);
+        }
+        else
+        {
+            _fearStepDir = away;
+            _fearStepTimer = Random.Range(fearRunStep.x, fearRunStep.y);
+        }
     }
 
     // ---------------- 移动 ----------------

@@ -21,6 +21,13 @@ MonoBehaviour:
   cooldown: 4
   castType: 0
   attack: {fileID: 11400000, guid: 741134f86830b574a8328bda54f372be, type: 2}
+  duration: 1.2
+  tickInterval: 0.2
+  fearDuration: 3.5
+  fearRadius: 12
+  ringDuration: 0.45
+  ringSprite: {fileID: 0}
+  swordSprite: {fileID: 0}
   projectilePrefab: {fileID: 0}
   projectileCount: 1
   spreadAngle: 10

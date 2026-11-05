@@ -369,13 +369,22 @@ namespace Tuanjie.PortCheck
                 }
             }
 
-            // 刀风：会往前飞，不再是原地闪一下
-            MethodInfo throwWave = typeof(SlashEffect).GetMethod("Throw",
+            // 挥砍表现：现在是「贴着武器扫」，飞行刀风已经被否掉了
+            MethodInfo swing = typeof(SlashEffect).GetMethod("Swing",
                 BindingFlags.Public | BindingFlags.Static);
-            sb.AppendLine(throwWave != null ? "[PASS] 刀风直飞 | SlashEffect.Throw 存在" : "[FAIL] 没有 SlashEffect.Throw");
-            if (throwWave == null) fail++;
+            MethodInfo thrust = typeof(SlashEffect).GetMethod("Thrust",
+                BindingFlags.Public | BindingFlags.Static);
 
-            sb.AppendLine(typeof(SlashWave) != null ? "[PASS] 飞行刀风组件 | SlashWave" : "[FAIL] 缺 SlashWave");
+            sb.AppendLine(swing != null && thrust != null
+                ? "[PASS] 挥砍残影 | SlashEffect.Swing / Thrust 都在（贴着武器扫，不再是脱手的气刃）"
+                : "[FAIL] 挥砍残影缺失 | 没有 Swing 或 Thrust");
+            if (swing == null || thrust == null) fail++;
+
+            MethodInfo flying = typeof(SlashEffect).GetMethod("Throw",
+                BindingFlags.Public | BindingFlags.Static);
+            sb.AppendLine(flying == null
+                ? "[PASS] 飞行刀风已移除 | SlashEffect.Throw 不存在"
+                : "[WARN] 飞行刀风的 Show 还在 | SlashEffect.Throw 仍然存在");
 
             sb.AppendLine();
             sb.AppendLine("[SUMMARY] 失败 | " + fail);

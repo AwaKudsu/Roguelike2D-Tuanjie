@@ -35,7 +35,12 @@ public class WarriorVisual : MonoBehaviour
 
     [Header("跑动序列")]
     [SerializeField] private Sprite[] run = new Sprite[0];
-    [SerializeField] private float runFps = 10f;
+
+    [Tooltip("慢走时的帧率。定速播放会显得「原地小跑」，所以慢的时候要慢下来")]
+    [SerializeField] private float runFpsMin = 7f;
+
+    [Tooltip("全速时的帧率")]
+    [SerializeField] private float runFpsMax = 15f;
 
     [Header("节奏（秒）")]
     [Tooltip("普通挥砍保持多久。太长会盖住跑动，太短看不清姿势")]
@@ -56,6 +61,12 @@ public class WarriorVisual : MonoBehaviour
     private float _runTimer;
     private int _runFrame;
     private bool _dead;
+
+    /// <summary>
+    /// 跑动的播放顺序：0 → 1 → 2 → 1（往复），不是 0 → 1 → 2 → 3。
+    /// 素材里第 4 帧是第 2 帧的复制，顺着播会在循环处跳一下。
+    /// </summary>
+    private static readonly int[] RunCycle = { 0, 1, 2, 1 };
 
     private RoomManager _rooms;
     private Room _victoryRoom;
@@ -166,20 +177,38 @@ public class WarriorVisual : MonoBehaviour
         if (Mathf.Abs(vx) > runSpeedThreshold && run != null && run.Length > 0)
         {
             CurrentState = "Run";
-            _runTimer += Time.deltaTime;
-            int frame = Mathf.FloorToInt(_runTimer * runFps) % run.Length;
-            if (frame != _runFrame)
-            {
-                _runFrame = frame;
-            }
-
-            return run[frame] != null ? run[frame] : idle;
+            return RunFrame(vx);
         }
 
         _runTimer = 0f;
         _runFrame = 0;
         CurrentState = "Idle";
         return idle;
+    }
+
+    /// <summary>
+    /// 跑动帧。
+    ///
+    /// 两个细节决定了「跑起来顺不顺」：
+    ///   1. **帧序是 0→1→2→1 的往复，不是 0→1→2→3**。素材里 Run_3 其实是 Run_1 的复制，
+    ///      老老实实 0→1→2→3 播会在 3→0 之间「跳一下」；往复播则四个节拍都不重复、循环无缝。
+    ///   2. **帧率跟着速度走**：慢走 7 帧/秒、全速 15 帧/秒。定速播放在慢速时像在原地小跑，
+    ///      全速时又像卡住 —— 手感差就是从这里来的。
+    /// </summary>
+    private Sprite RunFrame(float vx)
+    {
+        float maxSpeed = controller != null ? Mathf.Max(0.1f, controller.MaxSpeed) : 6f;
+        float ratio = Mathf.Clamp01(Mathf.Abs(vx) / maxSpeed);
+        float fps = Mathf.Lerp(runFpsMin, runFpsMax, ratio);
+
+        _runTimer += fps * Time.deltaTime;      // 直接累计「已经走过几个节拍」
+
+        int step = (int)Mathf.Repeat(_runTimer, RunCycle.Length);
+        int index = RunCycle[step];
+        if (index >= run.Length) index = index % run.Length;   // 只配了 1~2 帧时也别越界
+
+        _runFrame = index;
+        return run[index] != null ? run[index] : idle;
     }
 
     /// <summary>房间清空时举剑庆祝一下。不改逻辑，纯表现</summary>

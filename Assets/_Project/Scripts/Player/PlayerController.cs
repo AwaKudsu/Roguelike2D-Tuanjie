@@ -204,8 +204,11 @@ public class PlayerController : MonoBehaviour
     }
 
     // ---------------- 水平移动 ----------------
-    /// <summary>实际最大速度：优先读属性系统（职业差异走这里），没组件就用手填值</summary>
-    private float MaxSpeed => _stats != null ? _stats.Get(StatType.MoveSpeed) : maxSpeed;
+    /// <summary>
+    /// 实际最大速度：优先读属性系统（职业差异走这里），没组件就用手填值。
+    /// public 是为了让表现层按「当前速度 / 最大速度」算跑动帧率。
+    /// </summary>
+    public float MaxSpeed => _stats != null ? _stats.Get(StatType.MoveSpeed) : maxSpeed;
 
     private void ApplyHorizontalMovement()
     {

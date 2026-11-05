@@ -1,0 +1,16 @@
+[INFO] 战斗特效与战吼装配
+[PASS] 已打开场景 | Assets/_Project/Scenes/Game.unity
+[PASS] 特效贴图 | Ring.png 128x128 ppu=128 （1 x 1 单位）
+[PASS] 特效贴图 | GreatSword.png 64x160 ppu=32 （2 x 5 单位）
+[PASS] 旋风斩判定数据 | Attack_Whirlwind 判定 3.2x2.2
+[PASS] 旋风斩改成持续判定 | 持续 1.2 秒 / 每 0.2 秒扫一次（约 7 下）
+[PASS] 新建战吼技能 | Assets/_Project/Data/Skills/Skill_WarCry.asset
+[PASS] 战吼已配置 | 半径 12 单位 / 恐慌 3.5 秒 / 耗蓝 15 / 冷却 6s
+[PASS] 战吼圆环贴图 | Ring
+[PASS] 战吼巨剑贴图 | GreatSword
+[PASS] 战士职业技能 | 2 个：旋风斩 / 战吼
+[PASS] 玩家技能栏 | 2 个（战吼在槽 2，按 L 放）
+[PASS] 场景已存盘 | Assets/_Project/Scenes/Game.unity
+[SUMMARY] 失败 | 0
+[SUMMARY] 特效贴图 | Ring + GreatSword
+[SUMMARY] 技能 | 旋风斩（持续判定） + 战吼（Warcry）

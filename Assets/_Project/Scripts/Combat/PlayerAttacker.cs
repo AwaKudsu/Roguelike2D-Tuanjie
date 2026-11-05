@@ -78,6 +78,13 @@ public class PlayerAttacker : MonoBehaviour
     /// <summary>配了几段连击。0 表示这个职业只有单段攻击</summary>
     public int ComboLength => comboAttacks != null ? comboAttacks.Length : 0;
 
+    /// <summary>挥砍用的弧光精灵。技能特效（旋风斩 / 战吼）也借它，所以对外开一个只读入口</summary>
+    public Sprite SlashArc => slashArc;
+
+    /// <summary>挥砍弧光的颜色</summary>
+    public Color SlashColor => slashColor;
+
+
     /// <summary>某个 AttackData 在「当前站位 + 当前朝向」下会打到哪里</summary>
     private Vector2 CenterFor(AttackData data)
     {
@@ -230,59 +237,48 @@ public class PlayerAttacker : MonoBehaviour
     }
 
     /// <summary>
-    /// 放刀风。三种情况各不相同：
+    /// 放挥砍残影。三种情况各不相同：
     ///   · 大范围挥砍（旋风斩）—— 弧光绕身转一圈
-    ///   · 三段连击 —— 每一段的角度、速度、长短都不一样（劈砍压低、上挑往上、突刺又快又长）
-    ///   · 其它近战 —— 平着甩一道
+    ///   · 三段连击 —— 扫的方向不一样（劈砍从上往下、上挑从下往上、突刺几乎不扫只往前闪）
+    ///   · 其它近战 —— 平着扫一道
     /// slashArc 没配就什么都不做。
+    ///
+    /// 注意这里是「贴着剑扫」，不是「脱手飞出去」—— 弧光以角色为圆心旋转，
+    /// 扫完立刻消失。飞出去的那种读起来像法师的气刃，不像战士挥剑。
     /// </summary>
     private void PlaySlash(Vector2 center, AttackData data)
     {
         if (slashArc == null) return;
 
         float scale = Mathf.Max(0.1f, slashScale);
+        Vector2 origin = transform.position;
 
         if (data.hitboxSize.x * data.hitboxSize.y >= 6f)
         {
-            SlashEffect.Spin(slashArc, transform.position,
+            SlashEffect.Spin(slashArc, origin,
                              radius: Mathf.Max(data.hitboxSize.x, data.hitboxSize.y) * 0.28f,
                              scale: scale * 0.9f,
                              color: slashColor);
             return;
         }
 
-        int stage = StageOf(data);
-
-        // 出刀点：身前一点；上挑那一段再抬高一些，看起来是从下方撩上去的
-        float lift = stage == 1 ? 0.35f : 0.05f;
-        Vector2 origin = (Vector2)transform.position + new Vector2(_facing * 0.55f, lift);
-
-        float tilt;
-        float speed;
-        float duration;
-
-        switch (stage)
+        switch (StageOf(data))
         {
-            case 1:   // 上挑：往上挑，飞得慢一点（还在往上走）
-                tilt = 38f;
-                speed = 8.5f;
-                duration = 0.26f;
+            case 1:   // 上挑：从下往上撩，扫得比劈砍开一点
+                SlashEffect.Swing(slashArc, origin, _facing, scale, slashColor,
+                                  startAngle: 105f, sweep: -140f, radius: 0.5f, duration: 0.22f);
                 break;
 
-            case 2:   // 突刺：贴着地面笔直冲出去，又快又短
-                tilt = 0f;
-                speed = 15f;
-                duration = 0.18f;
+            case 2:   // 突刺：不扫圈，只在身前远一点的位置闪一道
+                SlashEffect.Thrust(slashArc, origin, _facing, scale * 1.05f, slashColor,
+                                   distance: 1.05f, duration: 0.13f);
                 break;
 
-            default:  // 劈砍：稍微压下去一点，像从上往下切
-                tilt = -18f;
-                speed = 9.5f;
-                duration = 0.24f;
+            default:  // 劈砍：从头顶那侧往下劈
+                SlashEffect.Swing(slashArc, origin, _facing, scale, slashColor,
+                                  startAngle: -75f, sweep: 135f, radius: 0.55f, duration: 0.18f);
                 break;
         }
-
-        SlashEffect.Throw(slashArc, origin, _facing, scale, slashColor, tilt, speed, duration);
     }
 
     /// <summary>

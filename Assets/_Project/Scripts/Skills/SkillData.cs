@@ -11,6 +11,12 @@ public enum SkillCastType
 
     /// <summary>发射投射物。火球、箭、飞刀</summary>
     Projectile,
+
+    /// <summary>
+    /// 战吼：不打伤害，从自身放一圈冲击波，把范围内的敌人吓跑（丢掉目标、来回乱跑）。
+    /// 见 SkillCaster.CastWarcry 和 WarCryEffect。
+    /// </summary>
+    Warcry,
 }
 
 /// <summary>
@@ -50,6 +56,30 @@ public class SkillData : ScriptableObject
     [Header("伤害与判定")]
     [Tooltip("伤害倍率 / 击退 / 判定框尺寸 / 目标层都在这个资产里")]
     public AttackData attack;
+
+    [Header("持续判定（castType = Melee 且 duration > 0 时使用）")]
+    [Tooltip("判定持续多久（秒）。0 = 打一下就结束（老行为）；> 0 = 在这段时间里每隔 tickInterval 打一次 —— 旋风斩就是靠这个")]
+    public float duration = 0f;
+
+    [Tooltip("持续判定每隔多久打一次（秒）。越小越密，但每密一次就多一次伤害")]
+    [Min(0.05f)]
+    public float tickInterval = 0.22f;
+
+    [Header("战吼（castType = Warcry 时使用）")]
+    [Tooltip("敌人被吓住多久（秒）。这段时间里它丢掉攻击目标、背对着你来回跑")]
+    public float fearDuration = 3.5f;
+
+    [Tooltip("战吼的影响半径（世界单位），以玩家为圆心。屏幕内的敌人基本都在这个圈里")]
+    public float fearRadius = 12f;
+
+    [Tooltip("冲击波圆环从「贴着身子」扩散到 fearRadius 要多久（秒）")]
+    public float ringDuration = 0.45f;
+
+    [Tooltip("冲击波用的圆环贴图（一张白色空心圆就够，颜色靠 tint）")]
+    public Sprite ringSprite;
+
+    [Tooltip("战吼时在头顶亮出来的巨剑贴图")]
+    public Sprite swordSprite;
 
     [Header("投射物（castType = Projectile 时使用）")]
     public GameObject projectilePrefab;
