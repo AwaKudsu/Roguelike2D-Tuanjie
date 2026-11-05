@@ -42,6 +42,7 @@ namespace Tuanjie.PortCheck
             Check(scene.IsValid(), "打开场景", ScenePath, ScenePath);
 
             CheckEffectScripts();
+            CheckTrailFollowsPlayer();
             CheckWhirlwind();
             CheckWarcry();
             CheckFear();
@@ -73,8 +74,18 @@ namespace Tuanjie.PortCheck
             if (trail != null)
             {
                 MethodInfo play = trail.GetMethod("Play", BindingFlags.Static | BindingFlags.Public);
-                Check(play != null, "刀光脚本", "Play(SwordSwing, origin, facing, color, scale) 可用",
+                Check(play != null, "刀光脚本", "Play(SwordSwing, owner, origin, facing, color, scale) 可用",
                       "SwordTrail 上没有 Play");
+
+                // 刀光必须挂在挥剑的人身上，否则角色走动时那道弧会留在原地
+                bool hasOwner = false;
+                if (play != null)
+                {
+                    ParameterInfo[] ps = play.GetParameters();
+                    hasOwner = ps.Length > 1 && ps[1].ParameterType == typeof(Transform);
+                }
+                Check(hasOwner, "刀光脚本", "刀光挂到挥剑的人身上（跟着剑走）",
+                      "Play 没有 owner 参数 —— 角色一走动，刀光会留在原地和人分开");
 
                 // 刀光必须是网格画出来的，否则又是「一张贴图在转」
                 Check(trail.IsSubclassOf(typeof(MonoBehaviour)), "刀光脚本", "挂在空物体上每帧重建网格",
@@ -100,6 +111,60 @@ namespace Tuanjie.PortCheck
             Type sprite = FindType("SlashEffect");
             Check(sprite == null, "贴图刀光已移除", "SlashEffect / SlashArcFade / SlashTrail 都不在了",
                   "旧的贴图刀光还在 —— 刀光应该由 SwordTrail 从剑的轨迹现画");
+        }
+
+        // ---------------- 刀光跟着剑 ----------------
+
+        /// <summary>
+        /// 刀光必须跟着挥剑的人一起走。
+        /// 做法：真放一道刀光，把玩家往右上挪 3 / 1.5 个单位，看刀光的世界坐标是不是跟着挪了同样的距离。
+        /// 这一项对应「战士移动时攻击特效还在原地」那个 bug —— 刀光被生成在当时的世界上就不再动了。
+        /// </summary>
+        private static void CheckTrailFollowsPlayer()
+        {
+            Type trail = FindType("SwordTrail");
+            Type swing = FindType("SwordSwing");
+            MethodInfo play = trail != null ? trail.GetMethod("Play", BindingFlags.Static | BindingFlags.Public) : null;
+
+            GameObject player = GameObject.FindGameObjectWithTag("Player");
+            if (trail == null || swing == null || play == null || player == null)
+            {
+                Check(false, "刀光跟随", "刀光跟着人走", "找不到 SwordTrail / SwordSwing / 玩家");
+                return;
+            }
+
+            Vector3 start = player.transform.position;
+            var offset = new Vector3(3f, 1.5f, 0f);
+            SwordTrail spawned = null;
+
+            try
+            {
+                spawned = play.Invoke(null, new object[]
+                {
+                    Enum.Parse(swing, "Slash"), player.transform, (Vector2)start, 1, Color.white, 1f
+                }) as SwordTrail;
+
+                Check(spawned != null, "刀光跟随", "刀光能放出来", "SwordTrail.Play 返回空");
+                if (spawned == null) return;
+
+                bool parented = spawned.transform.IsChildOf(player.transform);
+                Check(parented, "刀光跟随", "刀光挂在玩家身上（不是独立物体）",
+                      "刀光没挂到玩家身上 —— 走动时它会留在原地");
+
+                Vector3 trailBefore = spawned.transform.position;
+                player.transform.position = start + offset;
+                Vector3 trailAfter = spawned.transform.position;
+                float moved = Vector3.Distance(trailAfter, trailBefore);
+
+                Check(Mathf.Abs(moved - offset.magnitude) < 0.05f, "刀光跟随",
+                      $"玩家移动后刀光跟着移动 | 玩家走 {offset.magnitude:0.00}，刀光走 {moved:0.00}",
+                      $"玩家走 {offset.magnitude:0.00}，刀光只走 {moved:0.00} —— 还留在原地");
+            }
+            finally
+            {
+                player.transform.position = start;
+                if (spawned != null) UnityEngine.Object.DestroyImmediate(spawned.gameObject);
+            }
         }
 
         // ---------------- 旋风斩 ----------------

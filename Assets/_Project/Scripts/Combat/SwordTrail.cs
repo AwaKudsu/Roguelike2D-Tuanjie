@@ -61,8 +61,12 @@ public class SwordTrail : MonoBehaviour
 
     /// <summary>
     /// 放一道刀光。origin 是人物脚下（刀光绕这个点扫），facing 决定往哪边扫。
+    ///
+    /// owner 是挥剑的那个人：刀光会挂成它的子物体，顶点也按它的**局部坐标**算。
+    /// 不这么做的话，刀光被生成在当时的世界上就不再动了 —— 角色一走动，
+    /// 刚刚扫出去的那道弧会留在原地，和人叠在一起或者被甩在身后，看着像另一个人的特效。
     /// </summary>
-    public static SwordTrail Play(SwordSwing swing, Vector2 origin, int facing, Color color, float scale = 1f)
+    public static SwordTrail Play(SwordSwing swing, Transform owner, Vector2 origin, int facing, Color color, float scale = 1f)
     {
         var go = new GameObject("__SwordTrail");
         var trail = go.AddComponent<SwordTrail>();
@@ -100,6 +104,17 @@ public class SwordTrail : MonoBehaviour
         trail._startAngle = startAngle;
         trail._endAngle = endAngle;
         trail._duration = duration;
+
+        // 挂到挥剑的人身上：父物体一动，整条带子跟着动，刀光才一直贴着剑。
+        // 顶点用的是局部坐标，所以这里把世界坐标的起点换算进父空间的局部坐标。
+        if (owner != null)
+        {
+            go.transform.SetParent(owner, false);
+            go.transform.localPosition = Vector3.zero;
+            go.transform.localRotation = Quaternion.identity;
+            go.transform.localScale = Vector3.one;
+            trail._origin = owner.InverseTransformPoint(origin);
+        }
 
         // 留在带子上的只是「剑刚扫过去的那一段」：_life 比整段挥剑略短，
         // 最老的采样点会被丢掉，所以看到的是一条新月形的亮痕，而不是一整片扇形。

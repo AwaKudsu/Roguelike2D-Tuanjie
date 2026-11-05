@@ -404,7 +404,7 @@ namespace Tuanjie.PortCheck
             MethodInfo playTrail = typeof(SwordTrail).GetMethod("Play",
                 BindingFlags.Public | BindingFlags.Static);
             sb.AppendLine(playTrail != null
-                ? "[PASS] 刀光从剑的轨迹来 | SwordTrail.Play(SwordSwing, origin, facing, color, scale)"
+                ? "[PASS] 刀光从剑的轨迹来 | SwordTrail.Play(SwordSwing, owner, origin, facing, color, scale)"
                 : "[FAIL] SwordTrail.Play 不存在");
             if (playTrail == null) fail++;
 

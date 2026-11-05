@@ -263,7 +263,9 @@ public class PlayerAttacker : MonoBehaviour
             }
         }
 
-        SwordTrail.Play(swing, origin, _facing, slashColor, scale);
+        // 把 owner 一起传进去：刀光会挂成玩家的子物体，跟着剑走。
+        // 否则挥剑途中一走动，那道弧就留在原地了。
+        SwordTrail.Play(swing, transform, origin, _facing, slashColor, scale);
     }
 
     /// <summary>

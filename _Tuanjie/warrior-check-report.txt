@@ -36,7 +36,7 @@
 [PASS] 连击段号对外可见 | ComboStage（外观层据此选姿势）
 [PASS] 连击序列 | 劈砍 → 上挑 → 突刺 → 劈砍（段号 0,1,2,0）
 [PASS] 连击窗口过期 | 停手后下一刀回到劈砍
-[PASS] 刀光从剑的轨迹来 | SwordTrail.Play(SwordSwing, origin, facing, color, scale)
+[PASS] 刀光从剑的轨迹来 | SwordTrail.Play(SwordSwing, owner, origin, facing, color, scale)
 [PASS] 贴图刀光已移除 | SlashEffect / SlashTrail 都不在了
 
 [SUMMARY] 失败 | 0
