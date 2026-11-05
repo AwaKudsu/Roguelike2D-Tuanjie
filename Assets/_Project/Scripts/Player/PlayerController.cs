@@ -43,6 +43,19 @@ public class PlayerController : MonoBehaviour
     [Tooltip("跳跃缓冲：落地前提前按跳，落地瞬间自动起跳")]
     [SerializeField] private float jumpBufferTime = 0.1f;
 
+    [Header("冲刺")]
+    [Tooltip("冲刺时的水平速度。要明显大于跑步，才有「窜出去」的感觉")]
+    [SerializeField] private float dashSpeed = 18f;
+
+    [Tooltip("冲刺持续多久")]
+    [SerializeField] private float dashDuration = 0.18f;
+
+    [Tooltip("两次冲刺之间的冷却")]
+    [SerializeField] private float dashCooldown = 0.55f;
+
+    [Tooltip("冲刺期间的无敌时间。等于全程无敌，写 0 关掉")]
+    [SerializeField] private float dashInvincibility = 0.18f;
+
     [Header("地面检测")]
     [Tooltip("检测圆的半径。太大会导致「还没落地就算落地」，与跳跃缓冲叠加会表现为空中起跳")]
     [SerializeField] private float groundCheckRadius = 0.05f;
@@ -55,12 +68,24 @@ public class PlayerController : MonoBehaviour
     private PlayerInputReader _input;
     private HitReaction _hitReaction;
     private CharacterStats _stats;
+    private Health _health;
 
     private float _coyoteCounter;      // 土狼时间剩余
     private float _jumpBufferCounter;  // 跳跃缓冲剩余
 
+    private float _dashTimer;          // 冲刺剩余时间
+    private float _dashCooldownTimer;  // 冲刺冷却剩余
+    private int _dashDirection = 1;    // 冲刺方向，出手瞬间定下来
+    private int _lastFacing = 1;       // 最近一次的水平朝向，没输入时冲刺按它走
+
     /// <summary>本帧是否站在地面上</summary>
     public bool IsGrounded { get; private set; }
+
+    /// <summary>是否正在冲刺。外观层用它切冲刺姿势</summary>
+    public bool IsDashing => _dashTimer > 0f;
+
+    /// <summary>冲刺冷却好了没有（做 UI 时可以用）</summary>
+    public bool CanDash => _dashCooldownTimer <= 0f;
 
     private void Awake()
     {
@@ -69,6 +94,7 @@ public class PlayerController : MonoBehaviour
         _input       = GetComponent<PlayerInputReader>();
         _hitReaction = GetComponent<HitReaction>();
         _stats = GetComponent<CharacterStats>();
+        _health = GetComponent<Health>();
     }
 
     private void FixedUpdate()
@@ -81,8 +107,7 @@ public class PlayerController : MonoBehaviour
         if (canAct)
         {
             UpdateJumpTimers();
-            TryJump();
-            ApplyHorizontalMovement();
+            TryDash();
         }
         else
         {
@@ -90,11 +115,53 @@ public class PlayerController : MonoBehaviour
             _input.ConsumeJumpPressed();
             _coyoteCounter     = 0f;
             _jumpBufferCounter = 0f;
+            _dashTimer         = 0f;   // 挨打会打断冲刺
+        }
+
+        // 冲刺期间接管速度，普通移动和重力都让位
+        if (IsDashing)
+        {
+            ApplyDash();
+            return;
+        }
+
+        _dashCooldownTimer -= Time.fixedDeltaTime;
+
+        if (canAct)
+        {
+            TryJump();
+            ApplyHorizontalMovement();
         }
 
         // 重力和下落限制在硬直期间照常生效，否则被打飞的角色会僵在半空
         ApplyGravityAndJumpCut();
         ClampFallSpeed();
+    }
+
+    // ---------------- 冲刺 ----------------
+
+    private void TryDash()
+    {
+        if (_input.ConsumeDashPressed() && _dashCooldownTimer <= 0f)
+        {
+            // 有输入按输入方向，没输入就顺着当前朝向 —— 站着冲刺也应该是「往前窜」
+            float x = _input.Move.x;
+            _dashDirection = Mathf.Abs(x) > 0.01f ? (x > 0f ? 1 : -1) : _lastFacing;
+
+            _dashTimer         = dashDuration;
+            _dashCooldownTimer = dashCooldown;
+
+            if (_health != null) _health.GrantInvincibility(dashInvincibility);
+        }
+    }
+
+    private void ApplyDash()
+    {
+        _dashTimer -= Time.fixedDeltaTime;
+
+        // 冲刺时把重力关掉，否则短促的一次冲刺会被重力压成一个斜下坠
+        _rb.gravityScale = 0f;
+        _rb.velocity = new Vector2(_dashDirection * dashSpeed, 0f);
     }
 
     // ---------------- 地面检测 ----------------
@@ -142,7 +209,12 @@ public class PlayerController : MonoBehaviour
 
     private void ApplyHorizontalMovement()
     {
-        float targetSpeed = _input.Move.x * MaxSpeed; 
+        float inputX = _input.Move.x;
+
+        // 记下最近朝向：站着按冲刺时没有方向输入，就顺着这里走
+        if (Mathf.Abs(inputX) > 0.01f) _lastFacing = inputX > 0f ? 1 : -1;
+
+        float targetSpeed = inputX * MaxSpeed; 
         float rate = Mathf.Abs(targetSpeed) > 0.01f ? acceleration : deceleration;
 
         float newSpeedX = Mathf.MoveTowards(

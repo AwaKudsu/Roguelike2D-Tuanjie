@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -24,6 +25,21 @@ public class PlayerAttacker : MonoBehaviour
 
     [Tooltip("判定框闪多久（秒）。太短来不及把视线从 Game 视图挪过来，太长会挡住画面")]
     [SerializeField] private float debugShowDuration = 0.6f;
+
+    [Header("挥砍表现")]
+    [Tooltip("近战挥砍时飞出来的刀风贴图（战士素材里的 Warrior_SlashArc）。留空就没有刀风，不影响判定")]
+    [SerializeField] private Sprite slashArc;
+
+    [SerializeField] private Color slashColor = new Color(1f, 0.94f, 0.75f, 1f);
+
+    [Tooltip("刀风大小倍率")]
+    [SerializeField] private float slashScale = 1f;
+
+    /// <summary>
+    /// 每次攻击真正打出去时触发（远程也在内）。
+    /// 外观层靠它切姿势 —— 判定和表现分开，删掉这个事件不影响战斗。
+    /// </summary>
+    public event Action<AttackData> AttackStarted;
 
     private PlayerInputReader _input;
     private CharacterStats _stats;
@@ -118,6 +134,32 @@ public class PlayerAttacker : MonoBehaviour
 
         // 投射物本身没有判定框，就在枪口闪一个小方块当「打出去了」的反馈
         ShowFlash(muzzle, new Vector2(0.4f, 0.4f), data != attackData);
+
+        AttackStarted?.Invoke(data);
+    }
+
+    /// <summary>
+    /// 放一道刀风。大范围挥砍（旋风斩）让弧光绕身转一圈，普通挥砍是斜着扫一下。
+    /// slashArc 没配就什么都不做。
+    /// </summary>
+    private void PlaySlash(Vector2 center, AttackData data)
+    {
+        if (slashArc == null) return;
+
+        float scale = Mathf.Max(0.1f, slashScale);
+
+        if (data.hitboxSize.x * data.hitboxSize.y >= 6f)
+        {
+            SlashEffect.Spin(slashArc, transform.position,
+                             radius: Mathf.Max(data.hitboxSize.x, data.hitboxSize.y) * 0.28f,
+                             scale: scale * 0.9f,
+                             color: slashColor);
+            return;
+        }
+
+        // 普通挥砍：弧光放在判定框中心偏后一点，看起来是从刀身上扫出去的
+        Vector2 at = center - new Vector2(_facing * 0.25f, 0f);
+        SlashEffect.Swing(slashArc, at, _facing, scale, slashColor);
     }
 
     /// <summary>
@@ -127,6 +169,11 @@ public class PlayerAttacker : MonoBehaviour
     public void Execute(AttackData data)
     {
         Vector2 center = CenterFor(data);
+
+        // 先通知外观层切姿势、再放刀风，最后才判定 ——
+        // 这样即使表现层出问题（比如贴图没导入），伤害也照样打出去
+        AttackStarted?.Invoke(data);
+        PlaySlash(center, data);
 
         // 按下才算、闪完就没了：这里记的是这一下**实际**打在哪
         ShowFlash(center, data.hitboxSize, data != attackData);

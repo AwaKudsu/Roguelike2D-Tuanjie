@@ -65,6 +65,16 @@ public class Health : MonoBehaviour, IDamageable
             Died?.Invoke();
     }
 
+    /// <summary>
+    /// 主动给一段无敌时间，用于冲刺这类「不是挨打、但要短暂无敌」的动作。
+    /// 只延长、不缩短 —— 连按冲刺不会把受击后的无敌帧削掉。
+    /// </summary>
+    public void GrantInvincibility(float seconds)
+    {
+        if (seconds <= 0f) return;
+        if (seconds > _invincibilityTimer) _invincibilityTimer = seconds;
+    }
+
     /// <summary>设置最大生命值，可选保持血量百分比 —— 职业 / 装备改变上限时调用</summary>
     public void SetMaxHealth(float newMax, bool keepRatio = true)
     {

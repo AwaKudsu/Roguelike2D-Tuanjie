@@ -1612,6 +1612,7 @@ GameObject:
   - component: {fileID: 1728500181}
   - component: {fileID: 1728500185}
   - component: {fileID: 1728500184}
+  - component: {fileID: 1728500186}
   m_Layer: 6
   m_HasEditorInfo: 1
   m_Name: Player
@@ -1729,8 +1730,8 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_Sprite: {fileID: 21300000, guid: 1622f347918d6d344918a4aa53fdbacc, type: 3}
-  m_Color: {r: 0.19813083, g: 0.9245283, b: 0.08431224, a: 1}
+  m_Sprite: {fileID: 21300000, guid: d25fbd05c51ee8c49b1e55dd6c58757a, type: 3}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
@@ -1778,6 +1779,10 @@ MonoBehaviour:
   maxFallSpeed: 25
   coyoteTime: 0.1
   jumpBufferTime: 0.1
+  dashSpeed: 18
+  dashDuration: 0.18
+  dashCooldown: 0.55
+  dashInvincibility: 0.18
   groundCheckRadius: 0.05
   groundLayer:
     serializedVersion: 2
@@ -1809,6 +1814,9 @@ MonoBehaviour:
   attackData: {fileID: 11400000, guid: a91ae24e2c5412c429b0267716cecf23, type: 2}
   debugShowHitbox: 1
   debugShowDuration: 0.15
+  slashArc: {fileID: 21300000, guid: ec432860190402e4093ed7afb721b457, type: 3}
+  slashColor: {r: 1, g: 0.94, b: 0.75, a: 1}
+  slashScale: 1
 --- !u!114 &1728500178
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1945,6 +1953,44 @@ MonoBehaviour:
   - {fileID: 11400000, guid: f4f73e8ef3c308a42849c036341897cb, type: 2}
   - {fileID: 11400000, guid: c7b11e50e7661a34c90b0e9ea3dccb57, type: 2}
   - {fileID: 11400000, guid: f17a1904069dbf240a6e693e2fbcd808, type: 2}
+--- !u!114 &1728500186
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1728500170}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4cfa8105e18e45b4c956acd65fdaa7e4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  sprite: {fileID: 1728500173}
+  controller: {fileID: 1728500175}
+  health: {fileID: 1728500179}
+  attacker: {fileID: 1728500177}
+  body: {fileID: 1728500172}
+  idle: {fileID: 21300000, guid: d25fbd05c51ee8c49b1e55dd6c58757a, type: 3}
+  jump: {fileID: 21300000, guid: ff997ff53ef7d1f4d81028270a6edd91, type: 3}
+  fall: {fileID: 21300000, guid: f3d75257bb4f5084090d5cae95824f4b, type: 3}
+  dash: {fileID: 21300000, guid: c473bcc2954548643b420609c8844399, type: 3}
+  hurt: {fileID: 21300000, guid: a01838893706ae94cae14a16e0519d4d, type: 3}
+  death: {fileID: 21300000, guid: 21c90a1090ad8244794d4d754b830d10, type: 3}
+  victory: {fileID: 21300000, guid: 11deb9a69dd458640855a2a9f43df1e2, type: 3}
+  attackSlash: {fileID: 21300000, guid: 52b048a242e4f5e458c485bb23912705, type: 3}
+  attackHeavy: {fileID: 21300000, guid: f761b01b6ca83604c83168bf5a469bf7, type: 3}
+  attackThrust: {fileID: 21300000, guid: 8885635c85eb78543a65a35248d747fb, type: 3}
+  run:
+  - {fileID: 21300000, guid: 9da242399f3956a408388aa93f7eec28, type: 3}
+  - {fileID: 21300000, guid: 877b9ea060f3ff649897331968397b06, type: 3}
+  - {fileID: 21300000, guid: 99be8375ee206a649a38da24f07b1d06, type: 3}
+  - {fileID: 21300000, guid: e82dd2194982a9543ab310eb371e98b5, type: 3}
+  runFps: 10
+  attackHold: 0.15
+  heavyHold: 0.26
+  hurtHold: 0.22
+  victoryHold: 1.4
+  runSpeedThreshold: 0.6
 --- !u!1 &1762385687
 GameObject:
   m_ObjectHideFlags: 0

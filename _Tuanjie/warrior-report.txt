@@ -1,0 +1,27 @@
+=== 战士素材接入 ===
+[INFO] 工程 | D:/TuanjieRoguelike2D/Assets
+[PASS] 已打开场景 | Assets/_Project/Scenes/Game.unity
+[PASS] Sprite 资产齐全 | 15 张
+[INFO] Warrior_AttackHeavy | 320x480 ppu=160 pivot=(160,240)
+[INFO] Warrior_AttackSlash | 320x480 ppu=160 pivot=(160,240)
+[INFO] Warrior_AttackThrust | 320x480 ppu=160 pivot=(160,240)
+[INFO] Warrior_Dash | 320x480 ppu=160 pivot=(160,240)
+[INFO] Warrior_Death | 320x480 ppu=160 pivot=(160,240)
+[INFO] Warrior_Fall | 320x480 ppu=160 pivot=(160,240)
+[INFO] Warrior_Hurt | 320x480 ppu=160 pivot=(160,240)
+[INFO] Warrior_Idle | 320x480 ppu=160 pivot=(160,240)
+[INFO] Warrior_Jump | 320x480 ppu=160 pivot=(160,240)
+[INFO] Warrior_Run_0 | 320x480 ppu=160 pivot=(160,240)
+[INFO] Warrior_Run_1 | 320x480 ppu=160 pivot=(160,240)
+[INFO] Warrior_Run_2 | 320x480 ppu=160 pivot=(160,240)
+[INFO] Warrior_Run_3 | 320x480 ppu=160 pivot=(160,240)
+[INFO] Warrior_SlashArc | 320x480 ppu=160 pivot=(160,240)
+[INFO] Warrior_Victory | 320x480 ppu=160 pivot=(160,240)
+[PASS] 组件已存在 | WarriorVisual
+[PASS] 跑动序列 | 4 帧
+[PASS] 刀风已接 | Warrior_SlashArc
+[PASS] 技能图标 | 旋风斩 → Warrior_AttackHeavy
+[PASS] 玩家贴图 | Warrior_Idle
+[PASS] 场景已存盘 | Assets/_Project/Scenes/Game.unity
+
+[SUMMARY] 失败 | 0
