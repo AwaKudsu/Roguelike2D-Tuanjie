@@ -40,13 +40,9 @@ namespace Tuanjie.PortCheck
             "Warrior_AttackLift", "Warrior_AttackLift_Windup", "Warrior_AttackLift_Follow",
             "Warrior_AttackHeavy", "Warrior_AttackThrust",
             "Warrior_AttackThrust_Windup", "Warrior_AttackThrust_Follow",
-            "Warrior_SlashArc",
             "Warrior_Run_0", "Warrior_Run_1", "Warrior_Run_2", "Warrior_Run_3",
             "Warrior_Run_4", "Warrior_Run_5"
         };
-
-        /// <summary>刀风不是人物帧，它被裁成了紧贴弧光的正方形，不能按 320x480 校验</summary>
-        private const string ArcSpriteName = "Warrior_SlashArc";
 
         [MenuItem("团结/验证战士动作")]
         public static void Run()
@@ -74,17 +70,11 @@ namespace Tuanjie.PortCheck
                     continue;
                 }
 
-                bool isArc = name == ArcSpriteName;
-
                 bool ok = Mathf.Approximately(s.pixelsPerUnit, PixelsPerUnit)
                           && Mathf.Approximately(s.pivot.x, s.rect.width / 2f)
                           && Mathf.Approximately(s.pivot.y, s.rect.height / 2f)
-                          && (isArc
-                              // 刀风是紧贴弧光的正方形，只要求「正方形 + 居中」，
-                              // 因为它要被旋转和缩放，画布越贴边越好
-                              ? Mathf.Approximately(s.rect.width, s.rect.height)
-                              : Mathf.Approximately(s.rect.width, CanvasWidth)
-                                && Mathf.Approximately(s.rect.height, CanvasHeight));
+                          && Mathf.Approximately(s.rect.width, CanvasWidth)
+                          && Mathf.Approximately(s.rect.height, CanvasHeight);
 
                 if (ok)
                 {
@@ -99,7 +89,7 @@ namespace Tuanjie.PortCheck
             }
 
             sb.AppendLine(good == AllFrames.Length
-                ? "[PASS] " + AllFrames.Length + " 张图导入参数一致 | 人物帧 320x480，刀风紧贴裁切，全部 160 PPU + 居中 pivot"
+                ? "[PASS] " + AllFrames.Length + " 张图导入参数一致 | 人物帧 320x480，全部 160 PPU + 居中 pivot"
                 : "[INFO] 参数正确的图 | " + good + " / " + AllFrames.Length);
 
             // ---------- 过滤与压缩 ----------
@@ -221,19 +211,22 @@ namespace Tuanjie.PortCheck
             CheckDistinct(sb, so, "slashFrames", ref fail);
             CheckDistinct(sb, so, "idleFrames", ref fail);
 
-            // ---------- 刀风 / 技能图标 / 渲染器 ----------
+            // ---------- 刀光 / 技能图标 / 渲染器 ----------
             var attacker = player.GetComponent<PlayerAttacker>();
             if (attacker != null)
             {
+                // 刀光不再是贴图：不再有 slashArc 字段，改成 SwordTrail 现画。
+                // 这里只留一个反向检查 —— 万一「新月贴图」又被人塞回去，能立刻发现。
                 var aso = new SerializedObject(attacker);
                 SerializedProperty arc = aso.FindProperty("slashArc");
-                bool ok = arc != null && arc.objectReferenceValue != null;
-                sb.AppendLine(ok ? "[PASS] 刀风已接 | " + arc.objectReferenceValue.name : "[FAIL] 刀风没接");
-                if (!ok) fail++;
+                sb.AppendLine(arc == null
+                    ? "[PASS] 刀光不走贴图 | PlayerAttacker 没有 slashArc 字段（SwordTrail 按剑的轨迹现画）"
+                    : "[WARN] 刀光又变成贴图了 | 还留着 slashArc 字段");
+                if (arc != null) warn++;
 
                 MethodInfo playSlash = typeof(PlayerAttacker).GetMethod("PlaySlash",
                     BindingFlags.Instance | BindingFlags.NonPublic);
-                sb.AppendLine(playSlash != null ? "[PASS] 出刀时放刀风 | PlaySlash 存在" : "[FAIL] 找不到 PlaySlash");
+                sb.AppendLine(playSlash != null ? "[PASS] 出刀时放刀光 | PlaySlash 存在" : "[FAIL] 找不到 PlaySlash");
                 if (playSlash == null) fail++;
 
                 // event 不是字段：编译器把自动实现的 event 生成为私有字段，
@@ -272,8 +265,15 @@ namespace Tuanjie.PortCheck
             }
 
             // ---------- 新增类型 ----------
-            sb.AppendLine(typeof(SlashArcFade) != null ? "[PASS] 刀风淡出组件 | SlashArcFade" : "[FAIL] 缺 SlashArcFade");
-            sb.AppendLine(typeof(SlashEffect) != null ? "[PASS] 刀风工厂 | SlashEffect" : "[FAIL] 缺 SlashEffect");
+            MethodInfo trailPlay = typeof(SwordTrail).GetMethod("Play",
+                BindingFlags.Static | BindingFlags.Public);
+            sb.AppendLine(trailPlay != null ? "[PASS] 刀光组件 | SwordTrail.Play 存在（按剑的轨迹现画网格）"
+                                            : "[FAIL] 缺 SwordTrail.Play");
+            if (trailPlay == null) fail++;
+
+            sb.AppendLine(Enum.IsDefined(typeof(SwordSwing), "Slash") && Enum.IsDefined(typeof(SwordSwing), "Spin")
+                ? "[PASS] 四种挥法 | 劈砍 / 上挑 / 突刺 / 旋风斩"
+                : "[FAIL] SwordSwing 少了挥法");
 
             // ---------- 冲刺 ----------
             PropertyInfo dashing = typeof(PlayerController).GetProperty("IsDashing",
@@ -400,28 +400,35 @@ namespace Tuanjie.PortCheck
                 }
             }
 
-            // 挥砍表现：现在是「贴着武器扫」，飞行刀风已经被否掉了
-            MethodInfo swing = typeof(SlashEffect).GetMethod("Swing",
+            // 挥砍表现：刀光现在是从剑的轨迹现画出来的网格，不是一张跟着转的贴图
+            MethodInfo playTrail = typeof(SwordTrail).GetMethod("Play",
                 BindingFlags.Public | BindingFlags.Static);
-            MethodInfo thrust = typeof(SlashEffect).GetMethod("Thrust",
-                BindingFlags.Public | BindingFlags.Static);
+            sb.AppendLine(playTrail != null
+                ? "[PASS] 刀光从剑的轨迹来 | SwordTrail.Play(SwordSwing, origin, facing, color, scale)"
+                : "[FAIL] SwordTrail.Play 不存在");
+            if (playTrail == null) fail++;
 
-            sb.AppendLine(swing != null && thrust != null
-                ? "[PASS] 挥砍残影 | SlashEffect.Swing / Thrust 都在（贴着武器扫，不再是脱手的气刃）"
-                : "[FAIL] 挥砍残影缺失 | 没有 Swing 或 Thrust");
-            if (swing == null || thrust == null) fail++;
-
-            MethodInfo flying = typeof(SlashEffect).GetMethod("Throw",
-                BindingFlags.Public | BindingFlags.Static);
-            sb.AppendLine(flying == null
-                ? "[PASS] 飞行刀风已移除 | SlashEffect.Throw 不存在"
-                : "[WARN] 飞行刀风的 Show 还在 | SlashEffect.Throw 仍然存在");
+            Type oldEffect = FindType("SlashEffect");
+            sb.AppendLine(oldEffect == null
+                ? "[PASS] 贴图刀光已移除 | SlashEffect / SlashTrail 都不在了"
+                : "[WARN] 旧的贴图刀光还在 | " + oldEffect.Name);
 
             sb.AppendLine();
             sb.AppendLine("[SUMMARY] 失败 | " + fail);
             sb.AppendLine("[SUMMARY] 警告 | " + warn);
 
             Write(sb, fail, warn);
+        }
+
+        /// <summary>按名字在已加载的程序集里找一个类型（已经删掉的类型返回 null）</summary>
+        private static Type FindType(string name)
+        {
+            foreach (var asm in AppDomain.CurrentDomain.GetAssemblies())
+            {
+                Type t = asm.GetType(name);
+                if (t != null) return t;
+            }
+            return null;
         }
 
         private static Dictionary<string, Sprite> LoadSprites(StringBuilder sb, ref int fail)
@@ -435,10 +442,10 @@ namespace Tuanjie.PortCheck
                 sprites[Path.GetFileNameWithoutExtension(path)] = sprite;
             }
 
-            if (sprites.Count == 27) sb.AppendLine("[PASS] Sprite 资产 | 27 张");
+            if (sprites.Count == 26) sb.AppendLine("[PASS] Sprite 资产 | 26 张");
             else
             {
-                sb.AppendLine("[FAIL] Sprite 资产数量 | " + sprites.Count + " 张（应为 27）");
+                sb.AppendLine("[FAIL] Sprite 资产数量 | " + sprites.Count + " 张（应为 26）");
                 fail++;
             }
 

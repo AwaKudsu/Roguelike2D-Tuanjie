@@ -1,10 +1,10 @@
 [INFO] 战斗特效 / 旋风斩 / 战吼 / 跑动 自检
 [PASS]|打开场景|Assets/_Project/Scenes/Game.unity
-[PASS]|挥砍残影脚本|SlashTrail 存在
-[PASS]|挥砍残影脚本|Setup 可用
-[PASS]|弧光工厂|有 Swing（绕角色扫）
-[PASS]|弧光工厂|有 Thrust（突刺前闪）
-[PASS]|弧光工厂|有 Spin（旋风斩绕一圈）
+[PASS]|刀光脚本|SwordTrail 存在
+[PASS]|刀光脚本|Play(SwordSwing, origin, facing, color, scale) 可用
+[PASS]|刀光脚本|挂在空物体上每帧重建网格
+[PASS]|挥法枚举|SwordSwing 是枚举
+[PASS]|挥法枚举|劈砍 / 上挑 / 突刺 / 旋风斩 都在
 [PASS]|旋风斩|WhirlwindCast 存在
 [PASS]|旋风斩|有 IsRunning
 [PASS]|旋风斩|有 Ticks
@@ -32,5 +32,6 @@
 [PASS]|待机呼吸|3 帧
 [PASS]|攻击序列|劈砍 3 帧（起手 / 命中 / 收招）
 [PASS]|飞行刀风已移除|SlashWave 已删（改成贴着武器扫）
+[PASS]|贴图刀光已移除|SlashEffect / SlashArcFade / SlashTrail 都不在了
 [SUMMARY] 失败 | 0
 [SUMMARY] 警告 | 0

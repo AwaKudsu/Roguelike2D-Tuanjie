@@ -67,28 +67,28 @@ namespace Tuanjie.PortCheck
 
         private static void CheckEffectScripts()
         {
-            Type trail = FindType("SlashTrail");
-            Check(trail != null, "挥砍残影脚本", "SlashTrail 存在", "找不到 SlashTrail");
+            Type trail = FindType("SwordTrail");
+            Check(trail != null, "刀光脚本", "SwordTrail 存在", "找不到 SwordTrail");
 
             if (trail != null)
             {
-                MethodInfo setup = trail.GetMethod("Setup", BindingFlags.Instance | BindingFlags.Public);
-                Check(setup != null, "挥砍残影脚本", "Setup 可用", "SlashTrail 上没有 Setup");
+                MethodInfo play = trail.GetMethod("Play", BindingFlags.Static | BindingFlags.Public);
+                Check(play != null, "刀光脚本", "Play(SwordSwing, origin, facing, color, scale) 可用",
+                      "SwordTrail 上没有 Play");
+
+                // 刀光必须是网格画出来的，否则又是「一张贴图在转」
+                Check(trail.IsSubclassOf(typeof(MonoBehaviour)), "刀光脚本", "挂在空物体上每帧重建网格",
+                      "SwordTrail 不是 MonoBehaviour");
             }
 
-            Type effect = FindType("SlashEffect");
-            if (effect == null)
+            Type swing = FindType("SwordSwing");
+            Check(swing != null && swing.IsEnum, "挥法枚举", "SwordSwing 是枚举", "找不到 SwordSwing");
+            if (swing != null && swing.IsEnum)
             {
-                Check(false, "弧光工厂", "SlashEffect 存在", "找不到 SlashEffect");
-                return;
+                Check(Enum.IsDefined(swing, "Slash") && Enum.IsDefined(swing, "Lift")
+                      && Enum.IsDefined(swing, "Thrust") && Enum.IsDefined(swing, "Spin"),
+                      "挥法枚举", "劈砍 / 上挑 / 突刺 / 旋风斩 都在", "SwordSwing 少了挥法");
             }
-
-            Check(effect.GetMethod("Swing", BindingFlags.Static | BindingFlags.Public) != null,
-                  "弧光工厂", "有 Swing（绕角色扫）", "没有 Swing");
-            Check(effect.GetMethod("Thrust", BindingFlags.Static | BindingFlags.Public) != null,
-                  "弧光工厂", "有 Thrust（突刺前闪）", "没有 Thrust");
-            Check(effect.GetMethod("Spin", BindingFlags.Static | BindingFlags.Public) != null,
-                  "弧光工厂", "有 Spin（旋风斩绕一圈）", "没有 Spin");
         }
 
         private static void CheckNoFlyingWave()
@@ -96,6 +96,10 @@ namespace Tuanjie.PortCheck
             Type wave = FindType("SlashWave");
             Check(wave == null, "飞行刀风已移除", "SlashWave 已删（改成贴着武器扫）",
                   "SlashWave 还在 —— 飞行刀风应该被残影取代");
+
+            Type sprite = FindType("SlashEffect");
+            Check(sprite == null, "贴图刀光已移除", "SlashEffect / SlashArcFade / SlashTrail 都不在了",
+                  "旧的贴图刀光还在 —— 刀光应该由 SwordTrail 从剑的轨迹现画");
         }
 
         // ---------------- 旋风斩 ----------------
@@ -140,9 +144,12 @@ namespace Tuanjie.PortCheck
 
             MethodInfo setup = spin.GetMethod("Setup", BindingFlags.Instance | BindingFlags.Public);
             var attacker = player.GetComponent<PlayerAttacker>();
+            // Setup 的参数：攻击者 / 判定 / 持续 / 间隔 / 颜色 / 长度倍率
+            // （以前中间还有一个「刀光贴图」，刀光改成现画以后就不需要了）
             setup.Invoke(caster, new object[]
             {
-                attacker, skill.attack, skill.duration, skill.tickInterval, null, Color.white, 1f
+                attacker, skill.attack, skill.duration, skill.tickInterval,
+                attacker != null ? attacker.SlashColor : Color.white, 1f
             });
 
             bool running = (bool)spin.GetProperty("IsRunning").GetValue(caster);

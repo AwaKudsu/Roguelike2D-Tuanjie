@@ -23,8 +23,8 @@ public class WarCryEffect : MonoBehaviour
     private bool _applied;
     private float _life;
 
-    private readonly int _ringSortingOrder = SlashEffect.SortingOrder + 1;
-    private readonly int _swordSortingOrder = SlashEffect.SortingOrder + 2;
+    private readonly int _ringSortingOrder = SwordTrail.SortingOrder + 1;
+    private readonly int _swordSortingOrder = SwordTrail.SortingOrder + 2;
 
     /// <summary>吓到几个敌人（自检用）</summary>
     public int FrightenedCount { get; private set; }

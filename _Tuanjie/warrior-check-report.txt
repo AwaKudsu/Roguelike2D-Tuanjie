@@ -1,7 +1,7 @@
 === 战士动作自检 ===
 [PASS] 已打开场景 | Assets/_Project/Scenes/Game.unity
-[PASS] Sprite 资产 | 27 张
-[PASS] 27 张图导入参数一致 | 人物帧 320x480，刀风紧贴裁切，全部 160 PPU + 居中 pivot
+[PASS] Sprite 资产 | 26 张
+[PASS] 26 张图导入参数一致 | 人物帧 320x480，全部 160 PPU + 居中 pivot
 [PASS] 像素风设置 | 全部 Point 过滤、无 mipmap、无压缩
 [INFO] 画布高度 | 3 单位，pivot 在脚底上方 0.5 单位
 [PASS] 脚底对齐 | 脚底在 pivot 下方 0.5 单位，正好落在胶囊体底边
@@ -17,14 +17,14 @@
 [PASS] 跑动序列 | 6 帧（含 2 张落地压缩帧）
 [PASS] 序列帧不重复 | slashFrames 3 帧各不相同
 [PASS] 序列帧不重复 | idleFrames 3 帧各不相同
-[PASS] 刀风已接 | Warrior_SlashArc
-[PASS] 出刀时放刀风 | PlaySlash 存在
+[PASS] 刀光不走贴图 | PlayerAttacker 没有 slashArc 字段（SwordTrail 按剑的轨迹现画）
+[PASS] 出刀时放刀光 | PlaySlash 存在
 [PASS] 姿势切换事件 | AttackStarted 存在
 [PASS] 玩家贴图 | Warrior_Idle
 [PASS] 渲染模式 | Simple（不能用 Tiled/Sliced，画布会变形）
 [PASS] 技能图标 | 旋风斩 → Warrior_AttackHeavy
-[PASS] 刀风淡出组件 | SlashArcFade
-[PASS] 刀风工厂 | SlashEffect
+[PASS] 刀光组件 | SwordTrail.Play 存在（按剑的轨迹现画网格）
+[PASS] 四种挥法 | 劈砍 / 上挑 / 突刺 / 旋风斩
 [PASS] 冲刺状态 | PlayerController.IsDashing 存在
 [PASS] 冲刺无敌 | Health.GrantInvincibility 存在
 [PASS] 三段连击已接 | 劈砍 / 上挑 / 突刺
@@ -36,8 +36,8 @@
 [PASS] 连击段号对外可见 | ComboStage（外观层据此选姿势）
 [PASS] 连击序列 | 劈砍 → 上挑 → 突刺 → 劈砍（段号 0,1,2,0）
 [PASS] 连击窗口过期 | 停手后下一刀回到劈砍
-[PASS] 挥砍残影 | SlashEffect.Swing / Thrust 都在（贴着武器扫，不再是脱手的气刃）
-[PASS] 飞行刀风已移除 | SlashEffect.Throw 不存在
+[PASS] 刀光从剑的轨迹来 | SwordTrail.Play(SwordSwing, origin, facing, color, scale)
+[PASS] 贴图刀光已移除 | SlashEffect / SlashTrail 都不在了
 
 [SUMMARY] 失败 | 0
 [SUMMARY] 警告 | 0

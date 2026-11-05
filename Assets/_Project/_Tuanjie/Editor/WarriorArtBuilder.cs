@@ -92,11 +92,11 @@ namespace Tuanjie.PortCheck
                 sprites[Path.GetFileNameWithoutExtension(path)] = sprite;
             }
 
-            sb.AppendLine(sprites.Count == 27
-                ? "[PASS] Sprite 资产齐全 | 27 张（16 张基础姿势 + 11 张派生帧：呼吸 2、跑动落地压缩 2、三段攻击的起手/收招 6、战吼 1）"
-                : "[FAIL] Sprite 资产数量不对 | " + sprites.Count + " 张（应为 27）");
+            sb.AppendLine(sprites.Count == 26
+                ? "[PASS] Sprite 资产齐全 | 26 张（16 张基础姿势 + 11 张派生帧，原来的刀光图已不再需要）"
+                : "[FAIL] Sprite 资产数量不对 | " + sprites.Count + " 张（应为 26）");
 
-            if (sprites.Count != 27) fail++;
+            if (sprites.Count != 26) fail++;
 
             foreach (var pair in sprites)
             {
@@ -180,12 +180,12 @@ namespace Tuanjie.PortCheck
 
             so.ApplyModifiedPropertiesWithoutUndo();
 
-            // ---------- 4. 刀风 + 技能图标 ----------
+            // ---------- 4. 刀光颜色 + 技能图标 ----------
+            // 刀光不再用贴图（原来是素材里那张新月弧），改成 SwordTrail 按剑的轨迹现画，所以这里只留颜色和长度。
             var attacker = player.GetComponent<PlayerAttacker>();
             if (attacker != null)
             {
                 var aso = new SerializedObject(attacker);
-                SetRef(aso, "slashArc", Get(sprites, "Warrior_SlashArc"));
 
                 SerializedProperty colorProp = aso.FindProperty("slashColor");
                 if (colorProp != null) colorProp.colorValue = new Color(1f, 0.94f, 0.75f, 1f);
@@ -194,7 +194,7 @@ namespace Tuanjie.PortCheck
                 if (scaleProp != null) scaleProp.floatValue = 1f;
 
                 aso.ApplyModifiedPropertiesWithoutUndo();
-                sb.AppendLine("[PASS] 刀风已接 | Warrior_SlashArc");
+                sb.AppendLine("[PASS] 刀光设置 | 暖白色，长度 1.0（刀光本身由 SwordTrail 现画，不占贴图）");
             }
 
             var whirlwind = AssetDatabase.LoadAssetAtPath<SkillData>(SkillWhirlwindPath);

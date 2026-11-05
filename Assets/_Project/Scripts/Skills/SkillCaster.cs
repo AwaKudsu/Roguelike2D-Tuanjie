@@ -208,7 +208,6 @@ public class SkillCaster : MonoBehaviour
             attack:       skill.attack,
             duration:     skill.duration,
             tickInterval: skill.tickInterval,
-            arc:          attacker.SlashArc,
             color:        attacker.SlashColor,
             scale:        1f);
 

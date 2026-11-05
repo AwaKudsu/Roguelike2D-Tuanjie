@@ -27,12 +27,10 @@ public class PlayerAttacker : MonoBehaviour
     [SerializeField] private float debugShowDuration = 0.6f;
 
     [Header("挥砍表现")]
-    [Tooltip("近战挥砍时飞出来的刀风贴图（战士素材里的 Warrior_SlashArc）。留空就没有刀风，不影响判定")]
-    [SerializeField] private Sprite slashArc;
-
+    [Tooltip("刀光的颜色。刀光不是一张贴图 —— 它是剑扫过的轨迹，由 SwordTrail 现画")]
     [SerializeField] private Color slashColor = new Color(1f, 0.94f, 0.75f, 1f);
 
-    [Tooltip("刀风大小倍率")]
+    [Tooltip("刀光大小倍率（1 = 按默认剑长）")]
     [SerializeField] private float slashScale = 1f;
 
     [Header("三段连击")]
@@ -78,10 +76,7 @@ public class PlayerAttacker : MonoBehaviour
     /// <summary>配了几段连击。0 表示这个职业只有单段攻击</summary>
     public int ComboLength => comboAttacks != null ? comboAttacks.Length : 0;
 
-    /// <summary>挥砍用的弧光精灵。技能特效（旋风斩 / 战吼）也借它，所以对外开一个只读入口</summary>
-    public Sprite SlashArc => slashArc;
-
-    /// <summary>挥砍弧光的颜色</summary>
+    /// <summary>刀光的颜色。技能（旋风斩 / 战吼）也用同一个色，所以对外开一个只读入口</summary>
     public Color SlashColor => slashColor;
 
 
@@ -237,54 +232,38 @@ public class PlayerAttacker : MonoBehaviour
     }
 
     /// <summary>
-    /// 放挥砍残影。三种情况各不相同：
-    ///   · 大范围挥砍（旋风斩）—— 弧光绕身转一圈
-    ///   · 三段连击 —— 扫的方向不一样（劈砍从上往下、上挑从下往上、突刺几乎不扫只往前闪）
-    ///   · 其它近战 —— 平着扫一道
-    /// slashArc 没配就什么都不做。
+    /// 放刀光。四种挥法扫的方向和速度都不一样：
+    ///   · 劈砍 —— 从头顶斜着往下劈
+    ///   · 上挑 —— 从身前下方撩到头顶
+    ///   · 突刺 —— 几乎不扫，只往前拉一道窄痕
+    ///   · 旋风斩（判定框面积 ≥ 6）—— 绕身一圈零 90°
     ///
-    /// 注意这里是「贴着剑扫」，不是「脱手飞出去」—— 弧光以角色为圆心旋转，
-    /// 扫完立刻消失。飞出去的那种读起来像法师的气刃，不像战士挥剑。
+    /// 刀光不是贴图：SwordTrail 每帧记下剑根与剑尖的位置，把连续几帧连成一条带子，
+    /// 越旧的顶点越透明。所以它是「剑扫过的地方留下的余晖」，会跟着剑走，
+    /// 而不是一张画好的新月贴图在人身上转。
     /// </summary>
     private void PlaySlash(Vector2 center, AttackData data)
     {
-        if (slashArc == null) return;
-
         float scale = Mathf.Max(0.1f, slashScale);
         Vector2 origin = transform.position;
 
-        // 弧光扫到多远，不写死 —— 直接由这份 AttackData 的判定框推出来。
-        // 否则一调攻击距离，判定框变长了、弧光还停在老位置，看着像「空气把人打飞」。
-        float reach = Mathf.Abs(data.hitboxOffset.x) + data.hitboxSize.x * 0.5f;
+        SwordSwing swing;
 
         if (data.hitboxSize.x * data.hitboxSize.y >= 6f)
         {
-            SlashEffect.Spin(slashArc, origin,
-                             radius: Mathf.Max(data.hitboxSize.x, data.hitboxSize.y) * 0.28f,
-                             scale: scale * 0.9f,
-                             color: slashColor);
-            return;
+            swing = SwordSwing.Spin;
         }
-
-        switch (StageOf(data))
+        else
         {
-            case 1:   // 上挑：从下往上撩，扫得比劈砍开一点
-                SlashEffect.Swing(slashArc, origin, _facing, scale, slashColor,
-                                  startAngle: 105f, sweep: -140f,
-                                  radius: reach * 0.42f, duration: 0.22f);
-                break;
-
-            case 2:   // 突刺：不扫圈，只在身前远一点的位置闪一道
-                SlashEffect.Thrust(slashArc, origin, _facing, scale * 1.05f, slashColor,
-                                   distance: reach * 0.62f, duration: 0.13f);
-                break;
-
-            default:  // 劈砍：从头顶那侧往下劈
-                SlashEffect.Swing(slashArc, origin, _facing, scale, slashColor,
-                                  startAngle: -75f, sweep: 135f,
-                                  radius: reach * 0.42f, duration: 0.18f);
-                break;
+            switch (StageOf(data))
+            {
+                case 1:  swing = SwordSwing.Lift;   break;
+                case 2:  swing = SwordSwing.Thrust; break;
+                default: swing = SwordSwing.Slash;  break;
+            }
         }
+
+        SwordTrail.Play(swing, origin, _facing, slashColor, scale);
     }
 
     /// <summary>

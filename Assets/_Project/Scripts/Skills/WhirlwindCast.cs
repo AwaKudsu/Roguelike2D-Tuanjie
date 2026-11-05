@@ -10,7 +10,7 @@ using UnityEngine;
 ///   · 每 tickInterval 秒调一次 PlayerAttacker.Execute —— 伤害、击退、目标层过滤全部复用普攻那份代码
 ///   · duration 到了就把自己 Destroy 掉（只删组件，不删玩家）
 ///
-/// 转圈的美术表现不用这里管：PlaySlash 看到判定框面积够大就会自己放「绕身一圈」的弧光。
+/// 转圈的美术表现不用这里管：PlaySlash 看到判定框面积够大就会自己放「绕身一圈」的刀光。
 /// </summary>
 public class WhirlwindCast : MonoBehaviour
 {
@@ -31,7 +31,7 @@ public class WhirlwindCast : MonoBehaviour
     public int Ticks => _ticks;
 
     public void Setup(PlayerAttacker attacker, AttackData attack, float duration, float tickInterval,
-                      Sprite arc = null, Color color = default, float scale = 1f)
+                      Color color = default, float scale = 1f)
     {
         _attacker = attacker;
         _attack = attack;
