@@ -54,9 +54,9 @@ public class MageVisual : MonoBehaviour, IPlayerAnim
     [SerializeField] private Sprite chargeOrbSprite;
     [SerializeField] private Color chargeOrbColor = new Color(1f, 0.62f, 0.18f, 1f);
     [Tooltip("相对人物的偏移：杖头一般在他身前偏上")]
-    [SerializeField] private Vector3 chargeOrbOffset = new Vector3(0.58f, 0.32f, 0f);
-    [SerializeField] private float chargeOrbMinScale = 0.45f;
-    [SerializeField] private float chargeOrbMaxScale = 1.25f;
+    [SerializeField] private Vector3 chargeOrbOffset = new Vector3(0.62f, 0.34f, 0f);
+    [SerializeField] private float chargeOrbMinScale = 0.55f;
+    [SerializeField] private float chargeOrbMaxScale = 1.85f;
 
     private SpriteRenderer _chargeOrb;
 

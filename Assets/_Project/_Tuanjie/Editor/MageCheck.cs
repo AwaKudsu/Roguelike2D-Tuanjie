@@ -428,6 +428,22 @@ namespace Tuanjie.PortCheck
 
                 Report(sb, facesRight, "蓄力球朝向 | 朝右时球在右侧、贴图不翻", ref fail);
                 Report(sb, facesLeft, "蓄力球朝向 | 朝左时球在左侧、贴图跟着翻", ref fail);
+
+                // 体积：把蓄力计时推到满，球应该长到「比人还大」那档
+                var timerField = typeof(MageVisual).GetField("_chargeTimer", BindingFlags.Instance | BindingFlags.NonPublic);
+                var maxField = typeof(MageVisual).GetField("chargeOrbMaxScale", BindingFlags.Instance | BindingFlags.NonPublic);
+                if (timerField != null && maxField != null && orb != null)
+                {
+                    timerField.SetValue(mage, 1.1f);          // ChargeRatio 的分母就是 1.1
+                    InvokePrivate(mage, "UpdateChargeOrb");
+
+                    float maxScale = (float)maxField.GetValue(mage);
+                    float grown = orb.transform.localScale.x;
+                    Report(sb, Mathf.Abs(grown - maxScale) < 0.01f,
+                           $"蓄力球体积 | 蓄满 {grown:0.00} 倍（配置上限 {maxScale:0.00}）", ref fail);
+
+                    timerField.SetValue(mage, 0f);
+                }
             }
             catch (System.Exception e)
             {

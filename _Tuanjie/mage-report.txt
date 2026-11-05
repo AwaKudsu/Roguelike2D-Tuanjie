@@ -6,7 +6,7 @@
 [PASS] 序列 | run 6 帧
 [PASS] 序列 | attackFrames 4 帧
 [PASS] 序列 | castFrames 3 帧
-[PASS] 蓄力预览 | 杖头火球用 Mage_Fireball，随蓄力变大
+[PASS] 蓄力预览 | 杖头火球用 Mage_Fireball，从 0.55 倍长到 1.85 倍
 [PASS] 挂上组件 | PlayerVisualSwitcher
 [PASS] 职业表 | 战士 有 / 法师 有
 [INFO] 回复技能已存在 | 覆盖字段
