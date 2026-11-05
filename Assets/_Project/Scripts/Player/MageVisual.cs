@@ -168,6 +168,10 @@ public class MageVisual : MonoBehaviour, IPlayerAnim
         _chargeOrb.transform.localPosition = new Vector3(chargeOrbOffset.x * dir, chargeOrbOffset.y, 0f);
         _chargeOrb.transform.localScale = Vector3.one * scale;
 
+        // 火球贴图是「球在右、拖尾在左」的朝右画法：朝左蓄力时整颗要翻过来，
+        // 否则拖尾跑到球前头，看着像球在倒着飞。
+        _chargeOrb.flipX = dir < 0f;
+
         Color c = chargeOrbColor;
         c.a = Mathf.Lerp(0.55f, 1f, ratio);
         _chargeOrb.color = c;

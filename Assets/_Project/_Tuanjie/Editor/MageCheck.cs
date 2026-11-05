@@ -378,6 +378,66 @@ namespace Tuanjie.PortCheck
 
             Report(sb, right, "火球贴图朝向 | 往右飞不翻转（素材本来就是朝右）", ref fail);
             Report(sb, left, "火球贴图朝向 | 往左飞自动翻转，倒着飞的观感没了", ref fail);
+
+            CheckChargeOrbMirror(sb, ref fail);
+        }
+
+        /// <summary>
+        /// 蓄力时杖头那颗球跟投射物用的是同一张「朝右画」的火球图，
+        /// 朝左蓄力时不翻就是反的 —— 玩家看到的第一颗火球其实是它。
+        /// </summary>
+        private static void CheckChargeOrbMirror(StringBuilder sb, ref int fail)
+        {
+            GameObject player = GameObject.FindGameObjectWithTag("Player");
+            MageVisual mage = player != null ? player.GetComponent<MageVisual>() : null;
+            SpriteRenderer sprite = player != null ? player.GetComponent<SpriteRenderer>() : null;
+
+            if (mage == null || sprite == null)
+            {
+                Report(sb, false, "蓄力球朝向 | 场景里没有法师表现层，跳过", ref fail);
+                return;
+            }
+
+            bool wasEnabled = mage.enabled;
+            bool wasFlip = sprite.flipX;
+            mage.enabled = true;
+
+            try
+            {
+                mage.PlayCharge(true);
+                InvokePrivate(mage, "UpdateChargeOrb");
+
+                var field = typeof(MageVisual).GetField("_chargeOrb", BindingFlags.Instance | BindingFlags.NonPublic);
+                SpriteRenderer orb = field != null ? field.GetValue(mage) as SpriteRenderer : null;
+
+                sprite.flipX = false;
+                InvokePrivate(mage, "UpdateChargeOrb");
+                bool facesRight = orb != null && !orb.flipX && orb.transform.localPosition.x > 0f;
+
+                sprite.flipX = true;
+                InvokePrivate(mage, "UpdateChargeOrb");
+                bool facesLeft = orb != null && orb.flipX && orb.transform.localPosition.x < 0f;
+
+                Report(sb, facesRight, "蓄力球朝向 | 朝右时球在右侧、贴图不翻", ref fail);
+                Report(sb, facesLeft, "蓄力球朝向 | 朝左时球在左侧、贴图跟着翻", ref fail);
+            }
+            catch (System.Exception e)
+            {
+                Report(sb, false, $"蓄力球朝向 | 测试抛异常：{e.Message}", ref fail);
+            }
+            finally
+            {
+                mage.PlayCharge(false);
+                sprite.flipX = wasFlip;
+                mage.enabled = wasEnabled;
+            }
+        }
+
+        private static void InvokePrivate(object target, string method)
+        {
+            target?.GetType()
+                .GetMethod(method, BindingFlags.Instance | BindingFlags.NonPublic)
+                ?.Invoke(target, null);
         }
 
         // ---------------- 工具 ----------------
