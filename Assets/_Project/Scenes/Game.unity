@@ -1811,7 +1811,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f4ab5ccb08d71644482bb486044e8143, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MeleeAttacker
-  attackData: {fileID: 11400000, guid: 81665de188428a647a82c3ac324505a3, type: 2}
+  attackData: {fileID: 11400000, guid: 7d582266984ac9b43a5542cc04f81dcd, type: 2}
   debugShowHitbox: 1
   debugShowDuration: 0.15
   slashArc: {fileID: 21300000, guid: ec432860190402e4093ed7afb721b457, type: 3}

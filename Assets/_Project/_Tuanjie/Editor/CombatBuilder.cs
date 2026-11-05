@@ -42,12 +42,25 @@ namespace Tuanjie.PortCheck
             sb.AppendLine("[INFO] 已打开场景 | " + ScenePath);
 
             // ---------- 1. 三段 AttackData ----------
-            AttackData combo1 = MakeAttack(Combo1Path, "劈砍", 1.0f, 6f, new Vector2(0.85f, 0.05f), new Vector2(1.4f, 1.0f), 0.16f, sb);
-            AttackData combo2 = MakeAttack(Combo2Path, "上挑", 1.25f, 4f, new Vector2(0.80f, 0.35f), new Vector2(1.2f, 1.7f), 0.18f, sb);
-            AttackData combo3 = MakeAttack(Combo3Path, "突刺", 1.7f, 10f, new Vector2(1.20f, 0.00f), new Vector2(2.2f, 0.9f), 0.34f, sb);
+            // 2026-11-05：攻击距离整体加长（劈砍 1.55→1.95、上挑 1.40→1.75、突刺 2.30→2.85）。
+            // 判定框宽度里有一半在身后（offset 只挪中心），所以「够得着」= |offset.x| + size.x/2。
+            AttackData combo1 = MakeAttack(Combo1Path, "劈砍", 1.0f, 6f, new Vector2(1.00f, 0.05f), new Vector2(1.9f, 1.1f), 0.16f, sb);
+            AttackData combo2 = MakeAttack(Combo2Path, "上挑", 1.25f, 4f, new Vector2(0.95f, 0.35f), new Vector2(1.6f, 1.8f), 0.18f, sb);
+            AttackData combo3 = MakeAttack(Combo3Path, "突刺", 1.7f, 10f, new Vector2(1.45f, 0.00f), new Vector2(2.8f, 1.0f), 0.34f, sb);
 
             if (combo1 == null || combo2 == null || combo3 == null) fail++;
             else sb.AppendLine("[PASS] 三段 AttackData | 劈砍 / 上挑 / 突刺");
+
+            // 职业的「普通攻击模板」指向第一段。
+            // 不指的话，Inspector 里调 Attack_Basic 的判定框毫无效果 —— 真正打出去的是 Combo1。
+            var classEarly = AssetDatabase.LoadAssetAtPath<ClassData>(ClassPath);
+            if (classEarly != null && classEarly.basicAttack != combo1)
+            {
+                classEarly.basicAttack = combo1;
+                EditorUtility.SetDirty(classEarly);
+                AssetDatabase.SaveAssets();
+                sb.AppendLine("[PASS] 职业模板改指第一段 | Class_Warrior.basicAttack = Attack_Combo1（调它才真的改普攻）");
+            }
 
             // ---------- 2. 找到玩家 ----------
             GameObject player = GameObject.FindGameObjectWithTag("Player");
@@ -113,6 +126,10 @@ namespace Tuanjie.PortCheck
 
                 sb.AppendLine($"[PASS] 普通攻击已换成职业模板 | {oldAtk} → {warriorClass.basicAttack.name}");
                 sb.AppendLine("[PASS] 三段连击已接 | 0=劈砍 1=上挑 2=突刺");
+                sb.AppendLine("[INFO] 三段触及距离 | 劈砍 " + Reach(combo1).ToString("0.00")
+                              + " / 上挑 " + Reach(combo2).ToString("0.00")
+                              + " / 突刺 " + Reach(combo3).ToString("0.00")
+                              + "（单位 = 一个角色身高，1.95 就是身前两格）");
             }
 
             // ---------- 5. 上挑姿势帧 ----------
@@ -183,6 +200,15 @@ namespace Tuanjie.PortCheck
                           $"判定 {size.x}×{size.y} 偏移 {offset.x}/{offset.y} 倍率 {multiplier} 冷却 {cooldown}");
 
             return data;
+        }
+
+        /// <summary>
+        /// 一份攻击数据「够得着多远」：判定框中心偏移 + 半个宽。
+        /// 判定框是以中心点为准的（Physics2D.OverlapBox），所以宽度里有一半在角色身后。
+        /// </summary>
+        private static float Reach(AttackData data)
+        {
+            return Mathf.Abs(data.hitboxOffset.x) + data.hitboxSize.x * 0.5f;
         }
 
         private static void Write(StringBuilder sb, int fail)

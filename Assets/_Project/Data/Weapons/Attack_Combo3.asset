@@ -17,8 +17,8 @@ MonoBehaviour:
   damageMultiplier: 1.7
   knockbackForce: 10
   bonusCritChance: 0
-  hitboxOffset: {x: 1.2, y: 0}
-  hitboxSize: {x: 2.2, y: 0.9}
+  hitboxOffset: {x: 1.45, y: 0}
+  hitboxSize: {x: 2.8, y: 1}
   targetLayers:
     serializedVersion: 2
     m_Bits: 128

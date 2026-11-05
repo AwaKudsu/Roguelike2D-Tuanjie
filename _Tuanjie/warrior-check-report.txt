@@ -28,8 +28,9 @@
 [PASS] 冲刺状态 | PlayerController.IsDashing 存在
 [PASS] 冲刺无敌 | Health.GrantInvincibility 存在
 [PASS] 三段连击已接 | 劈砍 / 上挑 / 突刺
-[PASS] 普通攻击是近战 | Attack_Basic 判定 1.2×0.9
-[PASS] 玩家职业 | 战士（模板攻击 Attack_Basic）
+[PASS] 普通攻击是近战 | Attack_Combo1 判定 1.9×1.1
+[PASS] 普攻攻击距离 | 1.95 个单位（身前约 1.45，从胶囊体边缘算）
+[PASS] 玩家职业 | 战士（模板攻击 Attack_Combo1）
 [PASS] 攻击跟着职业走 | ApplyClassAttack 存在（换职业会自动换剑/法杖）
 [PASS] 连击推进 | NextAttack 存在
 [PASS] 连击段号对外可见 | ComboStage（外观层据此选姿势）

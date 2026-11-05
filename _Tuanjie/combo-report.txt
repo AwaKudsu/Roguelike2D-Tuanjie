@@ -1,12 +1,14 @@
 [INFO] 已打开场景 | Assets/_Project/Scenes/Game.unity
-[INFO] 新建攻击数据 | Assets/_Project/Data/Weapons/Attack_Combo1.asset 判定 1.4×1 偏移 0.85/0.05 倍率 1 冷却 0.16
-[INFO] 新建攻击数据 | Assets/_Project/Data/Weapons/Attack_Combo2.asset 判定 1.2×1.7 偏移 0.8/0.35 倍率 1.25 冷却 0.18
-[INFO] 新建攻击数据 | Assets/_Project/Data/Weapons/Attack_Combo3.asset 判定 2.2×0.9 偏移 1.2/0 倍率 1.7 冷却 0.34
+[INFO] 更新攻击数据 | Assets/_Project/Data/Weapons/Attack_Combo1.asset 判定 1.9×1.1 偏移 1/0.05 倍率 1 冷却 0.16
+[INFO] 更新攻击数据 | Assets/_Project/Data/Weapons/Attack_Combo2.asset 判定 1.6×1.8 偏移 0.95/0.35 倍率 1.25 冷却 0.18
+[INFO] 更新攻击数据 | Assets/_Project/Data/Weapons/Attack_Combo3.asset 判定 2.8×1 偏移 1.45/0 倍率 1.7 冷却 0.34
 [PASS] 三段 AttackData | 劈砍 / 上挑 / 突刺
+[PASS] 职业模板改指第一段 | Class_Warrior.basicAttack = Attack_Combo1（调它才真的改普攻）
 [INFO] 玩家职业 | Class_Warrior → 战士
-[PASS] 职业普通攻击模板 | Attack_Basic（远程=False）
-[PASS] 普通攻击已换成职业模板 | Attack_MageBolt → Attack_Basic
+[PASS] 职业普通攻击模板 | Attack_Combo1（远程=False）
+[PASS] 普通攻击已换成职业模板 | Attack_Basic → Attack_Combo1
 [PASS] 三段连击已接 | 0=劈砍 1=上挑 2=突刺
+[INFO] 三段触及距离 | 劈砍 1.95 / 上挑 1.75 / 突刺 2.85（单位 = 一个角色身高，1.95 就是身前两格）
 [PASS] 上挑姿势已接 | Warrior_AttackLift
 [PASS] 场景已存盘
 [SUMMARY] 失败 | 0

@@ -25,7 +25,7 @@ MonoBehaviour:
   cooldownRate: 0
   maxMana: 60
   manaRegen: 4
-  basicAttack: {fileID: 11400000, guid: 81665de188428a647a82c3ac324505a3, type: 2}
+  basicAttack: {fileID: 11400000, guid: 7d582266984ac9b43a5542cc04f81dcd, type: 2}
   startingSkills:
   - {fileID: 11400000, guid: 981fa0f4bcfcb414fad23738e2013581, type: 2}
   - {fileID: 11400000, guid: b03e2c0d841201f44b6c814ba875913e, type: 2}

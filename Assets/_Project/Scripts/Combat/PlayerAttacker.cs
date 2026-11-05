@@ -253,6 +253,10 @@ public class PlayerAttacker : MonoBehaviour
         float scale = Mathf.Max(0.1f, slashScale);
         Vector2 origin = transform.position;
 
+        // 弧光扫到多远，不写死 —— 直接由这份 AttackData 的判定框推出来。
+        // 否则一调攻击距离，判定框变长了、弧光还停在老位置，看着像「空气把人打飞」。
+        float reach = Mathf.Abs(data.hitboxOffset.x) + data.hitboxSize.x * 0.5f;
+
         if (data.hitboxSize.x * data.hitboxSize.y >= 6f)
         {
             SlashEffect.Spin(slashArc, origin,
@@ -266,17 +270,19 @@ public class PlayerAttacker : MonoBehaviour
         {
             case 1:   // 上挑：从下往上撩，扫得比劈砍开一点
                 SlashEffect.Swing(slashArc, origin, _facing, scale, slashColor,
-                                  startAngle: 105f, sweep: -140f, radius: 0.5f, duration: 0.22f);
+                                  startAngle: 105f, sweep: -140f,
+                                  radius: reach * 0.42f, duration: 0.22f);
                 break;
 
             case 2:   // 突刺：不扫圈，只在身前远一点的位置闪一道
                 SlashEffect.Thrust(slashArc, origin, _facing, scale * 1.05f, slashColor,
-                                   distance: 1.05f, duration: 0.13f);
+                                   distance: reach * 0.62f, duration: 0.13f);
                 break;
 
             default:  // 劈砍：从头顶那侧往下劈
                 SlashEffect.Swing(slashArc, origin, _facing, scale, slashColor,
-                                  startAngle: -75f, sweep: 135f, radius: 0.55f, duration: 0.18f);
+                                  startAngle: -75f, sweep: 135f,
+                                  radius: reach * 0.42f, duration: 0.18f);
                 break;
         }
     }

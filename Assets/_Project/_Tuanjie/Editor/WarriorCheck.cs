@@ -325,6 +325,19 @@ namespace Tuanjie.PortCheck
                                   + " 判定 " + atk.hitboxSize.x + "×" + atk.hitboxSize.y);
                 }
 
+                // ---------- 攻击距离（够得着多远） ----------
+                // 判定框是以中心点算的，所以「够得着」= |offset.x| + 宽/2。
+                // 只盯第一段就够：它是日常挥的那一刀，也是职业模板。
+                if (atk != null)
+                {
+                    float reach = Mathf.Abs(atk.hitboxOffset.x) + atk.hitboxSize.x * 0.5f;
+                    sb.AppendLine(reach >= 1.8f
+                        ? "[PASS] 普攻攻击距离 | " + reach.ToString("0.00") + " 个单位（身前约 "
+                          + (reach - 0.5f).ToString("0.00") + "，从胶囊体边缘算）"
+                        : "[FAIL] 普攻攻击距离 | " + reach.ToString("0.00") + " 个单位，太近了（要求 ≥ 1.8）");
+                    if (reach < 1.8f) fail++;
+                }
+
                 // 职业模板有没有真正被应用（ClassData.basicAttack 以前是个无人读取的字段）
                 var stats = player.GetComponent<CharacterStats>();
                 sb.AppendLine(stats != null && stats.Class != null
