@@ -135,10 +135,54 @@ namespace Tuanjie.PortCheck
 
             ResetLatches(reader);
 
+            // 回归用例要排在换职业之前：换完职业会轮回到战士，槽 1 就不再是火球了
+            CheckStaleReleaseLatch(reader, caster);
+
             // 换职业链路：技能栏 / 动画层是不是跟着 ClassChanged 一起换了
             CheckClassSwitch(player, caster, "换职业后");
 
             Finish();
+        }
+
+        /// <summary>
+        /// 回归用例：「有时候蓄不了力」。
+        /// 上一轮松手如果没被消费（按在冷却里 / 蓄力被硬直打断后松手），reader 里会留一枚
+        /// 「已松开」锁存。下一次按下若不清掉它，SkillCaster 会在下一帧就当成已松手、以 0% 发射。
+        /// </summary>
+        private static void CheckStaleReleaseLatch(PlayerInputReader reader, SkillCaster caster)
+        {
+            // 先造出「上一次松手没人消费」的局面：只置锁存，不跑 Update
+            ResetLatches(reader);
+            SetReleased(reader, 0, true);
+
+            // 前面的用例刚发射过一发，冷却还挂着：编辑模式下 Time.deltaTime = 0，冷却是不会自己降的。
+            // 不清掉它，这条用例会因为「冷却中」而失败 —— 那是另一回事。
+            ClearCooldowns(caster);
+
+            // 然后正常按下并按住
+            SetPressed(reader, 0, true);
+            SetHeld(reader, 0, true);
+            InvokeUpdate(caster);
+
+            bool started = caster.IsCharging;
+
+            // 再跑一帧「仍然按住」：不该被旧的松手锁存顶掉
+            SetPressed(reader, 0, false);
+            SetHeld(reader, 0, true);
+            InvokeUpdate(caster);
+
+            bool stillCharging = caster.IsCharging;
+
+            Report(started && stillCharging,
+                started && stillCharging
+                    ? "[PASS] 旧松手锁存不影响下一次蓄力 | 按住期间不会被立刻放掉"
+                    : "[FAIL] 旧松手锁存把蓄力顶掉了 | 按下=" + started + " 第二帧仍在蓄=" + stillCharging);
+
+            // 收尾：正常松手放掉，清干净
+            SetHeld(reader, 0, false);
+            SetReleased(reader, 0, true);
+            InvokeUpdate(caster);
+            ResetLatches(reader);
         }
 
         /// <summary>
@@ -230,6 +274,17 @@ namespace Tuanjie.PortCheck
         {
             if (array == null) return;
             for (int i = 0; i < array.Length; i++) array[i] = false;
+        }
+
+        /// <summary>把技能冷却清零。编辑模式下 Time.deltaTime = 0，冷却是不会自己降下去的。</summary>
+        private static void ClearCooldowns(SkillCaster caster)
+        {
+            float[] cooldowns = typeof(SkillCaster)
+                .GetField("_cooldowns", BindingFlags.Instance | BindingFlags.NonPublic)
+                ?.GetValue(caster) as float[];
+
+            if (cooldowns == null) return;
+            for (int i = 0; i < cooldowns.Length; i++) cooldowns[i] = 0f;
         }
 
         private static void SetPressed(PlayerInputReader reader, int slot, bool value) => Put(Latch(reader, "_skillPressedLatch"), slot, value);

@@ -147,17 +147,25 @@ public class SkillCaster : MonoBehaviour
         if (_cooldowns[slot] > 0f)
         {
             Log($"{skill.displayName} 还在冷却，还剩 {_cooldowns[slot]:0.0} 秒");
+            Hint($"{skill.displayName} 冷却中 {_cooldowns[slot]:0.0}s");
             return;
         }
 
         if (mana != null && !mana.Has(skill.manaCost))
         {
             Log($"{skill.displayName} 法力不够（需要 {skill.manaCost:0}，当前 {mana.Current:0}）");
+            Hint($"法力不足（需要 {skill.manaCost:0}）");
             return;
         }
 
         _chargeSlot = slot;
         _chargeTimer = 0f;
+
+        // 上一轮松手可能没被消费掉（比如按在冷却里、或者蓄力被硬直打断后松手），
+        // 那枚「已松开」的旧锁存会留在 reader 里：不在这里清掉，下一次刚按下就会被判成已松手、
+        // 立刻以 0% 发射出去 —— 表现就是「有时候火球蓄不了力」。
+        input.ConsumeSkillReleased(slot);
+
         ResolveAnim()?.PlayCharge(true);
 
         // 蓄力这件事在画面上很安静，Console 里留一行，出了问题好判断是「没进蓄力」还是「进了但没显示」
@@ -470,5 +478,16 @@ public class SkillCaster : MonoBehaviour
     private void Log(string message)
     {
         if (logFailures) Debug.Log($"[SkillCaster] {message}", this);
+    }
+
+    /// <summary>
+    /// 放不出来时在头顶飘一句话。
+    /// 技能被冷却 / 蓝量挡住时，画面上什么都没有，玩家只会觉得「按了没反应」—— 给个看得见的理由。
+    /// </summary>
+    private void Hint(string text)
+    {
+        FloatingText.Show(text, new Color(1f, 0.82f, 0.36f, 1f),
+                          transform.position + Vector3.up * 1.15f,
+                          rise: 0.7f, duration: 0.75f, fontSize: 26);
     }
 }
