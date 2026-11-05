@@ -34,7 +34,7 @@ MonoBehaviour:
   chargeable: 1
   chargeTime: 1.1
   chargeMinScale: 0.7
-  chargeMaxScale: 2.2
+  chargeMaxScale: 3.2
   chargeMaxSpeedBonus: 1.9
   chargeMaxDamageBonus: 2
   healAmount: 6

@@ -140,7 +140,7 @@ namespace Tuanjie.PortCheck
                 SetBool(so, "chargeable", true);
                 SetFloat(so, "chargeTime", 1.1f);
                 SetFloat(so, "chargeMinScale", 0.7f);
-                SetFloat(so, "chargeMaxScale", 2.2f);
+                SetFloat(so, "chargeMaxScale", 3.2f);
                 SetFloat(so, "chargeMaxSpeedBonus", 1.9f);
                 SetFloat(so, "chargeMaxDamageBonus", 2.0f);
                 so.ApplyModifiedPropertiesWithoutUndo();

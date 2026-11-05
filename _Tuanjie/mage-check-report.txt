@@ -21,7 +21,7 @@
 [PASS] 蓄力状态字段 | _chargeSlot / _chargeTimer 都在
 [PASS] 法师技能栏有可蓄力技能 | 火球术
 [PASS] 法师技能栏有回复技能 | 回复
-[PASS] 蓄力参数 | 最大 2.2 倍大小 / 2.0 倍伤害 / 1.9 倍速度
+[PASS] 蓄力参数 | 最大 3.2 倍大小 / 2.0 倍伤害 / 1.9 倍速度
 [PASS] 蓄力进度 | 按住一半时 ChargeRatio=0.50
 [PASS] 蓄力复位 | 清掉槽位后不再蓄力
 [PASS] Health 支持回血 | Heal() + Healed 事件都在
