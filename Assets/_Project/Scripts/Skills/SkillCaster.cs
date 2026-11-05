@@ -159,6 +159,9 @@ public class SkillCaster : MonoBehaviour
         _chargeSlot = slot;
         _chargeTimer = 0f;
         ResolveAnim()?.PlayCharge(true);
+
+        // 蓄力这件事在画面上很安静，Console 里留一行，出了问题好判断是「没进蓄力」还是「进了但没显示」
+        Debug.Log($"[SkillCaster] {skill.displayName} 开始蓄力（按住不放，最长 {skill.chargeTime:0.00} 秒）", this);
     }
 
     private void UpdateCharge()
@@ -199,6 +202,7 @@ public class SkillCaster : MonoBehaviour
         if (!TryPayCost(slot, skill)) return;
 
         CastProjectile(skill, ratio);
+        Debug.Log($"[SkillCaster] {skill.displayName} 蓄力 {ratio * 100f:0}% 发射", this);
         Log($"{skill.displayName} 蓄力 {ratio * 100f:0}% 发射");
     }
 

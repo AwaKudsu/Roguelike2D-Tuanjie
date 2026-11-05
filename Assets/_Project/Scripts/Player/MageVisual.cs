@@ -49,6 +49,17 @@ public class MageVisual : MonoBehaviour, IPlayerAnim
     [SerializeField] private float hurtHold = 0.22f;
     [SerializeField] private float victoryHold = 1.4f;
 
+    [Header("蓄力时杖头长出来的火球")]
+    [Tooltip("留空就不显示（但技能照样能蓄力，只是没这个预览）")]
+    [SerializeField] private Sprite chargeOrbSprite;
+    [SerializeField] private Color chargeOrbColor = new Color(1f, 0.62f, 0.18f, 1f);
+    [Tooltip("相对人物的偏移：杖头一般在他身前偏上")]
+    [SerializeField] private Vector3 chargeOrbOffset = new Vector3(0.58f, 0.32f, 0f);
+    [SerializeField] private float chargeOrbMinScale = 0.45f;
+    [SerializeField] private float chargeOrbMaxScale = 1.25f;
+
+    private SpriteRenderer _chargeOrb;
+
     /// <summary>当前状态名，自检和调试看它</summary>
     public string CurrentState { get; private set; } = "Idle";
 
@@ -116,8 +127,50 @@ public class MageVisual : MonoBehaviour, IPlayerAnim
 
         if (IsCharging) _chargeTimer += dt;
 
+        UpdateChargeOrb();
+
         CheckRoomCleared();
         Apply(ChooseFrame(dt));
+    }
+
+    /// <summary>
+    /// 蓄力的时候在杖头画一颗越变越大的火球。
+    /// 技能层只会让法师「停在举杖那一帧」，光看姿势分辨不出蓄了多久 —— 所以这里给个可见的球。
+    /// </summary>
+    private void UpdateChargeOrb()
+    {
+        bool show = IsCharging && chargeOrbSprite != null;
+
+        if (!show)
+        {
+            if (_chargeOrb != null) _chargeOrb.enabled = false;
+            return;
+        }
+
+        if (_chargeOrb == null)
+        {
+            var go = new GameObject("ChargeOrb");
+            go.transform.SetParent(transform, false);
+            _chargeOrb = go.AddComponent<SpriteRenderer>();
+            _chargeOrb.sprite = chargeOrbSprite;
+            _chargeOrb.sortingOrder = 22;      // 压在人物（20）上面，看着像握在手里
+        }
+
+        float ratio = ChargeRatio;
+        float scale = Mathf.Lerp(chargeOrbMinScale, chargeOrbMaxScale, ratio);
+
+        // 满蓄力时轻微脉动，给「再蓄也不会更大了」一点手感提示
+        if (ratio >= 0.999f) scale *= 1f + 0.06f * Mathf.Sin(Time.time * 18f);
+
+        float dir = sprite != null && sprite.flipX ? -1f : 1f;
+
+        _chargeOrb.enabled = true;
+        _chargeOrb.transform.localPosition = new Vector3(chargeOrbOffset.x * dir, chargeOrbOffset.y, 0f);
+        _chargeOrb.transform.localScale = Vector3.one * scale;
+
+        Color c = chargeOrbColor;
+        c.a = Mathf.Lerp(0.55f, 1f, ratio);
+        _chargeOrb.color = c;
     }
 
     // ---------------- 事件 ----------------

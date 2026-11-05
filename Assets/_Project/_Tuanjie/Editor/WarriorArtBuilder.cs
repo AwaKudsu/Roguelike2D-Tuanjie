@@ -146,7 +146,6 @@ namespace Tuanjie.PortCheck
             SetRef(so, "dash", Get(sprites, "Warrior_Dash"));
             SetRef(so, "hurt", Get(sprites, "Warrior_Hurt"));
             SetRef(so, "death", Get(sprites, "Warrior_Death"));
-            SetRef(so, "victory", Get(sprites, "Warrior_Victory"));
             SetRef(so, "attackSlash", Get(sprites, "Warrior_AttackSlash"));
             SetRef(so, "attackLift", Get(sprites, "Warrior_AttackLift"));
             SetRef(so, "attackHeavy", Get(sprites, "Warrior_AttackHeavy"));

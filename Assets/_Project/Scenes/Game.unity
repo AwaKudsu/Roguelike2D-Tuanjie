@@ -1984,7 +1984,6 @@ MonoBehaviour:
   dash: {fileID: 21300000, guid: c473bcc2954548643b420609c8844399, type: 3}
   hurt: {fileID: 21300000, guid: a01838893706ae94cae14a16e0519d4d, type: 3}
   death: {fileID: 21300000, guid: 21c90a1090ad8244794d4d754b830d10, type: 3}
-  victory: {fileID: 21300000, guid: 11deb9a69dd458640855a2a9f43df1e2, type: 3}
   idleFrames:
   - {fileID: 21300000, guid: d25fbd05c51ee8c49b1e55dd6c58757a, type: 3}
   - {fileID: 21300000, guid: 3503a131b8f6adf43bdb3e973f967061, type: 3}
@@ -2025,7 +2024,6 @@ MonoBehaviour:
   thrustHold: 0.2
   heavyHold: 0.26
   hurtHold: 0.22
-  victoryHold: 1.4
   runSpeedThreshold: 0.6
 --- !u!114 &1728500187
 MonoBehaviour:
@@ -2097,6 +2095,11 @@ MonoBehaviour:
   castHold: 0.55
   hurtHold: 0.22
   victoryHold: 1.4
+  chargeOrbSprite: {fileID: 21300000, guid: 2c1b40c874f36f545b04a98f73c2cd2f, type: 3}
+  chargeOrbColor: {r: 1, g: 0.62, b: 0.18, a: 1}
+  chargeOrbOffset: {x: 0.58, y: 0.32, z: 0}
+  chargeOrbMinScale: 0.45
+  chargeOrbMaxScale: 1.25
 --- !u!1 &1762385687
 GameObject:
   m_ObjectHideFlags: 0

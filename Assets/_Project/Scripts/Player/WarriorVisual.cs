@@ -32,7 +32,6 @@ public class WarriorVisual : MonoBehaviour, IPlayerAnim
     [SerializeField] private Sprite dash;
     [SerializeField] private Sprite hurt;
     [SerializeField] private Sprite death;
-    [SerializeField] private Sprite victory;
 
     [Header("待机序列（呼吸：站稳 → 微抬 → 抬更多 → 微抬）")]
     [SerializeField] private Sprite[] idleFrames = new Sprite[0];
@@ -70,7 +69,6 @@ public class WarriorVisual : MonoBehaviour, IPlayerAnim
     [SerializeField] private float thrustHold = 0.20f;
     [SerializeField] private float heavyHold = 0.26f;
     [SerializeField] private float hurtHold = 0.22f;
-    [SerializeField] private float victoryHold = 1.4f;
 
     [Header("判定")]
     [Tooltip("水平速度超过这个值就算在跑")]
@@ -88,15 +86,11 @@ public class WarriorVisual : MonoBehaviour, IPlayerAnim
     private float _clipTotal;        // 整段时长，用来按比例算每帧
 
     private float _hurtTimer;
-    private float _victoryTimer;
     private float _spinTimer;
     private float _spinClock;
     private float _runTimer;
     private float _idleTimer;
     private bool _dead;
-
-    private RoomManager _rooms;
-    private Room _victoryRoom;
 
     /// <summary>当前这一帧用的是哪个状态，给自检和调试看</summary>
     public string CurrentState { get; private set; } = "Idle";
@@ -149,7 +143,6 @@ public class WarriorVisual : MonoBehaviour, IPlayerAnim
     private void TickTimers()
     {
         if (_hurtTimer > 0f) _hurtTimer -= Time.deltaTime;
-        if (_victoryTimer > 0f) _victoryTimer -= Time.deltaTime;
 
         if (_spinTimer > 0f)
         {
@@ -234,14 +227,6 @@ public class WarriorVisual : MonoBehaviour, IPlayerAnim
             return dash;
         }
 
-        CheckRoomCleared();
-
-        if (_victoryTimer > 0f && victory != null)
-        {
-            CurrentState = "Victory";
-            return victory;
-        }
-
         bool grounded = controller == null || controller.IsGrounded;
         float vx = body != null ? body.velocity.x : 0f;
         float vy = body != null ? body.velocity.y : 0f;
@@ -309,20 +294,6 @@ public class WarriorVisual : MonoBehaviour, IPlayerAnim
         _idleTimer = 0f;
 
         return run[index] != null ? run[index] : idle;
-    }
-
-    /// <summary>房间清空时举剑庆祝一下。不改逻辑，纯表现</summary>
-    private void CheckRoomCleared()
-    {
-        if (_rooms == null) _rooms = FindObjectOfType<RoomManager>();
-        if (_rooms == null) return;
-
-        Room room = _rooms.CurrentRoom;
-        if (room == null || room == _victoryRoom) return;
-        if (!room.IsCleared) return;
-
-        _victoryRoom = room;
-        _victoryTimer = victoryHold;
     }
 
     private void Apply(Sprite frame)
@@ -403,7 +374,7 @@ public class WarriorVisual : MonoBehaviour, IPlayerAnim
     public void PlayWarcry(float hold = 0.45f)
     {
         if (_dead) return;
-        PlayClip(new[] { warcry }, hold, victory);
+        PlayClip(new[] { warcry }, hold, attackHeavy);
     }
 
     /// <summary>战士没有蓄力招式：空实现，让 SkillCaster 不必区分职业</summary>
@@ -465,7 +436,7 @@ public class WarriorVisual : MonoBehaviour, IPlayerAnim
     {
         return new[]
         {
-            idle, jump, fall, dash, hurt, death, victory,
+            idle, jump, fall, dash, hurt, death,
             attackSlash, attackLift, attackHeavy, attackThrust, warcry
         };
     }

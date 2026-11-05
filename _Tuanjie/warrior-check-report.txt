@@ -8,7 +8,8 @@
 [PASS] 画布尺寸 | 3 单位高（骑士本体 1 单位，上下留白）
 [PASS] 组件存在 | WarriorVisual
 [PASS] 五个基础引用已接 | sprite/controller/health/attacker/body
-[PASS] 十二个单帧姿势已接
+[PASS] 十一个单帧姿势已接
+[PASS] 胜利结算动作已删除 | WarriorVisual 没有 victory 字段
 [PASS] 序列 | idleFrames 3 帧
 [PASS] 序列 | slashFrames 3 帧
 [PASS] 序列 | liftFrames 3 帧

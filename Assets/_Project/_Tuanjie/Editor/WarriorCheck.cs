@@ -175,7 +175,7 @@ namespace Tuanjie.PortCheck
             int frameWired = 0;
             foreach (string field in new[]
                      {
-                         "idle", "jump", "fall", "dash", "hurt", "death", "victory",
+                         "idle", "jump", "fall", "dash", "hurt", "death",
                          "attackSlash", "attackLift", "attackHeavy", "attackThrust", "warcry"
                      })
             {
@@ -184,9 +184,15 @@ namespace Tuanjie.PortCheck
                 else sb.AppendLine("[FAIL] 姿势没接 | " + field);
             }
 
-            sb.AppendLine(frameWired == 12 ? "[PASS] 十二个单帧姿势已接"
-                                           : "[INFO] 单帧姿势 | " + frameWired + " / 12");
-            if (frameWired != 12) fail++;
+            sb.AppendLine(frameWired == 11 ? "[PASS] 十一个单帧姿势已接"
+                                           : "[INFO] 单帧姿势 | " + frameWired + " / 11");
+            if (frameWired != 11) fail++;
+
+            // 胜利结算动作 2026-11-05 按用户要求删除：字段不在了才算对
+            sb.AppendLine(so.FindProperty("victory") == null
+                ? "[PASS] 胜利结算动作已删除 | WarriorVisual 没有 victory 字段"
+                : "[FAIL] 胜利结算动作还在 | victory 字段仍然存在");
+            if (so.FindProperty("victory") != null) fail++;
 
             // ---------- 短序列（2026-11-05：一刀三帧、待机呼吸、跑动 6 帧）----------
             CheckArray(sb, so, "idleFrames", 3, ref fail);

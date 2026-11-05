@@ -85,6 +85,12 @@ namespace Tuanjie.PortCheck
             SetRef(mageSo, "jump", sprites, "Mage_Jump");
             SetRef(mageSo, "hurt", sprites, "Mage_Hurt");
             SetRef(mageSo, "death", sprites, "Mage_Death");
+
+            // 蓄力预览：杖头那颗越变越大的火球
+            SetRef(mageSo, "chargeOrbSprite", sprites, "Mage_Fireball");
+            sb.AppendLine(sprites.ContainsKey("Mage_Fireball")
+                ? "[PASS] 蓄力预览 | 杖头火球用 Mage_Fireball，随蓄力变大"
+                : "[WARN] 蓄力预览 | 没有 Mage_Fireball，蓄力时看不到球");
             mageSo.ApplyModifiedPropertiesWithoutUndo();
 
             // 切换器：两套动画 + 两个职业

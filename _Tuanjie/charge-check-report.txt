@@ -1,0 +1,20 @@
+[INFO] 蓄力火球诊断（伪造按键锁存，直接驱动 SkillCaster.Update）
+[INFO] 玩家 | Player
+[INFO] 当前职业 | 战士
+[PASS] SkillCaster.input 已接 | PlayerInputReader
+[INFO] 槽 1 | 火球术 / 类型=Projectile / 可蓄力=True / 耗蓝=12 / 冷却=1.5
+[INFO] 槽 2 | 回复 / 类型=Heal / 可蓄力=False / 耗蓝=20 / 冷却=8
+[INFO] 槽 3 | 空
+[INFO] 槽 4 | 空
+[INFO] Time.deltaTime | 0.0000
+[INFO] 当前法力 | 100.0
+[PASS] 按下后进入蓄力 | 槽位 1
+[INFO] 按住 5 帧后 | 蓄力=True / 进度=0.00
+[PASS] 松手后结束蓄力
+[INFO] 松手后冷却 | 1.50 秒
+[INFO] 松手后投射物数量 | 0 → 1
+[INFO] 换职业后 | 职业=法师 / 槽1=火球术 / 槽2=回复 / 战士动画=False / 法师动画=True
+[PASS] 切到法师 | 职业表里换到了法师
+[PASS] 技能栏跟着换 | 槽 1 变成火球
+[PASS] 动画层跟着换 | 法师开、战士关
+[SUMMARY] 失败 | 0

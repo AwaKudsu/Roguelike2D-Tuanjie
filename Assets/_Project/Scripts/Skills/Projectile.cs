@@ -66,6 +66,9 @@ public class Projectile : MonoBehaviour
     /// <param name="speedScale">速度倍率，蓄得越久飞得越快</param>
     public void Launch(Vector2 direction, DamageInfo damage, LayerMask targets, float sizeScale = 1f, float speedScale = 1f)
     {
+        // 兜底：正常流程里 Awake 已经取过了，但实例化顺序不受控时可能还没跑
+        if (_rb == null) _rb = GetComponent<Rigidbody2D>();
+
         _damage    = damage;
         _lifeTimer = lifeTime;
         _launched  = true;
