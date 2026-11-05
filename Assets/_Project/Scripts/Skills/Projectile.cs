@@ -37,6 +37,12 @@ public class Projectile : MonoBehaviour
     [Tooltip("生成时朝飞行方向旋转。箭、飞刀要勾；火球一般不用")]
     [SerializeField] private bool rotateToDirection = false;
 
+    [Tooltip("朝左飞时水平翻转贴图。素材里的火球是「球在右、拖尾在左」—— 是朝右设计的，不翻转就是倒着飞")]
+    [SerializeField] private bool mirrorToDirection = true;
+
+    [Tooltip("要翻转的贴图。留空会自动取子物体里的 SpriteRenderer")]
+    [SerializeField] private SpriteRenderer body;
+
     [Tooltip("命中后延迟多久销毁，留给爆炸特效")]
     [SerializeField] private float destroyDelay = 0f;
 
@@ -92,6 +98,14 @@ public class Projectile : MonoBehaviour
         {
             float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
             transform.rotation = Quaternion.Euler(0f, 0f, angle);
+        }
+
+        // 贴图朝向跟着飞行方向走：火球素材是「球在右、拖尾在左」的朝右画法，
+        // 往左打时不翻转就会看着像倒着飞 —— 表现和法师面朝对不上。
+        if (mirrorToDirection)
+        {
+            if (body == null) body = GetComponentInChildren<SpriteRenderer>();
+            if (body != null) body.flipX = direction.x < 0f;
         }
 
         _rb.velocity = direction * speed * Mathf.Max(0.1f, speedScale);

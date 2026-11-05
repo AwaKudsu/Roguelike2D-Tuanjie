@@ -328,6 +328,56 @@ namespace Tuanjie.PortCheck
             ClassData mageClass = AssetDatabase.LoadAssetAtPath<ClassData>("Assets/_Project/Data/classes/Class_Mage.asset");
             bool hasTwo = mageClass != null && mageClass.startingSkills != null && mageClass.startingSkills.Count == 2;
             Report(sb, hasTwo, $"法师职业技能 | {(mageClass != null ? mageClass.startingSkills.Count : 0)} 个", ref fail);
+
+            CheckProjectileMirror(sb, ref fail);
+        }
+
+        /// <summary>
+        /// 火球贴图朝向：素材是「球在右、拖尾在左」的朝右画法，
+        /// 往左打必须水平翻转，否则看着像倒着飞、和法师面朝对不上。
+        /// </summary>
+        private static void CheckProjectileMirror(StringBuilder sb, ref int fail)
+        {
+            const string prefabPath = "Assets/_Project/Prefabs/Fireball.prefab";
+            GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath);
+
+            if (prefab == null)
+            {
+                Report(sb, false, $"火球预制体 | 找不到 {prefabPath}", ref fail);
+                return;
+            }
+
+            System.Func<int, bool> flipWhenFiring = facing =>
+            {
+                GameObject go = null;
+                try
+                {
+                    go = (GameObject)PrefabUtility.InstantiatePrefab(prefab);
+                    if (!go.TryGetComponent(out Projectile projectile)) return false;
+
+                    projectile.Launch(new Vector2(facing, 0f), default, default, 1f, 1f);
+
+                    SpriteRenderer body = go.GetComponentInChildren<SpriteRenderer>();
+                    if (body == null) return false;
+
+                    return body.flipX == (facing < 0);
+                }
+                catch (System.Exception e)
+                {
+                    Debug.LogWarning($"[MageCheck] 投射物朝向测试失败：{e.Message}");
+                    return false;
+                }
+                finally
+                {
+                    if (go != null) UnityEngine.Object.DestroyImmediate(go);
+                }
+            };
+
+            bool right = flipWhenFiring(1);
+            bool left = flipWhenFiring(-1);
+
+            Report(sb, right, "火球贴图朝向 | 往右飞不翻转（素材本来就是朝右）", ref fail);
+            Report(sb, left, "火球贴图朝向 | 往左飞自动翻转，倒着飞的观感没了", ref fail);
         }
 
         // ---------------- 工具 ----------------
