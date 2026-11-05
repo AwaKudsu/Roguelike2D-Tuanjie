@@ -29,6 +29,7 @@ public class WarriorVisual : MonoBehaviour
     [SerializeField] private Sprite death;
     [SerializeField] private Sprite victory;
     [SerializeField] private Sprite attackSlash;
+    [SerializeField] private Sprite attackLift;
     [SerializeField] private Sprite attackHeavy;
     [SerializeField] private Sprite attackThrust;
 
@@ -221,6 +222,7 @@ public class WarriorVisual : MonoBehaviour
 
         if (data.isRanged)
         {
+            // 远程：把剑递出去，剑尖朝前
             _attackPose = attackThrust;
             _attackHold = attackHold;
         }
@@ -232,8 +234,26 @@ public class WarriorVisual : MonoBehaviour
         }
         else
         {
-            _attackPose = attackSlash;
-            _attackHold = attackHold;
+            // 三段连击：劈砍 → 上挑 → 突刺，一段一个姿势
+            int stage = attacker != null ? attacker.ComboStage : 0;
+
+            switch (stage)
+            {
+                case 1:
+                    _attackPose = attackLift != null ? attackLift : attackSlash;
+                    _attackHold = attackHold;
+                    break;
+
+                case 2:
+                    _attackPose = attackThrust != null ? attackThrust : attackSlash;
+                    _attackHold = heavyHold;
+                    break;
+
+                default:
+                    _attackPose = attackSlash;
+                    _attackHold = attackHold;
+                    break;
+            }
         }
 
         _attackTimer = _attackHold;
@@ -250,7 +270,8 @@ public class WarriorVisual : MonoBehaviour
     {
         return new[]
         {
-            idle, jump, fall, dash, hurt, death, victory, attackSlash, attackHeavy, attackThrust
+            idle, jump, fall, dash, hurt, death, victory,
+            attackSlash, attackLift, attackHeavy, attackThrust
         };
     }
 

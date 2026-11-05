@@ -37,8 +37,20 @@ public class Equipment : MonoBehaviour
         if (attacker == null)  attacker  = GetComponent<PlayerAttacker>();
         if (inventory == null) inventory = GetComponent<Inventory>();
 
-        // 记下「出厂攻击」。穿武器时覆盖它，脱下时还原它
-        if (attacker != null) _defaultAttack = attacker.CurrentAttack;
+        // 记下「出厂攻击」。穿武器时覆盖它，脱下时还原它。
+        // 不在这里记：PlayerAttacker 是在自己的 Start 里才把职业的普通攻击装上的
+        // （Awake 时 CharacterStats 可能还没应用职业），这里先记会记成场景里的旧值。
+        // 真正的赋值推迟到第一次 Apply 时（见 Apply 里的兜底）。
+    }
+
+    /// <summary>
+    /// 出厂攻击：没穿武器时该用的那一个。
+    /// 第一次需要时再取 —— 那时职业数据早就应用完了。
+    /// </summary>
+    private AttackData DefaultAttack()
+    {
+        if (_defaultAttack == null && attacker != null) _defaultAttack = attacker.CurrentAttack;
+        return _defaultAttack;
     }
 
     public ItemData Get(EquipSlot slot) => _equipped[(int)slot];
@@ -129,11 +141,9 @@ public class Equipment : MonoBehaviour
         // 武器额外接管普通攻击形态
         if (item.slot == EquipSlot.Weapon && attacker != null)
         {
-            // 兜底：Awake 没跑过（比如编辑器里直接调）时，用当前攻击当「出厂攻击」，
-            // 免得脱下武器后攻击变成 null
-            if (_defaultAttack == null) _defaultAttack = attacker.CurrentAttack;
-
-            attacker.SetAttack(item.weaponAttack != null ? item.weaponAttack : _defaultAttack);
+            // 出厂攻击到这一刻才取：这时职业的普通攻击已经装上了，
+            // 脱下武器才能正确回到「战士的剑」而不是场景里残留的法师弹道
+            attacker.SetAttack(item.weaponAttack != null ? item.weaponAttack : DefaultAttack());
         }
     }
 
@@ -142,7 +152,7 @@ public class Equipment : MonoBehaviour
         if (stats != null) stats.RemoveAllFrom(item);
 
         if (item.slot == EquipSlot.Weapon && attacker != null)
-            attacker.SetAttack(_defaultAttack);
+            attacker.SetAttack(DefaultAttack());
     }
 
     private static string equipSlotLabel(ItemData item) => EquipSlotNames.Of(item.slot) + "槽";

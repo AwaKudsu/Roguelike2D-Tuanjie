@@ -12,6 +12,7 @@ namespace Tuanjie.PortCheck
     /// 把战士素材接进工程：设置导入参数 → 挂 WarriorVisual → 接刀风和技能图标。
     ///
     /// 素材是「一整张姿势表」，已经用 Python 按连通块切成了 15 张独立的 PNG
+    /// （后来又补了一张 Warrior_AttackLift —— 上挑那一段没有专门姿势，借用举剑胜利帧，共 16 张）
     /// （切法见 docs/14，画布统一 320x480、脚底固定在距底 160px）。
     /// 这里只负责让团结按像素风正确导入，并把它们接到场景里的 Player 上。
     /// </summary>
@@ -91,11 +92,11 @@ namespace Tuanjie.PortCheck
                 sprites[Path.GetFileNameWithoutExtension(path)] = sprite;
             }
 
-            sb.AppendLine(sprites.Count == 15
-                ? "[PASS] Sprite 资产齐全 | 15 张"
-                : "[FAIL] Sprite 资产数量不对 | " + sprites.Count + " 张");
+            sb.AppendLine(sprites.Count == 16
+                ? "[PASS] Sprite 资产齐全 | 16 张（15 张姿势帧 + 1 张上挑，刀风那张是紧贴裁切的）"
+                : "[FAIL] Sprite 资产数量不对 | " + sprites.Count + " 张（应为 16）");
 
-            if (sprites.Count != 15) fail++;
+            if (sprites.Count != 16) fail++;
 
             foreach (var pair in sprites)
             {
@@ -147,6 +148,7 @@ namespace Tuanjie.PortCheck
             SetRef(so, "death", Get(sprites, "Warrior_Death"));
             SetRef(so, "victory", Get(sprites, "Warrior_Victory"));
             SetRef(so, "attackSlash", Get(sprites, "Warrior_AttackSlash"));
+            SetRef(so, "attackLift", Get(sprites, "Warrior_AttackLift"));
             SetRef(so, "attackHeavy", Get(sprites, "Warrior_AttackHeavy"));
             SetRef(so, "attackThrust", Get(sprites, "Warrior_AttackThrust"));
 

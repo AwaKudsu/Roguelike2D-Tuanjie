@@ -20,7 +20,7 @@
 [PASS] 法杖接管普通攻击 | Attack_MageBolt
 [PASS] 武器槽是橡木法杖 | 已换
 [PASS] 铁剑被自动退回背包 | 同槽位旧装备回收
-[PASS] 脱下武器 → 攻击形态还原 | Attack_MageBolt → Attack_MageBolt
+[PASS] 脱下武器 → 攻击形态还原 | Attack_Basic → Attack_Basic
 [PASS] 脱武器 → 攻击力还原 | 实际 13 / 期望 13
 [PASS] 武器槽已空 | 空
 [PASS] 穿皮甲 → 生命 +25 | 实际 165 / 期望 165

@@ -1,14 +1,14 @@
 === 战士动作自检 ===
 [PASS] 已打开场景 | Assets/_Project/Scenes/Game.unity
-[PASS] Sprite 资产 | 15 张
-[PASS] 15 张图导入参数一致 | 320x480 / 160 PPU / 居中 pivot
+[PASS] Sprite 资产 | 16 张
+[PASS] 16 张图导入参数一致 | 人物帧 320x480，刀风紧贴裁切，全部 160 PPU + 居中 pivot
 [PASS] 像素风设置 | 全部 Point 过滤、无 mipmap、无压缩
 [INFO] 画布高度 | 3 单位，pivot 在脚底上方 0.5 单位
 [PASS] 脚底对齐 | 脚底在 pivot 下方 0.5 单位，正好落在胶囊体底边
 [PASS] 画布尺寸 | 3 单位高（骑士本体 1 单位，上下留白）
 [PASS] 组件存在 | WarriorVisual
 [PASS] 五个基础引用已接 | sprite/controller/health/attacker/body
-[PASS] 十个单帧姿势已接
+[PASS] 十一个单帧姿势已接
 [PASS] 跑动序列 | 4 帧
 [PASS] 刀风已接 | Warrior_SlashArc
 [PASS] 出刀时放刀风 | PlaySlash 存在
@@ -20,6 +20,16 @@
 [PASS] 刀风工厂 | SlashEffect
 [PASS] 冲刺状态 | PlayerController.IsDashing 存在
 [PASS] 冲刺无敌 | Health.GrantInvincibility 存在
+[PASS] 三段连击已接 | 劈砍 / 上挑 / 突刺
+[PASS] 普通攻击是近战 | Attack_Basic 判定 1.2×0.9
+[PASS] 玩家职业 | 战士（模板攻击 Attack_Basic）
+[PASS] 攻击跟着职业走 | ApplyClassAttack 存在（换职业会自动换剑/法杖）
+[PASS] 连击推进 | NextAttack 存在
+[PASS] 连击段号对外可见 | ComboStage（外观层据此选姿势）
+[PASS] 连击序列 | 劈砍 → 上挑 → 突刺 → 劈砍（段号 0,1,2,0）
+[PASS] 连击窗口过期 | 停手后下一刀回到劈砍
+[PASS] 刀风直飞 | SlashEffect.Throw 存在
+[PASS] 飞行刀风组件 | SlashWave
 
 [SUMMARY] 失败 | 0
 [SUMMARY] 警告 | 0

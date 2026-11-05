@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:yousandi.cn,2023:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 27c5b5c33a3c0214a94e22dbb0c29198, type: 3}
+  m_Name: Attack_Combo2
+  m_EditorClassIdentifier: 
+  displayName: "\u4E0A\u6311"
+  icon: {fileID: 0}
+  damageMultiplier: 1.25
+  knockbackForce: 4
+  bonusCritChance: 0
+  hitboxOffset: {x: 0.8, y: 0.35}
+  hitboxSize: {x: 1.2, y: 1.7}
+  targetLayers:
+    serializedVersion: 2
+    m_Bits: 128
+  isRanged: 0
+  projectilePrefab: {fileID: 0}
+  cooldown: 0.18

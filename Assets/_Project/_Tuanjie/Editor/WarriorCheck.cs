@@ -34,10 +34,13 @@ namespace Tuanjie.PortCheck
         private static readonly string[] AllFrames =
         {
             "Warrior_Idle", "Warrior_Jump", "Warrior_Fall", "Warrior_Dash", "Warrior_Hurt",
-            "Warrior_Death", "Warrior_Victory", "Warrior_AttackSlash", "Warrior_AttackHeavy",
-            "Warrior_AttackThrust", "Warrior_SlashArc",
+            "Warrior_Death", "Warrior_Victory", "Warrior_AttackSlash", "Warrior_AttackLift",
+            "Warrior_AttackHeavy", "Warrior_AttackThrust", "Warrior_SlashArc",
             "Warrior_Run_0", "Warrior_Run_1", "Warrior_Run_2", "Warrior_Run_3"
         };
+
+        /// <summary>刀风不是人物帧，它被裁成了紧贴弧光的正方形，不能按 320x480 校验</summary>
+        private const string ArcSpriteName = "Warrior_SlashArc";
 
         [MenuItem("团结/验证战士动作")]
         public static void Run()
@@ -65,11 +68,17 @@ namespace Tuanjie.PortCheck
                     continue;
                 }
 
+                bool isArc = name == ArcSpriteName;
+
                 bool ok = Mathf.Approximately(s.pixelsPerUnit, PixelsPerUnit)
-                          && Mathf.Approximately(s.rect.width, CanvasWidth)
-                          && Mathf.Approximately(s.rect.height, CanvasHeight)
-                          && Mathf.Approximately(s.pivot.x, CanvasWidth / 2f)
-                          && Mathf.Approximately(s.pivot.y, CanvasHeight / 2f);
+                          && Mathf.Approximately(s.pivot.x, s.rect.width / 2f)
+                          && Mathf.Approximately(s.pivot.y, s.rect.height / 2f)
+                          && (isArc
+                              // 刀风是紧贴弧光的正方形，只要求「正方形 + 居中」，
+                              // 因为它要被旋转和缩放，画布越贴边越好
+                              ? Mathf.Approximately(s.rect.width, s.rect.height)
+                              : Mathf.Approximately(s.rect.width, CanvasWidth)
+                                && Mathf.Approximately(s.rect.height, CanvasHeight));
 
                 if (ok)
                 {
@@ -84,7 +93,7 @@ namespace Tuanjie.PortCheck
             }
 
             sb.AppendLine(good == AllFrames.Length
-                ? "[PASS] 15 张图导入参数一致 | 320x480 / 160 PPU / 居中 pivot"
+                ? "[PASS] 16 张图导入参数一致 | 人物帧 320x480，刀风紧贴裁切，全部 160 PPU + 居中 pivot"
                 : "[INFO] 参数正确的图 | " + good + " / " + AllFrames.Length);
 
             // ---------- 过滤与压缩 ----------
@@ -171,7 +180,7 @@ namespace Tuanjie.PortCheck
             foreach (string field in new[]
                      {
                          "idle", "jump", "fall", "dash", "hurt", "death", "victory",
-                         "attackSlash", "attackHeavy", "attackThrust"
+                         "attackSlash", "attackLift", "attackHeavy", "attackThrust"
                      })
             {
                 SerializedProperty p = so.FindProperty(field);
@@ -179,9 +188,9 @@ namespace Tuanjie.PortCheck
                 else sb.AppendLine("[FAIL] 姿势没接 | " + field);
             }
 
-            sb.AppendLine(frameWired == 10 ? "[PASS] 十个单帧姿势已接"
-                                           : "[INFO] 单帧姿势 | " + frameWired + " / 10");
-            if (frameWired != 10) fail++;
+            sb.AppendLine(frameWired == 11 ? "[PASS] 十一个单帧姿势已接"
+                                           : "[INFO] 单帧姿势 | " + frameWired + " / 11");
+            if (frameWired != 11) fail++;
 
             SerializedProperty runProp = so.FindProperty("run");
             int runWired = 0;
@@ -261,6 +270,113 @@ namespace Tuanjie.PortCheck
                                         : "[FAIL] Health 没有 GrantInvincibility");
             if (grant == null) fail++;
 
+            // ---------- 三段连击 ----------
+            if (attacker != null)
+            {
+                var cso = new SerializedObject(attacker);
+
+                SerializedProperty combo = cso.FindProperty("comboAttacks");
+                int comboWired = 0;
+                if (combo != null)
+                {
+                    for (int i = 0; i < combo.arraySize; i++)
+                        if (combo.GetArrayElementAtIndex(i).objectReferenceValue != null) comboWired++;
+                }
+
+                sb.AppendLine(comboWired == 3
+                    ? "[PASS] 三段连击已接 | 劈砍 / 上挑 / 突刺"
+                    : "[FAIL] 三段连击 | " + comboWired + " / 3");
+                if (comboWired != 3) fail++;
+
+                SerializedProperty atkProp = cso.FindProperty("attackData");
+                var atk = atkProp != null ? atkProp.objectReferenceValue as AttackData : null;
+
+                if (atk == null)
+                {
+                    sb.AppendLine("[FAIL] 普通攻击数据为空");
+                    fail++;
+                }
+                else if (atk.isRanged)
+                {
+                    sb.AppendLine("[FAIL] 普通攻击还是远程弹道 | " + atk.name + "（战士该用剑）");
+                    fail++;
+                }
+                else
+                {
+                    sb.AppendLine("[PASS] 普通攻击是近战 | " + atk.name
+                                  + " 判定 " + atk.hitboxSize.x + "×" + atk.hitboxSize.y);
+                }
+
+                // 职业模板有没有真正被应用（ClassData.basicAttack 以前是个无人读取的字段）
+                var stats = player.GetComponent<CharacterStats>();
+                sb.AppendLine(stats != null && stats.Class != null
+                    ? "[PASS] 玩家职业 | " + stats.Class.className + "（模板攻击 "
+                      + (stats.Class.basicAttack != null ? stats.Class.basicAttack.name : "空") + "）"
+                    : "[FAIL] 玩家没有职业数据");
+                if (stats == null || stats.Class == null) fail++;
+
+                MethodInfo applyClass = typeof(PlayerAttacker).GetMethod("ApplyClassAttack",
+                    BindingFlags.Instance | BindingFlags.NonPublic);
+                sb.AppendLine(applyClass != null
+                    ? "[PASS] 攻击跟着职业走 | ApplyClassAttack 存在（换职业会自动换剑/法杖）"
+                    : "[FAIL] PlayerAttacker 没有 ApplyClassAttack");
+                if (applyClass == null) fail++;
+
+                MethodInfo next = typeof(PlayerAttacker).GetMethod("NextAttack",
+                    BindingFlags.Instance | BindingFlags.NonPublic);
+                sb.AppendLine(next != null ? "[PASS] 连击推进 | NextAttack 存在" : "[FAIL] 没有 NextAttack");
+                if (next == null) fail++;
+
+                PropertyInfo stageProp = typeof(PlayerAttacker).GetProperty("ComboStage",
+                    BindingFlags.Instance | BindingFlags.Public);
+                sb.AppendLine(stageProp != null ? "[PASS] 连击段号对外可见 | ComboStage（外观层据此选姿势）"
+                                                : "[FAIL] 没有 ComboStage");
+                if (stageProp == null) fail++;
+
+                // ---------- 连击序列（反射直调，不需要 Play） ----------
+                FieldInfo comboTimer = typeof(PlayerAttacker).GetField("_comboTimer",
+                    BindingFlags.Instance | BindingFlags.NonPublic);
+
+                if (next != null && comboTimer != null)
+                {
+                    var names = new List<string>();
+                    var stages = new List<int>();
+
+                    for (int i = 0; i < 4; i++)
+                    {
+                        var a = next.Invoke(attacker, null) as AttackData;
+                        names.Add(a != null ? a.displayName : "空");
+                        stages.Add(attacker.ComboStage);
+                    }
+
+                    string seq = string.Join(" → ", names);
+                    string stageSeq = string.Join(",", stages);
+
+                    sb.AppendLine(stageSeq == "0,1,2,0"
+                        ? "[PASS] 连击序列 | " + seq + "（段号 " + stageSeq + "）"
+                        : "[FAIL] 连击序列 | " + seq + "（段号 " + stageSeq + "，应为 0,1,2,0）");
+                    if (stageSeq != "0,1,2,0") fail++;
+
+                    // 窗口过期 → 下一刀回到第一段
+                    comboTimer.SetValue(attacker, 0f);
+                    var back = next.Invoke(attacker, null) as AttackData;
+                    bool reset = back != null && back.displayName == "劈砍" && attacker.ComboStage == 0;
+
+                    sb.AppendLine(reset
+                        ? "[PASS] 连击窗口过期 | 停手后下一刀回到劈砍"
+                        : "[FAIL] 窗口过期后没回到第一段 | " + (back != null ? back.displayName : "空"));
+                    if (!reset) fail++;
+                }
+            }
+
+            // 刀风：会往前飞，不再是原地闪一下
+            MethodInfo throwWave = typeof(SlashEffect).GetMethod("Throw",
+                BindingFlags.Public | BindingFlags.Static);
+            sb.AppendLine(throwWave != null ? "[PASS] 刀风直飞 | SlashEffect.Throw 存在" : "[FAIL] 没有 SlashEffect.Throw");
+            if (throwWave == null) fail++;
+
+            sb.AppendLine(typeof(SlashWave) != null ? "[PASS] 飞行刀风组件 | SlashWave" : "[FAIL] 缺 SlashWave");
+
             sb.AppendLine();
             sb.AppendLine("[SUMMARY] 失败 | " + fail);
             sb.AppendLine("[SUMMARY] 警告 | " + warn);
@@ -279,10 +395,10 @@ namespace Tuanjie.PortCheck
                 sprites[Path.GetFileNameWithoutExtension(path)] = sprite;
             }
 
-            if (sprites.Count == 15) sb.AppendLine("[PASS] Sprite 资产 | 15 张");
+            if (sprites.Count == 16) sb.AppendLine("[PASS] Sprite 资产 | 16 张");
             else
             {
-                sb.AppendLine("[FAIL] Sprite 资产数量 | " + sprites.Count + " 张（应为 15）");
+                sb.AppendLine("[FAIL] Sprite 资产数量 | " + sprites.Count + " 张（应为 16）");
                 fail++;
             }
 

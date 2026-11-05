@@ -1,8 +1,9 @@
 === 战士素材接入 ===
 [INFO] 工程 | D:/TuanjieRoguelike2D/Assets
 [PASS] 已打开场景 | Assets/_Project/Scenes/Game.unity
-[PASS] Sprite 资产齐全 | 15 张
+[PASS] Sprite 资产齐全 | 16 张（15 张姿势帧 + 1 张上挑，刀风那张是紧贴裁切的）
 [INFO] Warrior_AttackHeavy | 320x480 ppu=160 pivot=(160,240)
+[INFO] Warrior_AttackLift | 320x480 ppu=160 pivot=(160,240)
 [INFO] Warrior_AttackSlash | 320x480 ppu=160 pivot=(160,240)
 [INFO] Warrior_AttackThrust | 320x480 ppu=160 pivot=(160,240)
 [INFO] Warrior_Dash | 320x480 ppu=160 pivot=(160,240)
@@ -15,7 +16,7 @@
 [INFO] Warrior_Run_1 | 320x480 ppu=160 pivot=(160,240)
 [INFO] Warrior_Run_2 | 320x480 ppu=160 pivot=(160,240)
 [INFO] Warrior_Run_3 | 320x480 ppu=160 pivot=(160,240)
-[INFO] Warrior_SlashArc | 320x480 ppu=160 pivot=(160,240)
+[INFO] Warrior_SlashArc | 189x189 ppu=160 pivot=(94.5,94.5)
 [INFO] Warrior_Victory | 320x480 ppu=160 pivot=(160,240)
 [PASS] 组件已存在 | WarriorVisual
 [PASS] 跑动序列 | 4 帧

@@ -35,6 +35,13 @@ public class PlayerAttacker : MonoBehaviour
     [Tooltip("刀风大小倍率")]
     [SerializeField] private float slashScale = 1f;
 
+    [Header("三段连击")]
+    [Tooltip("按顺序放：一段劈砍 / 二段上挑 / 三段突刺。留空就退回单段普通攻击（法师这种远程职业就是这样）")]
+    [SerializeField] private AttackData[] comboAttacks = new AttackData[0];
+
+    [Tooltip("上一段打完多久内再按才算连得上下一段；超时就回到第一段")]
+    [SerializeField] private float comboWindow = 0.55f;
+
     /// <summary>
     /// 每次攻击真正打出去时触发（远程也在内）。
     /// 外观层靠它切姿势 —— 判定和表现分开，删掉这个事件不影响战斗。
@@ -48,6 +55,10 @@ public class PlayerAttacker : MonoBehaviour
     private float _cooldownTimer;
     private int _facing = 1;
 
+    // 连击：_comboStage 记「下一次该打第几段」，_comboTimer 是这一次连招还能接多久
+    private int _comboStage;
+    private float _comboTimer;
+
     // 一次性的判定框闪示。每次攻击/技能打出去时由 ShowFlash() 记下位置、大小和到期时间，
     // 到点就自然不画了 —— 所以它显示的是「刚才那一下实际打在哪」，按下才出现、放完就消失。
     private Vector2 _flashCenter;
@@ -60,6 +71,12 @@ public class PlayerAttacker : MonoBehaviour
 
     /// <summary>当前普通攻击用的数据。换武器时改的就是它</summary>
     public AttackData CurrentAttack => attackData;
+
+    /// <summary>刚才那一下是三段连击里的第几段（0 开始）。外观层据此选姿势</summary>
+    public int ComboStage { get; private set; }
+
+    /// <summary>配了几段连击。0 表示这个职业只有单段攻击</summary>
+    public int ComboLength => comboAttacks != null ? comboAttacks.Length : 0;
 
     /// <summary>某个 AttackData 在「当前站位 + 当前朝向」下会打到哪里</summary>
     private Vector2 CenterFor(AttackData data)
@@ -76,9 +93,41 @@ public class PlayerAttacker : MonoBehaviour
         _visual      = GetComponent<CharacterVisual>();
     }
 
+    private void Start()
+    {
+        // 普通攻击跟着职业走。放 Start 不放 Awake：CharacterStats 是在它自己的 Awake 里
+        // 应用职业数据的，两个 Awake 谁先跑没有保证。
+        ApplyClassAttack(_stats != null ? _stats.Class : null);
+
+        if (_stats != null) _stats.ClassChanged += ApplyClassAttack;
+    }
+
+    private void OnDisable()
+    {
+        if (_stats != null) _stats.ClassChanged -= ApplyClassAttack;
+    }
+
+    /// <summary>
+    /// 职业的普通攻击模板。没有武器覆盖时就用它。
+    /// 之前这里什么都没接 —— ClassData.basicAttack 一直是个没人读的字段，
+    /// 所以战士用的还是场景里手填的法师弹道。
+    /// </summary>
+    private void ApplyClassAttack(ClassData data)
+    {
+        if (data == null || data.basicAttack == null) return;
+        attackData = data.basicAttack;
+    }
+
     private void Update()
     {
         if (_cooldownTimer > 0f) _cooldownTimer -= Time.deltaTime;
+
+        // 连击窗口过期，下一刀从第一段重新开始
+        if (_comboTimer > 0f)
+        {
+            _comboTimer -= Time.deltaTime;
+            if (_comboTimer <= 0f) _comboStage = 0;
+        }
 
         float x = _input.Move.x;
         if (Mathf.Abs(x) > 0.1f)
@@ -91,11 +140,53 @@ public class PlayerAttacker : MonoBehaviour
 
         if (_hitReaction != null && _hitReaction.IsStunned) return;
 
-        if (_input.ConsumeAttackPressed() && _cooldownTimer <= 0f && attackData != null)
+        if (_input.ConsumeAttackPressed() && _cooldownTimer <= 0f)
         {
-            _cooldownTimer = GetCooldown(attackData);
-            BasicAttack(attackData);
+            AttackData data = NextAttack();
+            if (data == null) return;
+
+            _cooldownTimer = GetCooldown(data);
+            BasicAttack(data);
         }
+    }
+
+    /// <summary>
+    /// 挑这一刀用哪份 AttackData：窗口内就接着下一段，否则从第一段开始。
+    /// 远程职业（连击数组为空，或当前攻击是远程）直接返回普通攻击，不做连击。
+    /// </summary>
+    private AttackData NextAttack()
+    {
+        bool useCombo = comboAttacks != null && comboAttacks.Length > 0
+                        && comboAttacks[0] != null
+                        && (attackData == null || !attackData.isRanged);
+
+        if (!useCombo)
+        {
+            ComboStage = 0;
+            return attackData;
+        }
+
+        if (_comboTimer <= 0f) _comboStage = 0;
+
+        int index = Mathf.Clamp(_comboStage, 0, comboAttacks.Length - 1);
+        AttackData data = comboAttacks[index];
+
+        ComboStage  = index;
+        _comboStage = (index + 1) % comboAttacks.Length;
+        _comboTimer = comboWindow;
+
+        return data != null ? data : attackData;
+    }
+
+    /// <summary>某个 AttackData 是三段连击里的第几段；不是连击段就返回 0</summary>
+    private int StageOf(AttackData data)
+    {
+        if (comboAttacks == null || data == null) return 0;
+
+        for (int i = 0; i < comboAttacks.Length; i++)
+            if (comboAttacks[i] == data) return i;
+
+        return 0;
     }
 
     /// <summary>换武器 / 换职业时改普通攻击形态，由装备系统调用</summary>
@@ -139,7 +230,10 @@ public class PlayerAttacker : MonoBehaviour
     }
 
     /// <summary>
-    /// 放一道刀风。大范围挥砍（旋风斩）让弧光绕身转一圈，普通挥砍是斜着扫一下。
+    /// 放刀风。三种情况各不相同：
+    ///   · 大范围挥砍（旋风斩）—— 弧光绕身转一圈
+    ///   · 三段连击 —— 每一段的角度、速度、长短都不一样（劈砍压低、上挑往上、突刺又快又长）
+    ///   · 其它近战 —— 平着甩一道
     /// slashArc 没配就什么都不做。
     /// </summary>
     private void PlaySlash(Vector2 center, AttackData data)
@@ -157,9 +251,38 @@ public class PlayerAttacker : MonoBehaviour
             return;
         }
 
-        // 普通挥砍：弧光放在判定框中心偏后一点，看起来是从刀身上扫出去的
-        Vector2 at = center - new Vector2(_facing * 0.25f, 0f);
-        SlashEffect.Swing(slashArc, at, _facing, scale, slashColor);
+        int stage = StageOf(data);
+
+        // 出刀点：身前一点；上挑那一段再抬高一些，看起来是从下方撩上去的
+        float lift = stage == 1 ? 0.35f : 0.05f;
+        Vector2 origin = (Vector2)transform.position + new Vector2(_facing * 0.55f, lift);
+
+        float tilt;
+        float speed;
+        float duration;
+
+        switch (stage)
+        {
+            case 1:   // 上挑：往上挑，飞得慢一点（还在往上走）
+                tilt = 38f;
+                speed = 8.5f;
+                duration = 0.26f;
+                break;
+
+            case 2:   // 突刺：贴着地面笔直冲出去，又快又短
+                tilt = 0f;
+                speed = 15f;
+                duration = 0.18f;
+                break;
+
+            default:  // 劈砍：稍微压下去一点，像从上往下切
+                tilt = -18f;
+                speed = 9.5f;
+                duration = 0.24f;
+                break;
+        }
+
+        SlashEffect.Throw(slashArc, origin, _facing, scale, slashColor, tilt, speed, duration);
     }
 
     /// <summary>
