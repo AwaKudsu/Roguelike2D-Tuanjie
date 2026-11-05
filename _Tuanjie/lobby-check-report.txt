@@ -1,0 +1,22 @@
+[INFO] 等待大厅自检
+[INFO] 已打开场景 | Assets/_Project/Scenes/Game.unity
+[PASS] 大厅脚本存在 | LobbyUI
+[PASS] 入口挂上了大厅 | GameBootstrap.Lobby
+[PASS] 玩家有职业切换器 | PlayerVisualSwitcher
+[PASS] 职业表 | 2 个（战士 / 法师）
+[PASS] 卡片数量 | 2 张（战士 / 法师）
+[PASS] 默认选中 | 战士
+[PASS] 进大厅会冻结世界 | TimeFreeze 已登记大厅
+[PASS] 大厅界面搭出来了 | Canvas 存在且启用
+[PASS] 排序 | 350（暂停菜单 400 会把大厅盖住）
+[PASS] 进大厅会关掉玩家输入 | 不会在选角色时乱跑
+[PASS] 离开大厅解冻 | TimeFreeze 已清掉
+[PASS] 离开大厅恢复输入 | PlayerInputReader 已启用
+[PASS] 第二张卡存在 | Card_1
+[PASS] 选中第二张卡 | 法师
+[PASS] 开始游戏会把职业装上 | 现在是用的是 法师
+[PASS] 战士头像 | 已接（大厅卡片用）
+[PASS] 法师头像 | 已接（大厅卡片用）
+[PASS] 战士说明 | 有文案
+[PASS] 法师说明 | 有文案
+[SUMMARY] 失败 | 0

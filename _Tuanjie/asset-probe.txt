@@ -1,0 +1,19 @@
+===== 贴图的真实 GUID =====
+Assets/_Project/Art/Characters/Mage/Mage_Fireball.png
+  guid=2c1b40c874f36f545b04a98f73c2cd2f  load=Mage_Fireball
+Assets/_Project/Art/Characters/Mage/Mage_Idle.png
+  guid=efdb662b06da80c41ab2f4db22ae68d3  load=Mage_Idle
+Assets/_Project/Art/Characters/Warrior/Warrior_Idle.png
+  guid=d25fbd05c51ee8c49b1e55dd6c58757a  load=Warrior_Idle
+Assets/_Project/Art/Placeholder/Square.png
+  guid=1622f347918d6d344918a4aa53fdbacc  load=Square
+Assets/_Project/Art/Placeholder/Circle.png
+  guid=7d50da08d6c27ad4698f347ac2d3181a  load=Circle
+
+===== 预制体里的 sprite 引用 =====
+Assets/_Project/Prefabs/Fireball.prefab
+  sprite=★null  enabled=True
+Assets/_Project/Prefabs/MageBolt.prefab
+  sprite=Circle  enabled=True
+
+===== 场景里玩家当前的贴图 =====

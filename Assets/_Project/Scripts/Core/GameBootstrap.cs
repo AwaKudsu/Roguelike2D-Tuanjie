@@ -15,12 +15,16 @@ public static class GameBootstrap
 {
     private static GameObject _root;
     private static GameMenuUI _menu;
+    private static LobbyUI _lobby;
 
     /// <summary>下一次场景加载完是否直接进大厅</summary>
     public static bool ShowLobbyOnStart = true;
 
     /// <summary>菜单实例（调试或其它系统要用时取）</summary>
     public static GameMenuUI Menu => _menu;
+
+    /// <summary>大厅实例（自检要拿它验「选角色 → 开局」）</summary>
+    public static LobbyUI Lobby => _lobby;
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
     private static void Boot()
@@ -34,6 +38,9 @@ public static class GameBootstrap
         Object.DontDestroyOnLoad(_root);
 
         _menu = _root.AddComponent<GameMenuUI>();
+
+        // 大厅和暂停菜单各一份：大厅是开局前选角色，暂停菜单是局内 Esc
+        _lobby = _root.AddComponent<LobbyUI>();
 
         SceneManager.sceneLoaded -= OnSceneLoaded;
         SceneManager.sceneLoaded += OnSceneLoaded;
@@ -56,11 +63,13 @@ public static class GameBootstrap
 
         if (ShowLobbyOnStart)
         {
-            _menu.ShowLobby();
+            if (_lobby != null) _lobby.Show();
+            else _menu.ShowLobby();
         }
         else
         {
-            _menu.Close();
+            if (_lobby != null) _lobby.Hide();
+            else _menu.Close();
         }
     }
 
@@ -68,6 +77,7 @@ public static class GameBootstrap
     public static void StartRun()
     {
         ShowLobbyOnStart = false;
+        if (_lobby != null) _lobby.Hide();
         if (_menu != null) _menu.Close();
     }
 

@@ -28,6 +28,12 @@ public class PlayerVisualSwitcher : MonoBehaviour
     /// <summary>当前在用的表现层是不是法师</summary>
     public bool IsMage { get; private set; }
 
+    /// <summary>职业表（大厅要拿它摆出「选角色」的卡片）</summary>
+    public System.Collections.Generic.IReadOnlyList<ClassData> Classes => classes;
+
+    /// <summary>当前职业在表里的下标（大厅用来默认高亮玩家在用的那个）</summary>
+    public int CurrentClassIndex => currentIndex;
+
     private void Awake()
     {
         if (stats  == null) stats  = GetComponent<CharacterStats>();

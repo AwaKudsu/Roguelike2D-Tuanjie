@@ -358,7 +358,9 @@ namespace Tuanjie.PortCheck
                     projectile.Launch(new Vector2(facing, 0f), default, default, 1f, 1f);
 
                     SpriteRenderer body = go.GetComponentInChildren<SpriteRenderer>();
-                    if (body == null) return false;
+                    // 贴图必须真的在：引用断了的表现是「打出去什么都没有」，
+                    // 而 flipX 断言照样能过 —— 光看朝向抓不住这种问题。
+                    if (body == null || body.sprite == null) return false;
 
                     return body.flipX == (facing < 0);
                 }
@@ -378,6 +380,12 @@ namespace Tuanjie.PortCheck
 
             Report(sb, right, "火球贴图朝向 | 往右飞不翻转（素材本来就是朝右）", ref fail);
             Report(sb, left, "火球贴图朝向 | 往左飞自动翻转，倒着飞的观感没了", ref fail);
+
+            var fireballPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath);
+            var fireballBody = fireballPrefab != null ? fireballPrefab.GetComponentInChildren<SpriteRenderer>() : null;
+            Report(sb, fireballBody != null && fireballBody.sprite != null,
+                   $"火球预制体贴图 | {(fireballBody != null && fireballBody.sprite != null ? fireballBody.sprite.name : "★null（引用断了，打出去看不见）")}",
+                   ref fail);
 
             CheckChargeOrbMirror(sb, ref fail);
         }

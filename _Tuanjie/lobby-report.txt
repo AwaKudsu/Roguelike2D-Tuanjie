@@ -1,0 +1,4 @@
+[INFO] 填充职业展示信息
+[PASS] 战士 | 头像 Warrior_Idle / 说明 51 字
+[PASS] 法师 | 头像 Mage_Idle / 说明 50 字
+[SUMMARY] 失败 | 0
