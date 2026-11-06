@@ -2098,8 +2098,8 @@ MonoBehaviour:
   chargeOrbSprite: {fileID: 21300000, guid: 2c1b40c874f36f545b04a98f73c2cd2f, type: 3}
   chargeOrbColor: {r: 1, g: 0.62, b: 0.18, a: 1}
   chargeOrbOffset: {x: 0.62, y: 0.34, z: 0}
-  chargeOrbMinScale: 0.55
-  chargeOrbMaxScale: 1.85
+  chargeOrbMinScale: 0.8
+  chargeOrbMaxScale: 2.2
 --- !u!1 &1762385687
 GameObject:
   m_ObjectHideFlags: 0

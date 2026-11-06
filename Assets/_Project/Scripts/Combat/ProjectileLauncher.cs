@@ -11,11 +11,19 @@ using UnityEngine;
 /// </summary>
 public static class ProjectileLauncher
 {
-    /// <summary>从角色身前一点点生成，免得投射物一出生就和自己脚下的地面重叠</summary>
-    public static Vector2 MuzzlePosition(Transform owner, int facing, float forwardOffset = 0.55f)
+    /// <summary>
+    /// 从角色身前一点点生成，免得投射物一出生就和自己脚下的地面重叠。
+    ///
+    /// 大球要额外抬起来：碰撞体跟着放大，半径 0.7 的球如果还从腰高生成，
+    /// 下缘会直接埋进地里 —— 一出生就撞 Ground 判定为命中墙，火球当场消失，
+    /// 表现就是「蓄力越久越打不出伤害」。所以出生点的前后与高度都随半径一起抬。
+    /// </summary>
+    public static Vector2 MuzzlePosition(Transform owner, int facing, float sizeScale = 1f)
     {
-        Vector2 p = owner.position;
-        return p + new Vector2(forwardOffset * facing, 0f);
+        float grow = Mathf.Max(0f, sizeScale - 1f);
+        float forward = 0.55f + grow * 0.45f;
+        float up = 0.12f + grow * 0.22f;
+        return (Vector2)owner.position + new Vector2(forward * facing, up);
     }
 
     /// <summary>

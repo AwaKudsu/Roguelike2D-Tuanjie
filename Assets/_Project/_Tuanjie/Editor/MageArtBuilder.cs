@@ -90,12 +90,12 @@ namespace Tuanjie.PortCheck
             SetRef(mageSo, "chargeOrbSprite", sprites, "Mage_Fireball");
 
             // 体积要写进场景：改 C# 里的默认值没用 —— 场景里已经序列化过，序列化值优先
-            mageSo.FindProperty("chargeOrbMinScale").floatValue = 0.55f;
-            mageSo.FindProperty("chargeOrbMaxScale").floatValue = 1.85f;
+            mageSo.FindProperty("chargeOrbMinScale").floatValue = 0.8f;
+            mageSo.FindProperty("chargeOrbMaxScale").floatValue = 2.2f;
             mageSo.FindProperty("chargeOrbOffset").vector3Value = new Vector3(0.62f, 0.34f, 0f);
 
             sb.AppendLine(sprites.ContainsKey("Mage_Fireball")
-                ? "[PASS] 蓄力预览 | 杖头火球用 Mage_Fireball，从 0.55 倍长到 1.85 倍"
+                ? "[PASS] 蓄力预览 | 杖头火球用 Mage_Fireball，从 0.8 倍长到 2.2 倍"
                 : "[WARN] 蓄力预览 | 没有 Mage_Fireball，蓄力时看不到球");
             mageSo.ApplyModifiedPropertiesWithoutUndo();
 
@@ -139,12 +139,12 @@ namespace Tuanjie.PortCheck
                 var so = new SerializedObject(fireball);
                 SetBool(so, "chargeable", true);
                 SetFloat(so, "chargeTime", 1.1f);
-                SetFloat(so, "chargeMinScale", 0.7f);
-                SetFloat(so, "chargeMaxScale", 3.2f);
+                SetFloat(so, "chargeMinScale", 1.0f);
+                SetFloat(so, "chargeMaxScale", 2.6f);
                 SetFloat(so, "chargeMaxSpeedBonus", 1.9f);
                 SetFloat(so, "chargeMaxDamageBonus", 2.0f);
                 so.ApplyModifiedPropertiesWithoutUndo();
-                sb.AppendLine("[PASS] 火球改成可蓄力 | 按住 1.1 秒蓄满：球 3.2 倍、速度 1.9 倍、伤害 2.0 倍");
+                sb.AppendLine("[PASS] 火球改成可蓄力 | 按住 1.1 秒蓄满：球 2.6 倍、速度 1.9 倍、伤害 2.0 倍");
             }
             else
             {

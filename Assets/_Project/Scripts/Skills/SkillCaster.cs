@@ -456,7 +456,9 @@ public class SkillCaster : MonoBehaviour
         int facing = attacker != null ? attacker.Facing : 1;
 
         float t = Mathf.Clamp01(chargeRatio);
-        float sizeScale   = Mathf.Lerp(1f, skill.chargeMaxScale, t);
+
+        // 小区间也得有：原来是从 1 倍基础大小起算，短促一按打出去的火球一直是「跟没蓄一样小」。
+        float sizeScale   = Mathf.Lerp(skill.chargeMinScale, skill.chargeMaxScale, t);
         float speedScale  = Mathf.Lerp(1f, skill.chargeMaxSpeedBonus, t);
         float damageScale = Mathf.Lerp(1f, skill.chargeMaxDamageBonus, t);
 
@@ -466,7 +468,7 @@ public class SkillCaster : MonoBehaviour
             prefab:           skill.projectilePrefab,
             stats:            _stats,
             owner:            gameObject,
-            origin:           ProjectileLauncher.MuzzlePosition(transform, facing),
+            origin:           ProjectileLauncher.MuzzlePosition(transform, facing, sizeScale),
             facing:           facing,
             count:            skill.projectileCount,
             spreadAngle:      skill.spreadAngle,

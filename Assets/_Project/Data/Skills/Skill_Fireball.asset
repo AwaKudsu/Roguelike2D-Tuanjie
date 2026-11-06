@@ -33,8 +33,8 @@ MonoBehaviour:
   spreadAngle: 10
   chargeable: 1
   chargeTime: 1.1
-  chargeMinScale: 0.7
-  chargeMaxScale: 3.2
+  chargeMinScale: 1
+  chargeMaxScale: 2.6
   chargeMaxSpeedBonus: 1.9
   chargeMaxDamageBonus: 2
   healAmount: 6

@@ -388,6 +388,70 @@ namespace Tuanjie.PortCheck
                    ref fail);
 
             CheckChargeOrbMirror(sb, ref fail);
+            CheckProjectileGrowth(sb, ref fail);
+        }
+
+        /// <summary>
+        /// 蓄满力那一发必须真的打得出去：
+        /// ① 出生点要随球变大往上抬，否则大球一出生就埋进地板、撞墙当场消失；
+        /// ② 碰撞体不能跟着贴图无限长，不然球心离地只有半格、半径却超过它，飞行全程蹭地板。
+        /// </summary>
+        private static void CheckProjectileGrowth(StringBuilder sb, ref int fail)
+        {
+            const string prefabPath = "Assets/_Project/Prefabs/Fireball.prefab";
+            GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath);
+            if (prefab == null)
+            {
+                Report(sb, false, $"火球生长 | 找不到 {prefabPath}", ref fail);
+                return;
+            }
+
+            // ① 出生点高度随 sizeScale 增长
+            Transform dummy = new GameObject("__MuzzleProbe").transform;
+            Vector2 small = ProjectileLauncher.MuzzlePosition(dummy, 1, 1f);
+            Vector2 big = ProjectileLauncher.MuzzlePosition(dummy, 1, 2.6f);
+            UnityEngine.Object.DestroyImmediate(dummy.gameObject);
+
+            float liftAtOne = small.y - 0f;   // dummy 在原点，y 就是抬高量
+            float liftAtMax = big.y;
+            Report(sb, liftAtMax > liftAtOne + 0.2f,
+                   $"枪口高度 | 1 倍时抬高 {liftAtOne:0.00}，满蓄抬高 {liftAtMax:0.00}（球越大出生点越高）",
+                   ref fail);
+
+            // ② 碰撞体封顶
+            GameObject go = null;
+            try
+            {
+                go = (GameObject)PrefabUtility.InstantiatePrefab(prefab);
+                if (!go.TryGetComponent(out Projectile projectile))
+                {
+                    Report(sb, false, "火球生长 | 预制体上没有 Projectile", ref fail);
+                    return;
+                }
+
+                var circle = go.GetComponent<CircleCollider2D>();
+                float baseWorldRadius = circle != null ? circle.radius * go.transform.localScale.x : 0f;
+
+                projectile.Launch(Vector2.right, default, default, 2.6f, 1f);
+
+                float worldRadius = circle != null ? circle.radius * go.transform.localScale.x : 0f;
+                bool capped = circle != null && baseWorldRadius > 0f && worldRadius <= baseWorldRadius * 1.65f;
+                Report(sb, capped,
+                       $"碰撞体封顶 | 贴图放大 {go.transform.localScale.x:0.00} 倍，判定半径 {worldRadius:0.00}（基础 {baseWorldRadius:0.00}，最多 1.6 倍）",
+                       ref fail);
+
+                Report(sb, go.transform.localScale.x >= 0.9f * 2.5f,
+                       $"火球出厂大小 | 基础 {0.95f:0.00} 倍 × 满蓄 2.6 = {go.transform.localScale.x:0.00}（短蓄力也不小）",
+                       ref fail);
+            }
+            catch (System.Exception e)
+            {
+                Report(sb, false, $"火球生长 | 异常 {e.Message}", ref fail);
+            }
+            finally
+            {
+                if (go != null) UnityEngine.Object.DestroyImmediate(go);
+            }
         }
 
         /// <summary>

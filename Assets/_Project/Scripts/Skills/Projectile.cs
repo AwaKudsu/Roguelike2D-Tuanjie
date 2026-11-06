@@ -46,12 +46,23 @@ public class Projectile : MonoBehaviour
     [Tooltip("命中后延迟多久销毁，留给爆炸特效")]
     [SerializeField] private float destroyDelay = 0f;
 
+    [Tooltip("出生后这段时间内不吃「撞墙」判定。大球的碰撞体可能一出生就压在 Ground 上，" +
+             "不放过这一小段就会被判定成撞墙、当场消失（表现是「蓄力越久越没伤害」）")]
+    [SerializeField] private float obstacleGrace = 0.08f;
+
+    [Tooltip("碰撞体最多放大到几倍。贴图可以随蓄力无限变大，但碰撞体一味跟着长，" +
+             "半径一旦超过离地高度就会一直蹭着地板走 —— 撞墙就失效了。")]
+    [SerializeField] private float maxColliderScale = 1.6f;
+
     private Rigidbody2D _rb;
+    private CircleCollider2D _circle;
+    private float _baseRadius;
     private DamageInfo _damage;
     private float _lifeTimer;
     private int _hitCount;
     private bool _launched;
     private bool _dead;
+    private float _spawnTime;
 
     // 穿透时同一只怪身上可能挂着好几个碰撞体，靠它保证一只怪只吃一次伤害
     private readonly HashSet<IDamageable> _alreadyHit = new();
@@ -62,6 +73,9 @@ public class Projectile : MonoBehaviour
 
         // 投射物自己飞，不受重力和外力影响 —— 刚体设成 Kinematic 最省心
         _rb.gravityScale = 0f;
+
+        _circle = GetComponent<CircleCollider2D>();
+        if (_circle != null) _baseRadius = _circle.radius;
     }
 
     /// <summary>由 SkillCaster 调用，把这一发打出去</summary>
@@ -78,6 +92,7 @@ public class Projectile : MonoBehaviour
         _damage    = damage;
         _lifeTimer = lifeTime;
         _launched  = true;
+        _spawnTime = Time.time;
 
         // 目标层统一由 AttackData 决定，避免「预制体忘了勾 Layer」这种静默失效
         if (targets.value != 0) targetLayers = targets;
@@ -88,6 +103,17 @@ public class Projectile : MonoBehaviour
         {
             // 缩放整个物体：CircleCollider2D 跟着变大，所以大球天生更容易撞到人
             transform.localScale *= sizeScale;
+
+            // 贴图可以随蓄力一直变大，但碰撞体不能。半径一旦超过球心离地高度，
+            // 这颗球就会一直蹭着地板飞 —— 一撞墙就 Expire，蓄得越大越打不出伤害。
+            // 所以：贴图吃满 sizeScale，碰撞体只吃到 maxColliderScale。
+            if (_circle == null) _circle = GetComponent<CircleCollider2D>();
+            if (_circle != null)
+            {
+                if (_baseRadius <= 0f) _baseRadius = _circle.radius;
+                float colliderScale = Mathf.Min(sizeScale, maxColliderScale);
+                _circle.radius = _baseRadius * colliderScale / sizeScale;
+            }
 
             // 只放大贴图不放大碰撞体会「看着打中了却没伤害」，反过来更糟；
             // 所以这里两者一起缩放，判定和画面永远一致。
@@ -131,6 +157,9 @@ public class Projectile : MonoBehaviour
         // 墙优先判断：撞墙永远停下来，哪怕这一层同时也在目标层里
         if ((obstacleLayers.value & layerBit) != 0)
         {
+            // 刚出生的一小会儿不吃墙：大球的碰撞体可能正压在脚底那块地板上
+            if (Time.time - _spawnTime < obstacleGrace) return;
+
             Expire();
             return;
         }
