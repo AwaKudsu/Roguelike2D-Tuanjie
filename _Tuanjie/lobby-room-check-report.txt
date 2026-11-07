@@ -1,0 +1,24 @@
+[PASS]|已打开场景|Assets/_Project/Scenes/Game.unity
+[PASS]|大厅组件|LobbyRoom 在场景里
+[PASS]|角色台数量|2 个
+[PASS]|角色台 0|战士
+[PASS]|角色台 0 立绘|Warrior_Idle
+[PASS]|角色台 1|法师
+[PASS]|角色台 1 立绘|Mage_Idle
+[PASS]|地板碰撞|Floor_1 在 Ground 层，带 BoxCollider2D
+[PASS]|RoomManager 大厅接口|SuspendForLobby / StartRunFromLobby 都在
+[PASS]|启动入口类型|GameBootstrap.Lobby 是 LobbyRoom
+[PASS]|玩家|找到 Player
+[PASS]|进大厅会停建房|RoomManager 已待命
+[PASS]|玩家被挪进大厅|离出生点 0.00
+[PASS]|大厅里不开火|攻击与技能已停
+[PASS]|大厅提示文字|LobbyHud 已显示
+[PASS]|走近台子会被识别|FocusIndex=1（法师台）
+[PASS]|按 E 能选职业|已选 法师
+[PASS]|选了法师就换人|当前是 法师
+[PASS]|走到门口会被识别|PortalFocused=True
+[PASS]|出发会恢复建房|RoomManager 已恢复
+[PASS]|出发后建出第一间|Room_02
+[PASS]|出发后战斗恢复|攻击与技能已恢复
+[SUMMARY] 失败 | 0
+[SUMMARY] 通过 | 22

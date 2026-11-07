@@ -1,0 +1,9 @@
+[PASS] 已打开场景 | Assets/_Project/Scenes/Game.unity
+[INFO] 背景板 | Backdrop 尺寸 62x10
+[PASS] 造出大厅 | LobbyRoom @ (-70.00, 0.00, 0.00)
+[PASS] 地板 / 墙 / 背景 | 3 段地板 + 左右墙 + 背景板（都带 Ground 层碰撞）
+[PASS] 角色台 | 战士 (战士) / 法师 (法师)
+[PASS] 传送门 | 位置 (52.00, -1.30, 0.00)
+[PASS] 出生点 | (8.00, -1.50, 0.00)（世界 (-62.00, -1.50, 0.00)）
+[PASS] 场景已存盘 | Assets/_Project/Scenes/Game.unity
+[SUMMARY] 失败 | 0

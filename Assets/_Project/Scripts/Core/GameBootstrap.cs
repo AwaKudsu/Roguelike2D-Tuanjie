@@ -2,20 +2,20 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 
 /// <summary>
-/// 游戏入口：不依赖场景里的任何物体，靠 [RuntimeInitializeOnLoadMethod] 自动把大厅/暂停菜单装起来。
+/// 游戏入口：不依赖场景里的任何物体，靠 [RuntimeInitializeOnLoadMethod] 自动把菜单装起来。
 ///
-/// 为什么不在场景里挂一个物体：手搭 UI 要拖几十个引用，而且中文字体是运行时动态字体（不是资产），
-/// 序列化不进场景 —— 所以整个菜单都在代码里搭，这里只负责「什么时候搭、什么时候显示」。
+/// 等待大厅不是代码搭的覆盖层，而是场景里真实搭出来的一间房（<see cref="LobbyRoom"/>）：
+/// 玩家能走、能走到角色台前按 E 选职业、走到门口出发。这里只负责「什么时候把玩家放进去」。
 ///
 /// 流程：
-///   进 Play → 先显示大厅（时间冻结）→ 点「开始游戏」解冻 → 玩 →
-///   按 Esc 暂停 → 「返回大厅」重新加载场景并回到大厅。
+///   进 Play → 先把玩家挪进大厅（战斗系统停着）→ 走到台子前按 E 选职业 →
+///   走到门按 E 出发（建房、放玩家到出生点）→ 玩 → 按 Esc 暂停 →「返回大厅」重新加载场景。
 /// </summary>
 public static class GameBootstrap
 {
     private static GameObject _root;
     private static GameMenuUI _menu;
-    private static LobbyUI _lobby;
+    private static LobbyRoom _lobby;
 
     /// <summary>下一次场景加载完是否直接进大厅</summary>
     public static bool ShowLobbyOnStart = true;
@@ -24,7 +24,7 @@ public static class GameBootstrap
     public static GameMenuUI Menu => _menu;
 
     /// <summary>大厅实例（自检要拿它验「选角色 → 开局」）</summary>
-    public static LobbyUI Lobby => _lobby;
+    public static LobbyRoom Lobby => _lobby;
 
     /// <summary>
     /// 每次进 Play 前把静态状态清干净。
@@ -57,8 +57,8 @@ public static class GameBootstrap
 
         _menu = _root.AddComponent<GameMenuUI>();
 
-        // 大厅和暂停菜单各一份：大厅是开局前选角色，暂停菜单是局内 Esc
-        _lobby = _root.AddComponent<LobbyUI>();
+        // 大厅是场景里搭好的那间房，不是代码建出来的界面 —— 这里只是把它找出来
+        _lobby = Object.FindObjectOfType<LobbyRoom>();
 
         SceneManager.sceneLoaded -= OnSceneLoaded;
         SceneManager.sceneLoaded += OnSceneLoaded;
@@ -81,21 +81,21 @@ public static class GameBootstrap
 
         if (ShowLobbyOnStart)
         {
-            if (_lobby != null) _lobby.Show();
+            if (_lobby != null) _lobby.Enter();
             else _menu.ShowLobby();
         }
         else
         {
-            if (_lobby != null) _lobby.Hide();
+            if (_lobby != null) _lobby.Leave();
             else _menu.Close();
         }
     }
 
-    /// <summary>大厅里点「开始游戏」</summary>
+    /// <summary>大厅里按 E 进门（或卡住时的「开始游戏」按钮）：离开大厅、开局</summary>
     public static void StartRun()
     {
         ShowLobbyOnStart = false;
-        if (_lobby != null) _lobby.Hide();
+        if (_lobby != null) _lobby.Leave();
         if (_menu != null) _menu.Close();
     }
 

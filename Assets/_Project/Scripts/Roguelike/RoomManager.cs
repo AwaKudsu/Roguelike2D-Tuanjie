@@ -84,6 +84,9 @@ public class RoomManager : MonoBehaviour
     private Rigidbody2D _playerBody;
     private bool _switching;
 
+    // 大厅里不许建房：进大厅时置 true，出发时清掉（见 SuspendForLobby / StartRunFromLobby）
+    private bool _suspended;
+
     // 袋子随机的状态：_bag 是「还没抽到的房间下标」，抽一个少一个，空了重新装袋
     private readonly List<int> _bag = new();
     private int _lastIndex = -1;
@@ -100,6 +103,9 @@ public class RoomManager : MonoBehaviour
     private void Start()
     {
         ResolvePlayer();
+
+        // 大厅模式下先别建房，等玩家从大厅出发再建
+        if (_suspended) return;
 
         if (buildFirstRoomOnStart)
         {
@@ -172,6 +178,46 @@ public class RoomManager : MonoBehaviour
         }
 
         StartCoroutine(AdvanceRoutine());
+    }
+
+    /// <summary>
+    /// 进等待大厅：把已经建好的房间收掉，并且不再自动建房。
+    /// 大厅是场景里单独搭的一间房，玩家在里面走动时不该已经有战斗房间摆在那儿。
+    /// </summary>
+    public void SuspendForLobby()
+    {
+        _suspended = true;
+
+        if (_currentInstance != null)
+        {
+            Destroy(_currentInstance);
+            _currentInstance = null;
+        }
+
+        _currentRoom = null;
+        _switching = false;
+        RoomsCleared = 0;
+    }
+
+    /// <summary>
+    /// 从大厅出发：恢复建房并真的建第一间。
+    /// 放在这里而不是让大厅自己 Instantiate —— 建房要走房间池、种子、移动玩家那一整套。
+    /// </summary>
+    public void StartRunFromLobby()
+    {
+        _suspended = false;
+
+        ResolvePlayer();
+
+        if (!buildFirstRoomOnStart || _currentRoom != null) return;
+
+        if (ActiveCount == 0)
+        {
+            Debug.LogWarning("[RoomManager] 房间池是空的，出发时建不出房间。", this);
+            return;
+        }
+
+        BuildRoom(PickIndex(1));
     }
 
     private IEnumerator AdvanceRoutine()
