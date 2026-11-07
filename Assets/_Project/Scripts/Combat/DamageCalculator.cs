@@ -34,10 +34,39 @@ public static class DamageCalculator
         return new DamageInfo
         {
             Amount         = attack * data.damageMultiplier * (isCrit ? critMul : 1f),
+            Element        = data.element,
             SourcePosition = sourcePosition,
             KnockbackForce = data.knockbackForce,
             Attacker       = attacker,
             IsCritical     = isCrit,
         };
+    }
+
+    /// <summary>
+    /// 元素抗性对应的属性值（0~1）。物理没有抗性通道，固定返回 0 —— 物理只吃防御。
+    /// </summary>
+    public static float ResistFor(CharacterStats stats, DamageElement element)
+    {
+        if (stats == null) return 0f;
+
+        switch (element)
+        {
+            case DamageElement.Poison: return Mathf.Clamp01(stats.Get(StatType.PoisonResist));
+            case DamageElement.Fire:   return Mathf.Clamp01(stats.Get(StatType.FireResist));
+            case DamageElement.Ice:    return Mathf.Clamp01(stats.Get(StatType.IceResist));
+            default:                   return 0f;
+        }
+    }
+
+    /// <summary>元素的中文名，飘字和提示框用</summary>
+    public static string ElementLabel(DamageElement element)
+    {
+        switch (element)
+        {
+            case DamageElement.Poison: return "毒";
+            case DamageElement.Fire:   return "火";
+            case DamageElement.Ice:    return "冰";
+            default:                   return "物理";
+        }
     }
 }

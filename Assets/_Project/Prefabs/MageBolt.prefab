@@ -81,7 +81,7 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_Sprite: {fileID: 21300000, guid: 7d50da08d6c27ad4698f347ac2d3181a, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 016f6c8f3a29e8d46bfdbc984e3cadb1, type: 3}
   m_Color: {r: 0.015129842, g: 0.89068234, b: 0.9622642, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -167,7 +167,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 81e2e127827c450489a5dcf510532f31, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Projectile
-  speed: 14
+  speed: 22
   lifeTime: 1.2
   targetLayers:
     serializedVersion: 2
@@ -178,4 +178,13 @@ MonoBehaviour:
   pierce: 0
   maxHits: 0
   rotateToDirection: 0
+  mirrorToDirection: 1
+  body: {fileID: 0}
   destroyDelay: 0
+  impactSprite: {fileID: 21300000, guid: 64158e78ab352f34182a97468bc26d83, type: 3}
+  impactColor: {r: 0.82, g: 0.94, b: 1, a: 1}
+  leaveTrail: 1
+  trailSpacing: 0.55
+  spinSpeed: 200
+  obstacleGrace: 0.08
+  maxColliderScale: 1.6

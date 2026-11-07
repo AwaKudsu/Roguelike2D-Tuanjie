@@ -87,6 +87,9 @@ public class SkillData : ScriptableObject
     [Tooltip("战吼时在头顶亮出来的巨剑贴图")]
     public Sprite swordSprite;
 
+    [Tooltip("持续型近战（旋风斩）绕在身上的漩涡贴图；留空就只有刀光")]
+    public Sprite auraSprite;
+
     [Header("投射物（castType = Projectile 时使用）")]
     public GameObject projectilePrefab;
 

@@ -46,6 +46,23 @@ public class Projectile : MonoBehaviour
     [Tooltip("命中后延迟多久销毁，留给爆炸特效")]
     [SerializeField] private float destroyDelay = 0f;
 
+    [Header("特效（法师的弹道、火球共用）")]
+    [Tooltip("命中时炸开的那张图。留空就用本体图缩一下")]
+    [SerializeField] private Sprite impactSprite;
+
+    [Tooltip("命中特效的染色。火球偏橙、法杖弹偏青")]
+    [SerializeField] private Color impactColor = new Color(1f, 0.86f, 0.55f, 1f);
+
+    [Tooltip("飞行时留下拖尾。每 trailSpacing 个世界单位在身后留一张会缩小的残影")]
+    [SerializeField] private bool leaveTrail = true;
+
+    [Tooltip("每隔多少世界单位留一张残影。按距离而不是按时间 —— " +
+             "按时间的话，弹速快的地方拖成虚线、慢的地方挤成一团疙瘩")]
+    [SerializeField] private float trailSpacing = 0.4f;
+
+    [Tooltip("本体自转速度（度/秒）。法师的奥术球要自转，火球和箭不用")]
+    [SerializeField] private float spinSpeed = 0f;
+
     [Tooltip("出生后这段时间内不吃「撞墙」判定。大球的碰撞体可能一出生就压在 Ground 上，" +
              "不放过这一小段就会被判定成撞墙、当场消失（表现是「蓄力越久越没伤害」）")]
     [SerializeField] private float obstacleGrace = 0.08f;
@@ -63,6 +80,8 @@ public class Projectile : MonoBehaviour
     private bool _launched;
     private bool _dead;
     private float _spawnTime;
+    private Vector3 _lastTrailPos;
+    private SpriteRenderer _body;
 
     // 穿透时同一只怪身上可能挂着好几个碰撞体，靠它保证一只怪只吃一次伤害
     private readonly HashSet<IDamageable> _alreadyHit = new();
@@ -76,6 +95,48 @@ public class Projectile : MonoBehaviour
 
         _circle = GetComponent<CircleCollider2D>();
         if (_circle != null) _baseRadius = _circle.radius;
+
+        _body = body != null ? body : GetComponentInChildren<SpriteRenderer>();
+
+        // 弹道是靠刚体速度在 FixedUpdate 里推进的：不插值的话，
+        // 屏幕刷新率比物理高时看到的就是「一帧一动」的跳格 —— 越快越明显。
+        // 这里强制打开插值，不依赖预制体上有没有勾。
+        if (_rb != null) _rb.interpolation = RigidbodyInterpolation2D.Interpolate;
+
+        EnsureSpinPivot();
+    }
+
+    /// <summary>
+    /// 自转要转「哪个物体」很重要：刚体开了插值之后，物体的 transform 每帧都会被
+    /// 物理插值的结果覆盖 —— 在根节点上手动转，等于每帧和引擎抢一次，画面就是一顿一顿的。
+    /// 所以贴图直接挂在根上的预制体，这里给它垫一个空子物体当转轴，转的是子物体。
+    /// </summary>
+    private void EnsureSpinPivot()
+    {
+        if (_body == null || spinSpeed == 0f) return;
+        if (_body.transform != transform) return;
+
+        var pivot = new GameObject("SpinPivot");
+        pivot.transform.SetParent(transform, false);
+
+        var copy = pivot.AddComponent<SpriteRenderer>();
+        copy.sprite = _body.sprite;
+        copy.sharedMaterial = _body.sharedMaterial;
+        copy.sortingLayerID = _body.sortingLayerID;
+        copy.sortingOrder = _body.sortingOrder;
+        copy.flipX = _body.flipX;
+        copy.enabled = true;
+
+        _body.enabled = false;
+        _body = copy;
+    }
+
+    /// <summary>本体贴图当前的世界大小（估算用：精灵宽度 / PPU × 缩放）</summary>
+    private float BodyWorldSize()
+    {
+        if (_body == null || _body.sprite == null) return 0.6f;
+        float ppu = Mathf.Max(1f, _body.sprite.pixelsPerUnit);
+        return _body.sprite.rect.width / ppu * Mathf.Abs(_body.transform.lossyScale.x);
     }
 
     /// <summary>由 SkillCaster 调用，把这一发打出去</summary>
@@ -130,11 +191,38 @@ public class Projectile : MonoBehaviour
         // 往左打时不翻转就会看着像倒着飞 —— 表现和法师面朝对不上。
         if (mirrorToDirection)
         {
-            if (body == null) body = GetComponentInChildren<SpriteRenderer>();
-            if (body != null) body.flipX = direction.x < 0f;
+            if (_body == null) _body = GetComponentInChildren<SpriteRenderer>();
+            if (_body != null) _body.flipX = direction.x < 0f;
         }
 
         _rb.velocity = direction * speed * Mathf.Max(0.1f, speedScale);
+        _lastTrailPos = transform.position;
+
+        SpawnMuzzleFlash(direction, sizeScale);
+    }
+
+    /// <summary>
+    /// 出膛的那一下：在枪口（法杖头）崩一小团光，朝飞行方向拉长。
+    /// 没有它的话，弹道是「凭空出现在身前半米」—— 前摇和弹道之间少了一帧连接。
+    /// </summary>
+    private void SpawnMuzzleFlash(Vector2 direction, float sizeScale)
+    {
+        Sprite sprite = _body != null ? _body.sprite : null;
+        if (sprite == null) return;
+
+        float size = BodyWorldSize();
+        float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
+        Vector3 at = transform.position - (Vector3)(direction * size * 0.35f);
+
+        FxPuff.Spawn(
+            sprite,
+            at,
+            new Color(1f, 1f, 1f, 0.85f),
+            life: 0.09f,
+            startScale: size * 1.15f * sizeScale,
+            endScale: size * 0.45f,
+            rotationZ: angle,
+            sortingOrder: SwordTrail.SortingOrder + 2);
     }
 
     private void Update()
@@ -142,7 +230,52 @@ public class Projectile : MonoBehaviour
         if (!_launched || _dead) return;
 
         _lifeTimer -= Time.deltaTime;
-        if (_lifeTimer <= 0f) Expire();
+        if (_lifeTimer <= 0f)
+        {
+            Expire(false);
+            return;
+        }
+
+        // 奥术球这类「能量团」靠自转显出「东西是活的」；
+        // 转的是本体渲染器而不是整个物体，免得圆形碰撞体和朝向一起转
+        if (spinSpeed != 0f && _body != null)
+        {
+            _body.transform.Rotate(0f, 0f, spinSpeed * Time.deltaTime, Space.Self);
+        }
+
+        if (leaveTrail) EmitTrail();
+    }
+
+    /// <summary>
+    /// 拖尾：每隔一段「距离」在当前位置留一张「会缩小的本体图」，几帧之后自己消失。
+    /// 比给预制体挂 TrailRenderer 省事 —— 火球、法杖弹、箭全都有，不用各配一份材质。
+    ///
+    /// 间距是按距离算的，不是按时间：按时间留尾，飞得快的地方一段段断成虚线，
+    /// 飞得慢的地方则在同一处堆成一团疙瘩 —— 同一颗球在快慢变化时看起来就会「一顿一顿」。
+    /// </summary>
+    private void EmitTrail()
+    {
+        Vector3 now = transform.position;
+        float spacing = Mathf.Max(0.02f, trailSpacing);
+        if ((now - _lastTrailPos).sqrMagnitude < spacing * spacing) return;
+
+        _lastTrailPos = now;
+
+        Sprite sprite = _body != null ? _body.sprite : null;
+        if (sprite == null) return;
+
+        float size = BodyWorldSize();
+
+        // 不挂父物体：本体可能因为蓄力被缩放过，挂上去残影会跟着一起变
+        FxPuff.Spawn(
+            sprite,
+            now,
+            new Color(1f, 1f, 1f, 0.30f),
+            life: 0.16f,
+            startScale: size * 0.90f,
+            endScale: size * 0.34f,
+            spin: spinSpeed,
+            sortingOrder: SwordTrail.SortingOrder + 1);
     }
 
     private void OnTriggerEnter2D(Collider2D other)
@@ -160,7 +293,7 @@ public class Projectile : MonoBehaviour
             // 刚出生的一小会儿不吃墙：大球的碰撞体可能正压在脚底那块地板上
             if (Time.time - _spawnTime < obstacleGrace) return;
 
-            Expire();
+            Expire(true);
             return;
         }
 
@@ -174,10 +307,10 @@ public class Projectile : MonoBehaviour
         _hitCount++;
 
         bool shouldStop = !pierce || (maxHits > 0 && _hitCount >= maxHits);
-        if (shouldStop) Expire();
+        if (shouldStop) Expire(true);
     }
 
-    private void Expire()
+    private void Expire(bool withImpact)
     {
         if (_dead) return;
 
@@ -185,7 +318,28 @@ public class Projectile : MonoBehaviour
         _rb.velocity = Vector2.zero;
         _rb.simulated = false;      // 关掉物理，避免等销毁的这几帧继续触发碰撞
 
+        if (withImpact) SpawnImpact();
+
         Destroy(gameObject, destroyDelay);
+    }
+
+    /// <summary>命中时炸开的一团：撞墙是小的，打到人才是大的。</summary>
+    private void SpawnImpact()
+    {
+        Sprite sprite = impactSprite != null ? impactSprite : (_body != null ? _body.sprite : null);
+        if (sprite == null) return;
+
+        float size = BodyWorldSize();
+
+        FxPuff.Spawn(
+            sprite,
+            transform.position,
+            impactColor,
+            life: 0.22f,
+            startScale: size * 0.7f,
+            endScale: size * 1.9f,
+            spin: UnityEngine.Random.Range(-60f, 60f),
+            sortingOrder: SwordTrail.SortingOrder + 2);
     }
 
     private void OnValidate()

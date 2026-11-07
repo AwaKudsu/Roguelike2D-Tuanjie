@@ -351,6 +351,23 @@ public class MageVisual : MonoBehaviour, IPlayerAnim
     /// <summary>蓄力进度 0~1，给「火球正在变大」这类预览用</summary>
     public float ChargeRatio => Mathf.Clamp01(_chargeTimer / 1.1f);
 
+    /// <summary>
+    /// 掐断正在播的动作，回到待机。换房间时调 —— 原因见 <see cref="IPlayerAnim.CancelAction"/>。
+    /// 蓄力也跟着清：法师站在门边蓄满一颗球进门，新房间里那颗球不该还亮着。
+    /// </summary>
+    public void CancelAction()
+    {
+        _castTimer = 0f;
+        _attackTimer = 0f;
+        _hurtTimer = 0f;
+        _victoryTimer = 0f;
+        _chargeTimer = 0f;
+        IsCharging = false;
+
+        Apply(FirstOf(idleFrames));
+    }
+
+
     // ---------------- 自检接口 ----------------
 
     public Sprite[] DebugIdleFrames() => idleFrames;

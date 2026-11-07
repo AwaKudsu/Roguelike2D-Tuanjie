@@ -1,0 +1,37 @@
+===== 导入 UI 素材 =====
+[PASS] UI_Panel：PPU 730，九宫格边 175px → Assets/_Project/Art/UI/UI_Panel.png
+[PASS] UI_Slot：PPU 640，九宫格边 50px → Assets/_Project/Art/UI/UI_Slot.png
+[INFO] Icon_Fireball：抠掉 70.5% 的像素
+[PASS] Icon_Fireball：PPU 100，缩到 128 → Assets/_Project/Art/UI/Icon_Fireball.png
+[INFO] Icon_Whirlwind：抠掉 63.2% 的像素
+[PASS] Icon_Whirlwind：PPU 100，缩到 128 → Assets/_Project/Art/UI/Icon_Whirlwind.png
+[INFO] Icon_Heal：抠掉 73.4% 的像素
+[PASS] Icon_Heal：PPU 100，缩到 128 → Assets/_Project/Art/UI/Icon_Heal.png
+[INFO] Icon_Warcry：抠掉 72.6% 的像素
+[PASS] Icon_Warcry：PPU 100，缩到 128 → Assets/_Project/Art/UI/Icon_Warcry.png
+[INFO] FX_HitSpark：抠掉 50.6% 的像素
+[PASS] FX_HitSpark：PPU 256，缩到 256 → Assets/_Project/Art/UI/FX_HitSpark.png
+[INFO] FX_SpinAura：抠掉 39.6% 的像素
+[PASS] FX_SpinAura：PPU 256，缩到 256 → Assets/_Project/Art/UI/FX_SpinAura.png
+[INFO] FX_WarcryRing：抠掉 46.4% 的像素
+[PASS] FX_WarcryRing：PPU 256，缩到 256 → Assets/_Project/Art/UI/FX_WarcryRing.png
+[INFO] FX_SlashArc：抠掉 70.9% 的像素
+[PASS] FX_SlashArc：PPU 512 → Assets/_Project/Art/UI/FX_SlashArc.png
+[INFO] FX_MageBolt：抠掉 71.4% 的像素
+[PASS] FX_MageBolt：PPU 256，缩到 256 → Assets/_Project/Art/UI/FX_MageBolt.png
+[INFO] FX_ArcaneBurst：抠掉 40.6% 的像素
+[PASS] FX_ArcaneBurst：PPU 256，缩到 256 → Assets/_Project/Art/UI/FX_ArcaneBurst.png
+[INFO] FX_FireBurst：抠掉 0.0% 的像素
+[WARN] FX_FireBurst：底色只占 0.0%，可能这张图根本没画纯色底，抠完会留边
+[PASS] FX_FireBurst：PPU 256，缩到 256 → Assets/_Project/Art/UI/FX_FireBurst.png
+[PASS] FX_SlashSweep：PPU 1024，缩到 1024 → Assets/_Project/Art/UI/FX_SlashSweep.png
+[INFO] LobbyBookshelf：抠掉 39.7% 的像素
+[PASS] LobbyBookshelf：PPU 480 → Assets/_Project/Art/Lobby/LobbyBookshelf.png
+[INFO] LobbyNoticeBoard：抠掉 56.2% 的像素
+[PASS] LobbyNoticeBoard：PPU 470 → Assets/_Project/Art/Lobby/LobbyNoticeBoard.png
+[INFO] Mage_Front：抠掉 12.6% 的像素
+[PASS] Mage_Front：PPU 235 → Assets/_Project/Art/Characters/Mage/Mage_Front.png
+[INFO] Mage_Back：抠掉 6.7% 的像素
+[PASS] Mage_Back：PPU 235 → Assets/_Project/Art/Characters/Mage/Mage_Back.png
+[SUMMARY] 成功 18 张，失败 0 张。
+下一步：菜单「团结 → 修复 HUD 与技能栏」把新图接上去。

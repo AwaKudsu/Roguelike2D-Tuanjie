@@ -16,6 +16,14 @@ public enum StatType
     CooldownRate,     // 冷却缩减，0.2 = 冷却减少 20%
     MaxMana,          // 最大法力
     ManaRegen,        // 每秒回蓝
+
+    // ---- 抗性 ----
+    // 都是 0~1 的比例：0.25 = 少受 25%。0 = 没有抗性，1 = 完全免疫（实际会被钳到上限）。
+    // 平时没人给它们加成，数值就是 0，所以「没这抗性」不需要额外判断。
+    KnockbackResist,  // 击退抗性：只影响被打飞的距离，不影响伤害
+    PoisonResist,     // 毒抗
+    FireResist,       // 火抗
+    IceResist,        // 冰抗
 }
 
 /// <summary>

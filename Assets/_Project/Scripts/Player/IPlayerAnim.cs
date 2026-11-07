@@ -18,4 +18,13 @@ public interface IPlayerAnim
 
     /// <summary>施法姿态（法师回血举杖），hold 秒</summary>
     void PlayCast(float hold);
+
+    /// <summary>
+    /// 立刻掐断正在播的动作，回到待机第一帧。
+    ///
+    /// 动作序列（三段连击、旋风斩、施法、受击）都是有倒计时的「一次性姿态」，
+    /// 而房间切换要淡出淡入几百毫秒 —— 这期间动作还在走，进了新房间人就会
+    /// 带着上一间的挥砍姿势站着（看起来像「还在攻击」）。换房间时清一次即可。
+    /// </summary>
+    void CancelAction();
 }

@@ -33,6 +33,29 @@ public class PlayerAttacker : MonoBehaviour
     [Tooltip("刀光大小倍率（1 = 按默认剑长）")]
     [SerializeField] private float slashScale = 1f;
 
+    [Header("命中火花")]
+    [Tooltip("每次真打中敌人时在命中点崩一下的图（留空就没有火花）")]
+    [SerializeField] private Sprite hitSparkSprite;
+
+    [Tooltip("火花的基础大小，1 = 1 个世界单位")]
+    [SerializeField] private float hitSparkScale = 0.85f;
+
+    [Header("刀光弧")]
+    [Tooltip("挥砍起手那一瞬间贴上去的月牙弧。留空就只有网格刀光")]
+    [SerializeField] private Sprite slashArcSprite;
+
+    [Tooltip("要不要那道月牙。关掉的理由很实际：它是一张贴图，挥砍方向一换就得跟着转，" +
+             "角度算偏一点整道弧就歪到人下面去了。网格刀光本身已经能表达挥砍")]
+    [SerializeField] private bool useSlashArc;
+
+    [Header("贴图版刀光")]
+    [Tooltip("一张「扇环」贴图（FX_SlashSweep）。绕着自己的圆心转过去就是一次挥砍，" +
+             "比网格刀光更干净、也不会有采样稀疏摊成厚板的问题。留空就退回网格")]
+    [SerializeField] private Sprite slashSweepSprite;
+
+    [Tooltip("勾上就走贴图版；把它关掉可以对比网格版的效果")]
+    [SerializeField] private bool useSpriteSlash = true;
+
     [Header("三段连击")]
     [Tooltip("按顺序放：一段劈砍 / 二段上挑 / 三段突刺。留空就退回单段普通攻击（法师这种远程职业就是这样）")]
     [SerializeField] private AttackData[] comboAttacks = new AttackData[0];
@@ -142,7 +165,12 @@ public class PlayerAttacker : MonoBehaviour
 
         if (_hitReaction != null && _hitReaction.IsStunned) return;
 
-        if (_input.ConsumeAttackPressed() && _cooldownTimer <= 0f)
+        // 按下就出一刀；按着不放也会在冷却到点后接着出下一刀（长按一路打完三段连击）。
+        // 只认「按下」的话，玩家得连点三下才能打完整套。
+        bool attackPressed = _input.ConsumeAttackPressed();
+        bool attackHeld = _input.AttackHeld;
+
+        if ((attackPressed || attackHeld) && _cooldownTimer <= 0f)
         {
             AttackData data = NextAttack();
             if (data == null) return;
@@ -205,6 +233,20 @@ public class PlayerAttacker : MonoBehaviour
         return data.cooldown / speed * (1f - reduction);
     }
 
+    /// <summary>
+    /// 换房间时清掉「半途的出手状态」：连击段数归零、冷却清零。
+    ///
+    /// 不这么做的话，上一间房最后那一下的连击会带进来 ——
+    /// 进门第一刀直接从第二段/第三段开始，等于白送一段连招。
+    /// 冷却也一起清：房间切换本身有淡入淡出，不需要玩家再等一遍冷却。
+    /// </summary>
+    public void CancelPendingAttack()
+    {
+        _comboStage = 0;
+        _comboTimer = 0f;
+        _cooldownTimer = 0f;
+    }
+
     /// <summary>按数据决定这次普通攻击走哪条路</summary>
     private void BasicAttack(AttackData data)
     {
@@ -263,9 +305,33 @@ public class PlayerAttacker : MonoBehaviour
             }
         }
 
-        // 把 owner 一起传进去：刀光会挂成玩家的子物体，跟着剑走。
-        // 否则挥剑途中一走动，那道弧就留在原地了。
-        SwordTrail.Play(swing, transform, origin, _facing, slashColor, scale);
+        // 刀光：优先用贴图（一张扇环转过去），没配图/关掉了才退回网格。
+        // 网格版在旋风斩这种整圈技能上会首尾相接，所以那条路径本来就跳过 Spin。
+        SlashArcFx arc = useSpriteSlash
+            ? SlashArcFx.Play(swing, transform, origin, _facing, slashColor, scale, slashSweepSprite)
+            : null;
+
+        if (arc == null && swing != SwordSwing.Spin)
+            SwordTrail.Play(swing, transform, origin, _facing, slashColor, scale);
+
+        // 起手那一瞬间的月牙。默认关掉：贴图弧的角度只要偏一点就会歪到人下面，
+        // 反而不如网格刀光干净（字段 useSlashArc 留着，想要的话在 Inspector 勾上）
+        if (useSlashArc && slashArcSprite != null)
+            SwordTrail.FlashArc(swing, transform, origin, _facing, ArcColorFor(swing), scale, slashArcSprite);
+    }
+
+    /// <summary>
+    /// 每一段连击的弧光染色。三段都一样白的话，连击在画面上完全分不出递进。
+    /// </summary>
+    private static Color ArcColorFor(SwordSwing swing)
+    {
+        switch (swing)
+        {
+            case SwordSwing.Lift:   return new Color(0.80f, 0.93f, 1f, 1f);     // 上挑：冷蓝白
+            case SwordSwing.Thrust: return new Color(1f, 0.86f, 0.72f, 1f);     // 突刺：暖橙白
+            case SwordSwing.Spin:   return new Color(1f, 0.93f, 0.74f, 1f);     // 旋风斩：金色
+            default:                return new Color(1f, 0.98f, 0.94f, 1f);     // 劈砍：近白
+        }
     }
 
     /// <summary>
@@ -287,6 +353,7 @@ public class PlayerAttacker : MonoBehaviour
         Collider2D[] hits = Physics2D.OverlapBoxAll(center, data.hitboxSize, 0f, data.targetLayers);
 
         var alreadyHit = new HashSet<IDamageable>();
+        Vector2? firstHitPoint = null;
 
         foreach (var hit in hits)
         {
@@ -298,6 +365,29 @@ public class PlayerAttacker : MonoBehaviour
             // 伤害公式统一在 DamageCalculator 里 —— 普通攻击和各种技能共用同一份。
             // 注意这里**没有 break**：一次挥砍可以同时打中好几个敌人（敌人的攻击才只打一个）。
             target.TakeDamage(DamageCalculator.Build(_stats, data, gameObject, transform.position));
+
+            if (firstHitPoint == null)
+            {
+                firstHitPoint = hit.bounds.ClosestPoint(transform.position);
+            }
+        }
+
+        // 命中火花：只在这一下**真的打到人**的时候放。
+        // 放在判定循环之后是因为要先知道打没打中 —— 空挥不冒火花，
+        // 玩家才能从「有没有火花」一眼看出这一下是打到了还是砍在空气里。
+        if (firstHitPoint.HasValue && hitSparkSprite != null)
+        {
+            Vector2 sparkAt = firstHitPoint.Value + UnityEngine.Random.insideUnitCircle * 0.08f;
+
+            FxPuff.Spawn(
+                hitSparkSprite,
+                sparkAt,
+                Color.white,
+                life: 0.16f,
+                startScale: hitSparkScale * 0.55f,
+                endScale: hitSparkScale * 1.35f,
+                spin: UnityEngine.Random.Range(-90f, 90f),
+                sortingOrder: SwordTrail.SortingOrder + 1);
         }
     }
 

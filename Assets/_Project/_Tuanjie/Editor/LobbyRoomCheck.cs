@@ -65,9 +65,10 @@ namespace Tuanjie.PortCheck
 
             GameObject floor = GameObject.Find("LobbyRoom/Shell/Floor");
             BoxCollider2D floorCollider = floor != null ? floor.GetComponent<BoxCollider2D>() : null;
-            Check(floorCollider != null && floor.layer == LayerMask.NameToLayer("Ground"),
-                  "[FAIL]|地板碰撞|Floor 缺 BoxCollider2D 或不在 Ground 层",
-                  "[PASS]|地板碰撞|Floor 在 Ground 层，带 BoxCollider2D", ref fail, ref pass);
+            // 地板不能挂实体碰撞体：俯视大厅没有重力，玩家是从内部被这块整间房的盒子挤出去的
+            Check(floor != null && floorCollider == null && floor.layer == LayerMask.NameToLayer("Ground"),
+                  "[FAIL]|地板碰撞|Floor 应在 Ground 层且不带碰撞体（带碰撞会把玩家从盒子里挤出去）",
+                  "[PASS]|地板碰撞|Floor 在 Ground 层、无碰撞体（边界交给四面墙）", ref fail, ref pass);
 
             int wallCount = 0;
             foreach (string wall in new[] { "Wall_Top", "Wall_Bottom", "Wall_Left", "Wall_Right" })
@@ -78,6 +79,33 @@ namespace Tuanjie.PortCheck
 
             Check(wallCount == 4, "[FAIL]|四面墙|只有 " + wallCount + " 面带碰撞",
                   "[PASS]|四面墙|4 面都在，带碰撞", ref fail, ref pass);
+
+            // 灯光：光斑中心要对准火苗，而且要被 LightMask 剪在房间内（否则会糊到墙外的岩石上）
+            GameObject lightMaskGo = GameObject.Find("LobbyRoom/Shell/LightMask");
+            SpriteMask lightMask = lightMaskGo != null ? lightMaskGo.GetComponent<SpriteMask>() : null;
+            bool lightMaskOk = lightMask != null && lightMask.sprite != null &&
+                               lightMask.isCustomRangeActive &&
+                               lightMask.backSortingOrder <= -195 && lightMask.frontSortingOrder >= -195;
+
+            int clippedLights = 0;
+            float flameError = 0f;
+            foreach (string lightName in new[] { "Light_Left", "Light_Right" })
+            {
+                GameObject lightGo = GameObject.Find("LobbyRoom/Shell/" + lightName);
+                SpriteRenderer lightRenderer = lightGo != null ? lightGo.GetComponent<SpriteRenderer>() : null;
+                if (lightRenderer == null) continue;
+                if (lightRenderer.maskInteraction == SpriteMaskInteraction.VisibleInsideMask) clippedLights++;
+
+                GameObject torchGo = GameObject.Find("LobbyRoom/Shell/" + lightName.Replace("Light_", "Torch_"));
+                if (torchGo == null) continue;
+                // 火苗在火把中心上方 0.4 个单位
+                flameError = Mathf.Max(flameError, Mathf.Abs(lightRenderer.transform.position.x - torchGo.transform.position.x));
+                flameError = Mathf.Max(flameError, Mathf.Abs(lightRenderer.transform.position.y - (torchGo.transform.position.y + 0.4f)));
+            }
+
+            Check(lightMaskOk && clippedLights == 2 && flameError < 0.05f,
+                  "[FAIL]|灯光被墙挡住|遮罩 " + (lightMaskOk ? "有" : "缺/范围不对") + "，被剪的灯 " + clippedLights + " 盏，偏离火苗 " + flameError.ToString("0.00"),
+                  "[PASS]|灯光被墙挡住|2 盏灯对准火苗，SpriteMask 把光剪在房间内", ref fail, ref pass);
 
             RoomManager rooms = UnityEngine.Object.FindObjectOfType<RoomManager>();
             MethodInfo suspend = typeof(RoomManager).GetMethod("SuspendForLobby", BindingFlags.Instance | BindingFlags.Public);
@@ -178,10 +206,10 @@ namespace Tuanjie.PortCheck
                 float halfW = camera != null ? camera.orthographicSize * camera.aspect : 0f;
                 float halfH = camera != null ? camera.orthographicSize : 0f;
 
-                Check(camera != null && Mathf.Abs(camera.orthographicSize - 5f) < 0.01f,
+                Check(camera != null && Mathf.Abs(camera.orthographicSize - 6f) < 0.01f,
                       "[FAIL]|大厅视野|正交 " + (camera != null ? camera.orthographicSize.ToString("0.0") : "?"),
-                      "[PASS]|大厅视野|正交 5.0（画面 " + (halfW * 2f).ToString("0.0") + " x " + (halfH * 2f).ToString("0.0") +
-                      " 单位，房间铺满整屏）", ref fail, ref pass);
+                      "[PASS]|大厅视野|正交 6.0（画面 " + (halfW * 2f).ToString("0.0") + " x " + (halfH * 2f).ToString("0.0") +
+                      " 单位，整间房 + 外圈地板）", ref fail, ref pass);
 
                 // 地板铺得比房间大：相机矩形必须整块落在地板里，否则屏幕边缘会露出相机底色
                 SpriteRenderer floorRenderer = floor != null ? floor.GetComponent<SpriteRenderer>() : null;

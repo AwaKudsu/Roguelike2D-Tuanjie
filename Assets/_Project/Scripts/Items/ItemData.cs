@@ -15,6 +15,13 @@ public enum ItemRarity
     Legendary = 2,   // 传说
 }
 
+/// <summary>物品大类：装备穿身上，消耗品当场用掉</summary>
+public enum ItemCategory
+{
+    Equipment  = 0,   // 装备（武器/护甲/饰品）
+    Consumable = 1,   // 消耗品（血瓶之类）
+}
+
 public static class EquipSlotNames
 {
     public static string Of(EquipSlot slot)
@@ -58,6 +65,35 @@ public class ItemData : ScriptableObject
 
     [Header("装备")]
     public EquipSlot slot = EquipSlot.Weapon;
+
+    [Header("种类与买卖")]
+    [Tooltip("装备 = 穿在身上吃属性；消耗品 = 点「服用」当场生效一次")]
+    public ItemCategory category = ItemCategory.Equipment;
+
+    [Tooltip("消耗品用：服用后回多少血。0 = 不回血（将来的加攻药剂之类另外加字段）")]
+    public float healAmount;
+
+    [Tooltip("卖价（金币）。填 0 就按稀有度自动给：普通 8 / 稀有 20 / 传说 50")]
+    public int price;
+
+    /// <summary>卖给商人能拿多少。没填 price 就按稀有度估一个</summary>
+    public int SellPrice
+    {
+        get
+        {
+            if (price > 0) return price;
+            switch (rarity)
+            {
+                case ItemRarity.Rare:      return 20;
+                case ItemRarity.Legendary: return 50;
+                default:                   return 8;
+            }
+        }
+    }
+
+    public bool IsConsumable => category == ItemCategory.Consumable;
+
+    public string CategoryLabel => IsConsumable ? "消耗品" : EquipSlotNames.Of(slot);
 
     [Tooltip("只有武器用得上：穿上后换成另一套攻击数据（比如法杖改成发射投射物）。\n" +
              "留空 = 沿用角色当前的普通攻击")]
@@ -129,6 +165,10 @@ public static class StatText
             case StatType.CooldownRate:   return "冷却缩减";
             case StatType.MaxMana:        return "最大法力";
             case StatType.ManaRegen:      return "每秒回蓝";
+            case StatType.KnockbackResist: return "击退抗性";
+            case StatType.PoisonResist:    return "毒抗";
+            case StatType.FireResist:      return "火抗";
+            case StatType.IceResist:       return "冰抗";
             default:                      return type.ToString();
         }
     }
@@ -139,7 +179,11 @@ public static class StatText
         return type == StatType.CritChance
             || type == StatType.Defense
             || type == StatType.CooldownRate
-            || type == StatType.CritMultiplier;
+            || type == StatType.CritMultiplier
+            || type == StatType.KnockbackResist
+            || type == StatType.PoisonResist
+            || type == StatType.FireResist
+            || type == StatType.IceResist;
     }
 
     public static string Describe(StatModifier m)

@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::SkillData
   skillId: warrior_whirlwind
   displayName: "\u65CB\u98CE\u65A9"
-  icon: {fileID: 21300000, guid: f761b01b6ca83604c83168bf5a469bf7, type: 3}
+  icon: {fileID: 21300000, guid: 4530d7cb101018e4b8494f9322b9f24b, type: 3}
   description: "\u539F\u5730\u65CB\u8F6C\uFF0C\u5BF9\u5468\u56F4\u6240\u6709\u654C\u4EBA\u9020\u6210
     350% \u653B\u51FB\u529B\u4F24\u5BB3"
   manaCost: 20
@@ -28,6 +28,19 @@ MonoBehaviour:
   ringDuration: 0.45
   ringSprite: {fileID: 0}
   swordSprite: {fileID: 0}
+  auraSprite: {fileID: 21300000, guid: ce33a7afb08851d41a2da5b1581dfcd1, type: 3}
   projectilePrefab: {fileID: 0}
   projectileCount: 1
   spreadAngle: 10
+  chargeable: 0
+  chargeTime: 1.1
+  chargeMinScale: 0.7
+  chargeMaxScale: 2.2
+  chargeMaxSpeedBonus: 1.9
+  chargeMaxDamageBonus: 2
+  healAmount: 6
+  healDuration: 2.4
+  healTickInterval: 0.3
+  circleSprite: {fileID: 0}
+  circleDiameter: 3.2
+  healColor: {r: 0.45, g: 1, b: 0.55, a: 1}

@@ -1,16 +1,23 @@
 ===== 修复 HUD 与技能栏 =====
-[PASS] Canvas.localScale：(0.72,0.72,0.72) → (1.00,1.00,1.00)
+[PASS] Canvas.localScale：(0.55,0.55,0.55) → (1.00,1.00,1.00)
 [INFO] 内置 UISprite = UISprite
-[PASS] HealthBar：锚点(0,1) Pos(40,-40) 尺寸(420x26) 背景=RGBA(38,38,46,230) / HealthFill：Filled-Horizontal-Left 颜色=RGBA(214,63,63,255) fillAmount=1 / StatBar.fill 已接
-[PASS] ManaBar：锚点(0,1) Pos(40,-74) 尺寸(320x18) 背景=RGBA(38,38,46,230) / ManaFill：Filled-Horizontal-Left 颜色=RGBA(66,133,244,255) fillAmount=1 / StatBar.fill 已接
-[PASS] Canvas.HUDController：healthBar=HealthBar，manaBar=ManaBar
-[INFO] 删掉了旧的 Canvas/SkillBar（含里面的格子）
-[PASS] SkillBar 容器：锚点(0,0) Pos(40,40) 尺寸(312x72) 颜色A=0 RaycastTarget=关
-[PASS] SkillSlot_1：PosX=0 尺寸=72x72/Cooldown：Filled-Radial360-Top FillAmount=0
-[PASS] SkillSlot_2：PosX=80 尺寸=72x72/Cooldown：Filled-Radial360-Top FillAmount=0
-[PASS] SkillSlot_3：PosX=160 尺寸=72x72/Cooldown：Filled-Radial360-Top FillAmount=0
-[PASS] SkillSlot_4：PosX=240 尺寸=72x72/Cooldown：Filled-Radial360-Top FillAmount=0
+[INFO] 删掉了旧的 Canvas/PlayerHud
+[PASS] 清掉 1 个旧 HUD 物体（旧的条、旧的技能栏、旧的容器）
+[PASS] PlayerHud：锚点(0,1) Pos(24,-20) 尺寸(600x174)
+[PASS] 底板：Assets/_Project/Art/UI/UI_Panel.png（九宫格拉伸）
+[PASS] PortraitFrame：Pos(22,-24) 尺寸(104x104) + RectMask2D / Portrait：放大 1.6 倍再被矩形裁掉（图由 HUDController 从 ClassData.icon 取）
+[PASS] HealthBar：Pos(140,-26) 尺寸(420x32) 底框=RGBA(52,54,64,250) / HealthFill：Filled-Horizontal-Left RGBA(214,63,63,255) / Ghost：残影已接 / HealthText：右对齐 22 号带描边
+[PASS] ManaBar：Pos(140,-64) 尺寸(420x24) 底框=RGBA(52,54,64,250) / ManaFill：Filled-Horizontal-Left RGBA(66,133,244,255) / Ghost：残影已接 / ManaText：右对齐 19 号带描边
+[PASS] SkillBar 容器：Pos(214,-94) 尺寸(272x62) 全透明
+[PASS] SkillSlot_1：PosX=0 尺寸=62x62 角标=K /Cooldown：Filled-Radial360-Top FillAmount=0
+[PASS] SkillSlot_2：PosX=70 尺寸=62x62 角标=L /Cooldown：Filled-Radial360-Top FillAmount=0
+[PASS] SkillSlot_3：PosX=140 尺寸=62x62 角标=U /Cooldown：Filled-Radial360-Top FillAmount=0
+[PASS] SkillSlot_4：PosX=210 尺寸=62x62 角标=I /Cooldown：Filled-Radial360-Top FillAmount=0
 [PASS] Canvas.SkillBarUI：4 行 Slots 已接（Icon / CooldownMask）
-[PASS] Skill_Fireball.icon = Circle
-[PASS] Skill_Whirlwind.icon = Square
-[SUMMARY] 已存盘。技能栏容器 = Canvas/SkillBar
+[PASS] HUDController 数据源：Player 上的 Health / ManaPool / CharacterStats 已接
+[PASS] Canvas.HUDController：healthBar / manaBar / portrait / healthText / manaText 已接
+[PASS] Skill_Fireball.icon = Icon_Fireball
+[PASS] Skill_Whirlwind.icon = Icon_Whirlwind
+[PASS] Skill_Heal.icon = Icon_Heal
+[PASS] Skill_WarCry.icon = Icon_Warcry
+[SUMMARY] 已存盘。容器 = Canvas/PlayerHud

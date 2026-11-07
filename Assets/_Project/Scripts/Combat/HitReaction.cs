@@ -76,10 +76,21 @@ public class HitReaction : MonoBehaviour
             if (away.sqrMagnitude < 0.0001f) away = Vector2.right;   // 完全重合时给个默认方向
             away.Normalize();
 
+            // 击退抗性只削「飞出去多远」，伤害已经在 Health 里结算完了
+            float knockback = info.KnockbackForce * (1f - KnockbackResist());
+
             _rb.velocity = new Vector2(
-                away.x * info.KnockbackForce,
-                info.KnockbackForce * verticalRatio
+                away.x * knockback,
+                knockback * verticalRatio
             );
         }
+    }
+
+    /// <summary>击退抗性 0~1，钳到 0.9 上限 —— 抗性堆满也还是会退一下，不然受击完全没反馈</summary>
+    private float KnockbackResist()
+    {
+        CharacterStats stats = GetComponent<CharacterStats>();
+        if (stats == null) return 0f;
+        return Mathf.Clamp(stats.Get(StatType.KnockbackResist), 0f, 0.9f);
     }
 }

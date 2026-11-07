@@ -145,6 +145,45 @@ public class HealCircle : MonoBehaviour
                           rise: 1.1f, duration: 0.85f, fontSize: 32);
     }
 
+    /// <summary>
+    /// 立刻结束这个法阵。
+    ///
+    /// settle = true 时把「还没跳完的那几次」一次性补上：玩家已经付过蓝和冷却，
+    /// 换房间不该白扔半截治疗。settle = false 就是单纯掐掉。
+    /// </summary>
+    public void FinishNow(bool settle)
+    {
+        if (_finished) return;
+
+        if (settle) SettleRemaining();
+
+        _finished = true;
+        Destroy(gameObject);
+    }
+
+    /// <summary>把剩余时间折算成几次治疗，一次补掉</summary>
+    private void SettleRemaining()
+    {
+        if (_health == null || !_health.IsAlive) return;
+
+        float remaining = duration - _age;
+        if (remaining <= 0.01f) return;
+
+        int ticks = Mathf.CeilToInt(remaining / Mathf.Max(0.05f, tickInterval));
+        if (ticks <= 0) return;
+
+        float healed = _health.Heal(healPerTick * ticks);
+        Ticks += ticks;
+
+        if (healed <= 0.01f) return;    // 满血：不跳字
+
+        TotalHealed += healed;
+
+        Vector3 head = _health.transform.position + Vector3.up * 0.95f;
+        FloatingText.Show($"+{Mathf.RoundToInt(healed)}", numberColor, head,
+                          rise: 1.1f, duration: 0.85f, fontSize: 32);
+    }
+
     private void OnDestroy()
     {
         // 只销毁 Ring 子物体，避免把整个场景带歪（本组件所在物体没有别的子物体，留着也安全）

@@ -274,6 +274,10 @@ public class RoomManager : MonoBehaviour
 
         if (cleanupProjectiles) CleanupProjectiles();
 
+        // 换房间要「重置状态」：蓄力、持续技能、回血法阵都不该跟着人过门。
+        // 放在 MovePlayerToSpawn 之前 —— 先收干净，再把人挪进新房间。
+        ResetPlayerTransient();
+
         // 先销毁旧的：地刺、残留的敌人、掉在地上的东西一起清掉。
         // 玩家不是房间的子物体，所以不会被一起销毁 —— 这是刻意的
         if (_currentInstance != null) Destroy(_currentInstance);
@@ -335,6 +339,55 @@ public class RoomManager : MonoBehaviour
         for (int i = 0; i < flying.Length; i++)
         {
             if (flying[i] != null) Destroy(flying[i].gameObject);
+        }
+    }
+
+    /// <summary>
+    /// 换房间时把玩家身上「会跨房间活下去」的战斗状态收干净：
+    /// 蓄力、旋风斩/战吼这类挂在人身上的持续技能、回血法阵。
+    /// 状态类的东西（血量、蓝、冷却）刻意不动 —— 那是这一局要带着走的东西。
+    /// </summary>
+    private void ResetPlayerTransient()
+    {
+        ResolvePlayer();
+        if (_player == null) return;
+
+        var caster = _player.GetComponent<SkillCaster>();
+        if (caster != null) caster.ResetRoomState();
+
+        var attacker = _player.GetComponent<PlayerAttacker>();
+        if (attacker != null) attacker.CancelPendingAttack();
+
+        // 动作序列也要掐断：三段连击、旋风斩、施法、受击都是有倒计时的姿态，
+        // 淡出淡入这几百毫秒里它们还在走，进门后就会带着上一间的挥砍姿势站定。
+        var visuals = _player.GetComponent<PlayerVisualSwitcher>();
+        if (visuals != null) visuals.CancelAction();
+
+        ClearTransientFx();
+    }
+
+    /// <summary>
+    /// 清掉「已经生成出来、但不属于任何数据」的表现层：刀光网格、火花、漩涡、弹道残影。
+    ///
+    /// 这些东西的生命周期比一次换房还长（刀光 0.2~0.4 秒，房间切换的淡出也是这个量级），
+    /// 而它们大多是挂在玩家身上的子物体 —— 房间被销毁时一件都不会少，
+    /// 结果就是「刚进新房间，人还没站稳，上一间的刀光又亮了一下」。
+    /// </summary>
+    private void ClearTransientFx()
+    {
+        if (_player != null)
+        {
+            var trails = _player.GetComponentsInChildren<SwordTrail>(true);
+            for (int i = 0; i < trails.Length; i++)
+            {
+                if (trails[i] != null) Destroy(trails[i].gameObject);
+            }
+        }
+
+        var puffs = FindObjectsOfType<FxPuff>();
+        for (int i = 0; i < puffs.Length; i++)
+        {
+            if (puffs[i] != null) Destroy(puffs[i].gameObject);
         }
     }
 

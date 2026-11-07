@@ -179,7 +179,14 @@ public class GameMenuUI : MonoBehaviour
         }
     }
 
-    private void OnReturnToLobby()
+    /// <summary>
+    /// 「重新开始」：放弃这一局，退回等待大厅重选角色。
+    ///
+    /// 实现上就是重载场景（<see cref="GameBootstrap.ReturnToLobby"/>）——
+    /// 场景重载 = 房间、背包、金币、词条全部回到初始状态，玩家在大厅里重新出发。
+    /// 之所以不叫「返回大厅」：它同时意味着**这一局的进度不要了**。
+    /// </summary>
+    private void OnRestartRun()
     {
         // 先解冻再切场景：否则新场景刚加载就被上一轮的冻结状态压住
         Close();
@@ -450,7 +457,7 @@ public class GameMenuUI : MonoBehaviour
         MenuButton(_mainPage, "设置", startY - step, () => SetPage(Page.Settings), out _);
         MenuButton(_mainPage, "按键调整", startY - step * 2f, () => SetPage(Page.Keys), out _);
         MenuButton(_mainPage, "切换职业", startY - step * 3f, OnSwitchClass, out _classLabel);
-        _lobbyButton = MenuButton(_mainPage, "返回大厅", startY - step * 4f, OnReturnToLobby, out _);
+        _lobbyButton = MenuButton(_mainPage, "重新开始", startY - step * 4f, OnRestartRun, out _);
         MenuButton(_mainPage, "退出游戏", startY - step * 5f, OnQuit, out _);
     }
 

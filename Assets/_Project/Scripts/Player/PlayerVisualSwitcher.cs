@@ -25,6 +25,13 @@ public class PlayerVisualSwitcher : MonoBehaviour
 
     [SerializeField] private int currentIndex;
 
+    /// <summary>
+    /// 大厅模式：两套关卡动画都停掉。
+    /// 它们每帧都会 <c>Apply(ChooseFrame())</c> 往同一个 SpriteRenderer 上写图，
+    /// 大厅里则由 <see cref="LobbyAvatar"/> 按朝向决定画哪张 —— 两套同时写就会抢帧。
+    /// </summary>
+    private bool _lobbyMode;
+
     /// <summary>当前在用的表现层是不是法师</summary>
     public bool IsMage { get; private set; }
 
@@ -103,6 +110,49 @@ public class PlayerVisualSwitcher : MonoBehaviour
         stats.ApplyClass(data);
     }
 
+    /// <summary>
+    /// 进出大厅时调用。进大厅把两套关卡动画都关掉（否则它们每帧写 sprite，会把大厅按朝向挑的图覆盖掉），
+    /// 出发时再按当前职业打开对应的那一套。
+    /// </summary>
+    public void SetLobbyMode(bool lobbyMode)
+    {
+        _lobbyMode = lobbyMode;
+        ApplyVisualEnable();
+    }
+
+    private void ApplyVisualEnable()
+    {
+        if (warrior != null) warrior.enabled = !_lobbyMode && !IsMage;
+        if (mage != null) mage.enabled = !_lobbyMode && IsMage;
+    }
+
+    /// <summary>
+    /// 掐断两套表现层正在播的动作（换房间时由 RoomManager 调用）。
+    /// 只管姿势，不管数值：血、蓝、冷却都是这一局要带着走的东西。
+    /// </summary>
+    public void CancelAction()
+    {
+        if (warrior != null) warrior.CancelAction();
+        if (mage != null) mage.CancelAction();
+    }
+
+    /// <summary>
+    /// 当前职业的「跑」帧序列，交给大厅的俯视走路动画用。
+    /// 两套表现层被 SetLobbyMode 关掉了，但它们的帧数组还在，直接读出来即可。
+    /// </summary>
+    public Sprite[] LobbyRunFrames()
+    {
+        if (IsMage) return mage != null ? mage.DebugRunFrames() : null;
+        return warrior != null ? warrior.DebugRunFrames() : null;
+    }
+
+    /// <summary>当前职业的待机帧（大厅站着时用第 0 张）</summary>
+    public Sprite[] LobbyIdleFrames()
+    {
+        if (IsMage) return mage != null ? mage.DebugIdleFrames() : null;
+        return warrior != null ? warrior.DebugIdleFrames() : null;
+    }
+
     private void ApplyForClass(ClassData data)
     {
         if (data == null) return;
@@ -112,8 +162,8 @@ public class PlayerVisualSwitcher : MonoBehaviour
 
         IsMage = wantMage;
 
-        if (warrior != null) warrior.enabled = !wantMage;
-        if (mage    != null) mage.enabled    = wantMage;
+        // 只在这里写一次 enabled：要连着「是不是在大厅」一起判断（见 ApplyVisualEnable）
+        ApplyVisualEnable();
 
         // 换职业立刻换一张待机图，否则会停在上一套动画的最后一帧直到下一次状态变化
         if (sprite != null)

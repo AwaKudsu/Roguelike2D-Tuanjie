@@ -59,6 +59,13 @@ public class Health : MonoBehaviour, IDamageable
         float reduction = Mathf.Clamp(defense, 0f, 0.8f);
         float amount    = info.Amount * (1f - reduction);
 
+        // 元素抗性再过一道，上限 90%（留 10% 保底，不然火抗堆满就无敌了）
+        float resist = Mathf.Clamp(DamageCalculator.ResistFor(_stats, info.Element), 0f, 0.9f);
+        if (resist > 0f) amount *= 1f - resist;
+
+        // 写回 info：飘字、受击特效拿到的都是**实际**伤害，不是面板值
+        info.Amount = amount;
+
         Current = Mathf.Max(0f, Current - amount);   // 防止血量变负
         _invincibilityTimer = invincibilityDuration;
 

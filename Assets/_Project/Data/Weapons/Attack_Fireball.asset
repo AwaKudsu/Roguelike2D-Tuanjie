@@ -17,6 +17,7 @@ MonoBehaviour:
   damageMultiplier: 3
   knockbackForce: 8
   bonusCritChance: 0
+  element: 2
   hitboxOffset: {x: 0, y: 0}
   hitboxSize: {x: 1, y: 1}
   targetLayers:

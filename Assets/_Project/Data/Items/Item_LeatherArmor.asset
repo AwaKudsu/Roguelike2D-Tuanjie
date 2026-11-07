@@ -25,3 +25,7 @@ MonoBehaviour:
   - Type: 6
     Mode: 0
     Value: 0.05
+  # 击退抗性 +25%：护甲的第二条用处 —— 皮甲穿着挨打退得少
+  - Type: 10
+    Mode: 0
+    Value: 0.25

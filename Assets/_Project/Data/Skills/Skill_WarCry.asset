@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skillId: warrior_warcry
   displayName: "\u6218\u543C"
-  icon: {fileID: 21300000, guid: a58c9f9a0dfcc97458f99b28995b97ce, type: 3}
+  icon: {fileID: 21300000, guid: e2fd519ecb26673458474f94d52da329, type: 3}
   description: "\u4EE5\u81EA\u8EAB\u4E3A\u5706\u5FC3\u70B8\u5F00\u4E00\u5708\u51B2\u51FB\u6CE2\uFF0C\u628A\u8303\u56F4\u5185\u7684\u654C\u4EBA\u5413\u8DD1\u3002\u5B83\u4EEC\u4F1A\u4E22\u6389\u653B\u51FB\u76EE\u6807\u3001\u80CC\u5BF9\u7740\u4F60\u6765\u56DE\u4E71\u8DD1\u4E00\u9635\u5B50\u3002"
   manaCost: 15
   cooldown: 6
@@ -25,8 +25,21 @@ MonoBehaviour:
   fearDuration: 3.5
   fearRadius: 12
   ringDuration: 0.45
-  ringSprite: {fileID: 21300000, guid: 1acd2637401963545b4ec9ab102cdf24, type: 3}
+  ringSprite: {fileID: 21300000, guid: 1658c15cf03063541a8b63fc5190afd0, type: 3}
   swordSprite: {fileID: 21300000, guid: a58c9f9a0dfcc97458f99b28995b97ce, type: 3}
+  auraSprite: {fileID: 0}
   projectilePrefab: {fileID: 0}
   projectileCount: 1
   spreadAngle: 10
+  chargeable: 0
+  chargeTime: 1.1
+  chargeMinScale: 0.7
+  chargeMaxScale: 2.2
+  chargeMaxSpeedBonus: 1.9
+  chargeMaxDamageBonus: 2
+  healAmount: 6
+  healDuration: 2.4
+  healTickInterval: 0.3
+  circleSprite: {fileID: 0}
+  circleDiameter: 3.2
+  healColor: {r: 0.45, g: 1, b: 0.55, a: 1}

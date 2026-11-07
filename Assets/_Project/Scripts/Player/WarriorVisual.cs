@@ -388,6 +388,23 @@ public class WarriorVisual : MonoBehaviour, IPlayerAnim
         PlayWarcry(hold);
     }
 
+    /// <summary>
+    /// 掐断正在播的动作，回到待机。换房间时调 —— 原因见 <see cref="IPlayerAnim.CancelAction"/>。
+    /// 注意别清 <c>_dead</c>：死亡姿势该保持住。
+    /// </summary>
+    public void CancelAction()
+    {
+        _clip = null;
+        _clipIndex = 0;
+        _clipFrameTime = 0f;
+        _clipTotal = 0f;
+        _spinTimer = 0f;
+        _spinClock = 0f;
+        _hurtTimer = 0f;
+
+        if (!_dead) Apply(FirstOf(idleFrames, idle));
+    }
+
     // ---------------- 工具 ----------------
 
     private static Sprite FirstOf(Sprite[] frames, Sprite fallback)

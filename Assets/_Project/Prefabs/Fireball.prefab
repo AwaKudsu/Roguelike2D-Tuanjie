@@ -178,4 +178,13 @@ MonoBehaviour:
   pierce: 0
   maxHits: 0
   rotateToDirection: 0
+  mirrorToDirection: 1
+  body: {fileID: 0}
   destroyDelay: 0
+  impactSprite: {fileID: 21300000, guid: 34e448daa31a9f94381c19dc1df303ce, type: 3}
+  impactColor: {r: 1, g: 0.86, b: 0.6, a: 1}
+  leaveTrail: 1
+  trailSpacing: 0.4
+  spinSpeed: 0
+  obstacleGrace: 0.08
+  maxColliderScale: 1.6

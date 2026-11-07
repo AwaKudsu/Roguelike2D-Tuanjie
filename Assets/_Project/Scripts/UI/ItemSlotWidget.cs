@@ -14,6 +14,10 @@ public class ItemSlotWidget : MonoBehaviour,
 
     public Image background;
     public Image icon;
+
+    /// <summary>没有图标时用的「宝石」：一个按稀有度上色的小方块，比铺满格子的色块好看</summary>
+    public Image gem;
+
     public Text  nameLabel;
 
     /// <summary>这个格子当前放的物品，空格子为 null</summary>

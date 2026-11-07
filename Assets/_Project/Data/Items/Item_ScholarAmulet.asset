@@ -25,3 +25,7 @@ MonoBehaviour:
   - Type: 5
     Mode: 0
     Value: 0.2
+  # 毒抗 +20%：护符的「驱毒」传统（Type 11 = PoisonResist）
+  - Type: 11
+    Mode: 0
+    Value: 0.2

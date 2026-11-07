@@ -17,6 +17,16 @@ public class ClassData : ScriptableObject
     [TextArea(2, 4)]
     public string description;
 
+    [Header("大厅朝向（留空就退回侧视，不会白屏）")]
+    [Tooltip("俯视大厅里「往下走」用的正面帧。留空 = 沿用侧视，看起来就像横着走")]
+    public Sprite lobbyFront;
+
+    [Tooltip("「往上走」用的背面帧，一般就是正面图的后脑勺版本")]
+    public Sprite lobbyBack;
+
+    [Tooltip("左右走用的侧视帧。留空 = 用 PlayerVisualSwitcher 给的那张待机图")]
+    public Sprite lobbySide;
+
     [Header("基础属性")]
     public float maxHealth      = 100f;
     public float attack         = 10f;

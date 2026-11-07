@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skillId: mage_heal
   displayName: "\u56DE\u590D"
-  icon: {fileID: 21300000, guid: 421744ef49b06014996cbf6ea3f5bf66, type: 3}
+  icon: {fileID: 21300000, guid: 9aeccc0a25ccc26449505f62253ad3a6, type: 3}
   description: "\u4E3E\u8D77\u6CD5\u6756\uFF0C\u5728\u811A\u4E0B\u6491\u5F00\u4E00\u5708\u6CD5\u9635\uFF0C\u6301\u7EED\u56DE\u590D\u751F\u547D\u3002"
   manaCost: 20
   cooldown: 8

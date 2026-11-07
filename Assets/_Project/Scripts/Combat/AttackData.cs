@@ -25,6 +25,11 @@ public class AttackData : ScriptableObject
     [Range(0f, 1f)]
     public float bonusCritChance = 0f;
 
+    [Header("元素")]
+    [Tooltip("伤害元素。吃不吃抗性看这里：物理走防御，毒/火/冰还要再过一道对应抗性。\n" +
+             "火球填 Fire、法师法杖弹填 None（奥术）、毒池类填 Poison")]
+    public DamageElement element = DamageElement.None;
+
     [Header("判定范围")]
     [Tooltip("判定框相对角色的偏移，x 会被朝向翻转。\n" +
              "(0,0) = 以角色为中心，身前身后都打得到（旋风斩这类原地 AoE）。\n" +

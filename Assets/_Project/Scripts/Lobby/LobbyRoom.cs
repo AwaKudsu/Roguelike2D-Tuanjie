@@ -53,8 +53,17 @@ public class LobbyRoom : MonoBehaviour
     [SerializeField] private float autoEnterDelay = 0.8f;
 
     [Header("视角")]
-    [Tooltip("大厅用的正交视野。房间 20x10，取一半高度 = 5，16:9 下正好铺满整屏（17.8 x 10 单位）")]
-    [SerializeField] private float lobbyCameraSize = 5f;
+    [Tooltip("大厅用的正交视野。房间 20x10，取 6 时 16:9 下画面 21.3 x 12 单位：整间房加外圈地板都看得见")]
+    [SerializeField] private float lobbyCameraSize = 6f;
+
+    [Tooltip("选完人之后相机是不是跟着人物走")]
+    [SerializeField] private bool cameraFollowsPlayer = true;
+
+    [Tooltip("跟随的松紧：越大越贴人（相机每帧向目标靠近的比例）")]
+    [SerializeField] private float cameraFollowLerp = 8f;
+
+    [Tooltip("地板比房间多铺的那一圈（宽,高）。相机最多只会走出房间这么远，再远就会露出相机底色")]
+    [SerializeField] private Vector2 floorPadding = new Vector2(5f, 3.5f);
 
     [Tooltip("房间内部尺寸（宽 x 高）。相机放在它的正中，地板比它多铺一圈，任何窗口比例都不露底")]
     [SerializeField] private Vector2 roomSize = new Vector2(20f, 10f);
@@ -84,6 +93,14 @@ public class LobbyRoom : MonoBehaviour
     private Canvas _canvas;
     private Text _titleText;
     private Text _hintText;
+
+    // 装饰交互：缓存场景里所有可交互物，避免每帧 FindObjectsOfType
+    private LobbyInteractable[] _interactables;
+    private LobbyInteractable _nearInteractable;
+    private GameObject _interactPanel;
+    private Text _interactTitle;
+    private Text _interactBody;
+    private float _interactPanelTimer;
     private GameObject _panel;
     private Text _panelName;
     private Text _panelDesc;
@@ -147,6 +164,10 @@ public class LobbyRoom : MonoBehaviour
         if (_caster != null) _caster.enabled = false;
         if (_avatar != null) _avatar.SetActive(false);
 
+        // 两套关卡动画停掉：大厅里画哪张图由 LobbyAvatar 按朝向决定，
+        // 它们每帧 Apply(ChooseFrame()) 会把大厅挑好的图覆盖回去
+        if (_switcher != null) _switcher.SetLobbyMode(true);
+
         if (_body != null)
         {
             _body.velocity = Vector2.zero;
@@ -163,6 +184,7 @@ public class LobbyRoom : MonoBehaviour
         }
 
         Teleport(spawnPoint != null ? spawnPoint.position : transform.position);
+        DisableFloorColliders();
 
         EnterCamera();
         SetHudVisible(false);
@@ -171,6 +193,12 @@ public class LobbyRoom : MonoBehaviour
         SetPanelVisible(false);
         RefreshHint("用鼠标点一个角色，再点「确认」");
         if (_titleText != null) _titleText.text = "选择角色";
+
+        // 场景重载后旧引用全失效，交互物缓存要重新找（否则重开一局就点不动装饰了）
+        _interactables = null;
+        if (_nearInteractable != null) _nearInteractable.SetHighlight(false);
+        _nearInteractable = null;
+        if (_interactPanel != null) _interactPanel.SetActive(false);
     }
 
     /// <summary>出发：恢复横板控制器与战斗、把玩家放到关卡里、让 RoomManager 建第一间</summary>
@@ -180,6 +208,9 @@ public class LobbyRoom : MonoBehaviour
         _stage = Stage.Left;
 
         if (_avatar != null) _avatar.SetActive(false);
+
+        // 动画重新接管：之后关卡里的待机/跑动由 WarriorVisual / MageVisual 自己写
+        if (_switcher != null) _switcher.SetLobbyMode(false);
         if (_controller != null) _controller.enabled = true;
         if (_attacker != null) _attacker.enabled = true;
         if (_caster != null) _caster.enabled = true;
@@ -214,13 +245,36 @@ public class LobbyRoom : MonoBehaviour
         _player.position = position;
     }
 
+    /// <summary>
+    /// 兜底：老场景 / 老预制体里的 <c>Shell/Floor</c> 可能还挂着整间房大小的实体碰撞体。
+    /// 俯视大厅没有重力，玩家是靠速度驱动的 Dynamic 刚体 —— 这块盒子只会把人从内部顶到上墙夹住，
+    /// 表现就是「确认后人物贴在屋顶、往下走一步就被弹回来」。发现就关掉，并留一条警告提醒去修场景。
+    /// </summary>
+    private void DisableFloorColliders()
+    {
+        Transform floor = transform.Find("Shell/Floor");
+        if (floor == null) return;
+
+        Collider2D[] colliders = floor.GetComponents<Collider2D>();
+        for (int i = 0; i < colliders.Length; i++)
+        {
+            Collider2D collider = colliders[i];
+            if (collider == null || !collider.enabled) continue;
+
+            collider.enabled = false;
+            Debug.LogWarning("[Lobby] Shell/Floor 上挂着 " + collider.GetType().Name +
+                             "，已在大厅里关掉 —— 俯视地板不该挡人。" +
+                             "请重跑「团结 → 生成元气骑士式大厅」把场景里的碰撞体也去掉。", this);
+        }
+    }
+
     // ---------------------------------------------------------------- 相机 / HUD
 
     /// <summary>
-    /// 大厅取景：相机原本挂在玩家身上（横板时一直跟着人），但大厅要「整间房铺满画面」，
-    /// 跟着玩家就会把房间顶出画面。所以这里把相机摘下来放到房间正中，正交大小取
-    /// 房间高度的一半 —— 16:9 时画面正好是 17.8 x 10 单位，地板比房间多铺了一圈，
-    /// 任何窗口比例下都不会露出相机底色。
+    /// 大厅取景：相机原本挂在玩家身上（横板时一直跟着人）。进大厅时把它摘下来放到房间正中，
+    /// 选人的时候房间是完整一屏，方便看两个台子；确认之后（Walking）再交给 FollowPlayer，
+    /// 让人往门口走的时候镜头跟着挪一点 —— 但相机矩形始终被夹在地板范围内，
+    /// 地板外面是相机底色，露一点就穿帮。
     /// </summary>
     private void EnterCamera()
     {
@@ -253,6 +307,49 @@ public class LobbyRoom : MonoBehaviour
         {
             _camera.transform.position = _cameraPositionBefore;
         }
+    }
+
+    /// <summary>
+    /// 跟着人物走：目标是人物所在的位置，但先用 <see cref="ClampCameraToFloor"/> 夹一次 ——
+    /// 房间只有 20x10，比画面大不了一圈，所以能跟的幅度是有限的，
+    /// 超出地板的部分靠夹住来保证「永远看不到相机底色」。
+    /// 用指数插值（1 - e^(-k·dt)）而不是固定 Lerp 系数，掉帧时手感不会变。
+    /// </summary>
+    private void FollowPlayer(float dt)
+    {
+        if (!cameraFollowsPlayer || _camera == null || _player == null) return;
+
+        Vector3 wanted = new Vector3(_player.position.x, _player.position.y, _camera.transform.position.z);
+        Vector3 target = ClampCameraToFloor(wanted);
+
+        float k = 1f - Mathf.Exp(-Mathf.Max(0.01f, cameraFollowLerp) * dt);
+        Vector3 next = Vector3.Lerp(_camera.transform.position, target, k);
+        next.z = _camera.transform.position.z;
+        _camera.transform.position = next;
+    }
+
+    /// <summary>
+    /// 把相机中心夹到「房间 + 地板外圈 - 半个画面」的范围内：
+    /// 画面左边不越过地板左边缘，右边不越过地板右边缘，上下同理。
+    /// 如果画面比地板还大（超宽屏），就退回房间正中，宁可不动也不露底。
+    /// </summary>
+    private Vector3 ClampCameraToFloor(Vector3 wanted)
+    {
+        float halfH = _camera.orthographicSize;
+        float halfW = halfH * _camera.aspect;
+
+        Vector3 min = transform.position;
+        Vector3 max = min + new Vector3(roomSize.x, roomSize.y, 0f);
+
+        float loX = min.x - floorPadding.x + halfW;
+        float hiX = max.x + floorPadding.x - halfW;
+        float x = hiX >= loX ? Mathf.Clamp(wanted.x, loX, hiX) : (min.x + max.x) * 0.5f;
+
+        float loY = min.y - floorPadding.y + halfH;
+        float hiY = max.y + floorPadding.y - halfH;
+        float y = hiY >= loY ? Mathf.Clamp(wanted.y, loY, hiY) : (min.y + max.y) * 0.5f;
+
+        return new Vector3(x, y, wanted.z);
     }
 
     /// <summary>
@@ -338,15 +435,39 @@ public class LobbyRoom : MonoBehaviour
 
     private void UpdateWalking(float dt)
     {
-        Vector3 playerPosition = _player != null ? _player.position : Vector3.zero;
-        float distance = portal != null ? Vector2.Distance(playerPosition, portal.position) : float.MaxValue;
+        FollowPlayer(dt);
 
-        IsNearDoor = distance <= doorRadius;
+        Vector3 playerPosition = _player != null ? _player.position : Vector3.zero;
 
         for (int i = 0; i < pedestals.Length; i++)
         {
             if (pedestals[i] != null) pedestals[i].SetState(false, pedestals[i] == _picked);
         }
+
+        // 装饰交互优先于「进门」：站在告示板/书架前时按 E 是互动，不是出发。
+        // 两者离得很远，实际上不会抢键，但这样写能保证「有可交互物时 hint 一定说互动」。
+        LobbyInteractable near = FindNearbyInteractable(playerPosition);
+        if (near != null)
+        {
+            _nearInteractable = near;
+            _doorTimer = 0f;
+            RefreshHint($"按 E {near.prompt}");
+            if (IsStartPressed()) ShowInteractPanel(near);
+            UpdateInteractPanel(dt);
+            return;
+        }
+
+        if (_nearInteractable != null)
+        {
+            _nearInteractable.SetHighlight(false);
+            _nearInteractable = null;
+        }
+
+        UpdateInteractPanel(dt);
+
+        float distance = portal != null ? Vector2.Distance(playerPosition, portal.position) : float.MaxValue;
+
+        IsNearDoor = distance <= doorRadius;
 
         UpdatePortalGlow();
 
@@ -364,6 +485,61 @@ public class LobbyRoom : MonoBehaviour
         {
             GameBootstrap.StartRun();
         }
+    }
+
+    /// <summary>找离玩家最近、且在范围内的可交互装饰（大厅里通常只有两三件，直接遍历）</summary>
+    private LobbyInteractable FindNearbyInteractable(Vector3 playerPosition)
+    {
+        if (_interactables == null) _interactables = FindObjectsOfType<LobbyInteractable>(true);
+
+        LobbyInteractable best = null;
+        float bestDistance = float.MaxValue;
+
+        for (int i = 0; i < _interactables.Length; i++)
+        {
+            LobbyInteractable candidate = _interactables[i];
+            if (candidate == null || !candidate.isActiveAndEnabled) continue;
+            if (!candidate.IsPlayerNear(playerPosition)) continue;
+
+            float d = Vector2.Distance(playerPosition, candidate.transform.position);
+            if (d >= bestDistance) continue;
+
+            bestDistance = d;
+            best = candidate;
+        }
+
+        if (best != null && best != _nearInteractable)
+        {
+            if (_nearInteractable != null) _nearInteractable.SetHighlight(false);
+            best.SetHighlight(true);
+        }
+
+        return best;
+    }
+
+    /// <summary>
+    /// 弹出占位面板。技能树之类的内容按需求先不做，这里只负责把「交互到了」这件事表现出来，
+    /// 2.6 秒后自己收起来。
+    /// </summary>
+    private void ShowInteractPanel(LobbyInteractable target)
+    {
+        if (_interactPanel == null || target == null) return;
+
+        if (_interactTitle != null) _interactTitle.text = target.title;
+        if (_interactBody != null) _interactBody.text = target.body;
+
+        _interactPanel.SetActive(true);
+        _interactPanelTimer = 2.6f;
+    }
+
+    private void UpdateInteractPanel(float dt)
+    {
+        if (_interactPanel == null || !_interactPanel.activeSelf) return;
+
+        _interactPanelTimer -= dt;
+        if (_interactPanelTimer > 0f) return;
+
+        _interactPanel.SetActive(false);
     }
 
     // ---------------------------------------------------------------- 选人
@@ -408,6 +584,13 @@ public class LobbyRoom : MonoBehaviour
 
         if (_playerSprite != null) _playerSprite.enabled = true;
         if (_avatar != null) _avatar.SetActive(true);
+
+        // 告诉俯视控制器这个职业有哪些朝向的贴图（没画的留空，它会自己退回侧视）
+        if (_avatar != null) _avatar.SetFacingSprites(_picked.classData);
+
+        // 再把「跑的帧」给它：大厅里侧向走路要播动画，不然整个人像贴图在地上滑
+        if (_avatar != null && _switcher != null)
+            _avatar.SetWalkFrames(_switcher.LobbyRunFrames(), _switcher.LobbyIdleFrames());
 
         if (_body != null) _body.gravityScale = 0f;
 
@@ -497,6 +680,39 @@ public class LobbyRoom : MonoBehaviour
                              new Vector2(1500f, 64f), 30, TextAnchor.MiddleCenter, new Color(0.90f, 0.93f, 1f, 0.95f));
 
         BuildPanel(root.transform);
+        BuildInteractPanel(root.transform);
+    }
+
+    /// <summary>
+    /// 装饰交互的占位面板：顶部居中的一块木板，标题 + 两行说明，2.6 秒后自己收起。
+    /// 不挡操作、不需要点按钮 —— 它只是「交互成功」的反馈。
+    /// </summary>
+    private void BuildInteractPanel(Transform parent)
+    {
+        var panel = new GameObject("InteractPanel", typeof(RectTransform));
+        var rect = (RectTransform)panel.transform;
+        rect.SetParent(parent, false);
+        rect.anchorMin = new Vector2(0.5f, 1f);
+        rect.anchorMax = new Vector2(0.5f, 1f);
+        rect.pivot = new Vector2(0.5f, 1f);
+        rect.anchoredPosition = new Vector2(0f, -180f);
+        rect.sizeDelta = new Vector2(760f, 190f);
+
+        Image background = panel.AddComponent<Image>();
+        background.sprite = WhiteSprite();
+        background.color = new Color(0.07f, 0.08f, 0.11f, 0.94f);
+        background.raycastTarget = false;
+
+        _interactTitle = MakeText(panel.transform, "Title", new Vector2(0.5f, 1f), new Vector2(0f, -40f),
+                                  new Vector2(700f, 52f), 34, TextAnchor.MiddleCenter,
+                                  new Color(1f, 0.88f, 0.55f, 1f));
+
+        _interactBody = MakeText(panel.transform, "Body", new Vector2(0.5f, 1f), new Vector2(0f, -104f),
+                                 new Vector2(680f, 90f), 24, TextAnchor.UpperCenter,
+                                 new Color(0.86f, 0.89f, 0.95f, 1f));
+
+        _interactPanel = panel;
+        _interactPanel.SetActive(false);
     }
 
     private void BuildPanel(Transform parent)

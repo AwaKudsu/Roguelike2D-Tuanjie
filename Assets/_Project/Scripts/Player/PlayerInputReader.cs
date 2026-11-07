@@ -126,6 +126,15 @@ public class PlayerInputReader : MonoBehaviour
         return true;
     }
 
+    /// <summary>
+    /// 攻击键此刻是不是按着（不是「刚按下」）。
+    ///
+    /// 为什么要它：`performed` 只在按下的那一帧触发一次，长按不会再来。
+    /// 三段连击如果只认「按下」，玩家必须连点三下；加上这个之后长按也能一路打下去。
+    /// 直接问 InputAction 的实时状态，不走 latch，所以每帧都能拿到准数。
+    /// </summary>
+    public bool AttackHeld => _actions.Player.Attack.IsPressed();
+
     /// <summary>取走「按下了冲刺」事件</summary>
     public bool ConsumeDashPressed()
     {

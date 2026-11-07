@@ -214,13 +214,43 @@ public class SkillCaster : MonoBehaviour
         Log($"{skill.displayName} 蓄力 {ratio * 100f:0}% 发射");
     }
 
-    private void CancelCharge()
+    /// <summary>停掉蓄力（按下技能、松手前的那个状态）。换房间、被硬直打断时都要调</summary>
+    public void CancelCharge()
     {
         if (_chargeSlot < 0) return;
 
         _chargeSlot = -1;
         _chargeTimer = 0f;
         ResolveAnim()?.PlayCharge(false);
+    }
+
+    /// <summary>
+    /// 换房间时清理「会跨房间活下去」的状态。
+    ///
+    /// 三样东西必须清掉，否则玩家能带着上一间的状态进门：
+    ///   · 蓄力 —— 举着火球穿门，进门第一帧松手就是一发满蓄力（还没冷却）
+    ///   · 旋风斩 / 战吼 —— 组件挂在玩家身上，不吃房间销毁
+    ///   · 回血法阵 —— 独立物体，圆心绑在玩家身上，会跟着走进新房间继续跳字
+    ///
+    /// 回血法阵是「结算」不是「掐断」：蓝和冷却已经付过了，
+    /// 把没跳完的几次一次性补上，玩家不会觉得换房间白亏一次技能。
+    /// </summary>
+    public void ResetRoomState()
+    {
+        CancelCharge();
+
+        // 持续型技能：先把它们自己挂的特效一起收掉再销毁组件
+        var spin = GetComponent<WhirlwindCast>();
+        if (spin != null) spin.StopNow();
+
+        var cry = GetComponent<WarCryEffect>();
+        if (cry != null) cry.StopNow();
+
+        // 回血法阵：结算剩余治疗，然后结束
+        foreach (var circle in FindObjectsOfType<HealCircle>())
+        {
+            if (circle != null) circle.FinishNow(settle: true);
+        }
     }
 
     // ---------------- 查询接口（技能栏 UI 用） ----------------
@@ -384,7 +414,8 @@ public class SkillCaster : MonoBehaviour
             duration:     skill.duration,
             tickInterval: skill.tickInterval,
             color:        attacker.SlashColor,
-            scale:        1f);
+            scale:        1f,
+            aura:         skill.auraSprite);
 
         // 动作也跟着转：两帧交替（蹲扫 / 举砍），旋风的弧光本来就在绕圈
         ResolveAnim()?.PlaySpin(skill.duration);
