@@ -69,10 +69,23 @@ public class LobbyPedestal : MonoBehaviour
         transform.localScale = _baseScale * _currentScale;
     }
 
-    /// <summary>鼠标点在没点上：用「脚底位置」判断，别用贴图包围盒</summary>
+    /// <summary>
+    /// 鼠标点选命中判定。
+    /// 先看立绘的实际包围盒（点身体任何位置都算中），再退一步看脚底周围一个小圆 ——
+    /// 只用「离脚底多近」的话，点在立牌上半身（头、帽子）会点不中，手感很别扭。
+    /// </summary>
     public bool HitTest(Vector2 worldPoint, float radius)
     {
-        Vector2 feet = transform.position;
-        return Vector2.Distance(worldPoint, feet) <= radius;
+        if (portrait != null && portrait.sprite != null)
+        {
+            Bounds bounds = portrait.bounds;
+            if (worldPoint.x >= bounds.min.x && worldPoint.x <= bounds.max.x &&
+                worldPoint.y >= bounds.min.y && worldPoint.y <= bounds.max.y)
+            {
+                return true;
+            }
+        }
+
+        return Vector2.Distance(worldPoint, (Vector2)transform.position) <= radius;
     }
 }

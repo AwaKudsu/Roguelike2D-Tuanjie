@@ -111,6 +111,8 @@ namespace Tuanjie.PortCheck
             bool casterWasOn = false;
             bool controllerWasOn = false;
             float cameraBefore = 0f;
+            Transform cameraParentBefore = null;
+            Vector3 cameraLocalBefore = Vector3.zero;
 
             PlayerAttacker attacker = player.GetComponent<PlayerAttacker>();
             SkillCaster caster = player.GetComponent<SkillCaster>();
@@ -118,6 +120,10 @@ namespace Tuanjie.PortCheck
             PlayerVisualSwitcher switcher = player.GetComponent<PlayerVisualSwitcher>();
             SpriteRenderer sprite = player.GetComponent<SpriteRenderer>();
             Camera camera = Camera.main;
+
+            HUDController hudComponent = UnityEngine.Object.FindObjectOfType<HUDController>();
+            Canvas hudCanvas = hudComponent != null ? hudComponent.GetComponentInParent<Canvas>() : null;
+            bool hudWasEnabled = hudCanvas != null && hudCanvas.enabled;
 
             try
             {
@@ -127,7 +133,12 @@ namespace Tuanjie.PortCheck
                 if (attacker != null) attackerWasOn = attacker.enabled;
                 if (caster != null) casterWasOn = caster.enabled;
                 if (controller != null) controllerWasOn = controller.enabled;
-                if (camera != null) cameraBefore = camera.orthographicSize;
+                if (camera != null)
+                {
+                    cameraBefore = camera.orthographicSize;
+                    cameraParentBefore = camera.transform.parent;
+                    cameraLocalBefore = camera.transform.localPosition;
+                }
 
                 room.Enter();
 
@@ -156,9 +167,24 @@ namespace Tuanjie.PortCheck
                       "[FAIL]|大厅里横板控制器与战斗都关着|还有组件开着",
                       "[PASS]|大厅里横板控制器与战斗都关着|重力/跳跃/攻击全停", ref fail, ref pass);
 
-                Check(camera != null && Mathf.Abs(camera.orthographicSize - 6f) < 0.01f,
-                      "[FAIL]|大厅视角变大|正交 " + (camera != null ? camera.orthographicSize.ToString("0.0") : "?"),
-                      "[PASS]|大厅视角变大|正交 6.0（能看见整间房）", ref fail, ref pass);
+                Vector3 roomCenter = room.transform.position + new Vector3(10f, 5f, 0f);
+                float centerOffset = camera != null
+                    ? Vector2.Distance(camera.transform.position, roomCenter)
+                    : 999f;
+                Check(camera != null && centerOffset < 0.05f,
+                      "[FAIL]|相机对准房间正中|偏了 " + centerOffset.ToString("0.00"),
+                      "[PASS]|相机对准房间正中|偏 " + centerOffset.ToString("0.00"), ref fail, ref pass);
+
+                float halfW = camera != null ? camera.orthographicSize * camera.aspect : 0f;
+                float halfH = camera != null ? camera.orthographicSize : 0f;
+                Check(halfW >= 10f + 0.5f && halfH >= 5f + 0.5f,
+                      "[FAIL]|整间房都在画面里|可视 " + (halfW * 2f).ToString("0.0") + " x " + (halfH * 2f).ToString("0.0"),
+                      "[PASS]|整间房都在画面里|可视 " + (halfW * 2f).ToString("0.0") + " x " + (halfH * 2f).ToString("0.0") +
+                      "（房 20 x 10）", ref fail, ref pass);
+
+                Check(hudCanvas != null && !hudCanvas.enabled,
+                      "[FAIL]|大厅里不显示血条蓝条|HUD 还画着",
+                      "[PASS]|大厅里不显示血条蓝条|HUD 已关", ref fail, ref pass);
 
                 Transform hud = room.transform.Find("LobbyHud");
                 Check(hud != null && hud.gameObject.activeSelf,
@@ -213,6 +239,14 @@ namespace Tuanjie.PortCheck
                 Check(camera != null && Mathf.Abs(camera.orthographicSize - cameraBefore) < 0.01f,
                       "[FAIL]|出发后视角还原|" + (camera != null ? camera.orthographicSize.ToString("0.0") : "?"),
                       "[PASS]|出发后视角还原|正交 " + (camera != null ? camera.orthographicSize.ToString("0.0") : "?"), ref fail, ref pass);
+
+                Check(camera != null && camera.transform.parent == cameraParentBefore,
+                      "[FAIL]|出发后相机回到玩家身上|父级是 " + (camera != null && camera.transform.parent != null ? camera.transform.parent.name : "无"),
+                      "[PASS]|出发后相机回到玩家身上|父级 " + (camera != null && camera.transform.parent != null ? camera.transform.parent.name : "无"), ref fail, ref pass);
+
+                Check(hudCanvas != null && hudCanvas.enabled == hudWasEnabled,
+                      "[FAIL]|出发后血条蓝条回来|HUD 没恢复",
+                      "[PASS]|出发后血条蓝条回来|HUD 已恢复", ref fail, ref pass);
             }
             catch (Exception e)
             {
@@ -228,6 +262,13 @@ namespace Tuanjie.PortCheck
                 if (controller != null) controller.enabled = controllerWasOn;
                 if (sprite != null) sprite.enabled = true;
                 if (camera != null && cameraBefore > 0.1f) camera.orthographicSize = cameraBefore;
+                if (camera != null && cameraParentBefore != null && camera.transform.parent != cameraParentBefore)
+                {
+                    camera.transform.SetParent(cameraParentBefore, false);
+                    camera.transform.localPosition = cameraLocalBefore;
+                }
+
+                if (hudCanvas != null) hudCanvas.enabled = hudWasEnabled;
 
                 LobbyAvatar avatar = player.GetComponent<LobbyAvatar>();
                 if (avatar != null) avatar.SetActive(false);

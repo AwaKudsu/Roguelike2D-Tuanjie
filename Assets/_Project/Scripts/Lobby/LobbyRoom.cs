@@ -56,6 +56,12 @@ public class LobbyRoom : MonoBehaviour
     [Tooltip("大厅用多大的正交视野（比关卡大一点，能看见整间房）")]
     [SerializeField] private float lobbyCameraSize = 6f;
 
+    [Tooltip("房间内部尺寸（宽 x 高）。相机按它算取景，保证整间房都在画面里")]
+    [SerializeField] private Vector2 roomSize = new Vector2(20f, 10f);
+
+    [Tooltip("取景时四周留多少空")]
+    [SerializeField] private float cameraMargin = 1.2f;
+
     [Header("门口的颜色")]
     [SerializeField] private Color portalLockedColor = new Color(0.30f, 0.33f, 0.40f, 0.9f);
     [SerializeField] private Color portalReadyColor = new Color(1f, 0.80f, 0.34f, 0.95f);
@@ -72,6 +78,11 @@ public class LobbyRoom : MonoBehaviour
     private RoomManager _rooms;
     private Camera _camera;
     private float _cameraSizeBefore;
+    private Transform _cameraParentBefore;
+    private Vector3 _cameraLocalBefore;
+    private Vector3 _cameraPositionBefore;
+    private Canvas _hudCanvas;
+    private bool _hudWasEnabled;
 
     private Canvas _canvas;
     private Text _titleText;
@@ -150,11 +161,8 @@ public class LobbyRoom : MonoBehaviour
 
         Teleport(spawnPoint != null ? spawnPoint.position : transform.position);
 
-        if (_camera != null)
-        {
-            _cameraSizeBefore = _camera.orthographicSize;
-            _camera.orthographicSize = lobbyCameraSize;
-        }
+        EnterCamera();
+        SetHudVisible(false);
 
         BuildHud();
         SetPanelVisible(false);
@@ -179,7 +187,8 @@ public class LobbyRoom : MonoBehaviour
             _playerSprite.sortingOrder = 0;
         }
 
-        if (_camera != null && _cameraSizeBefore > 0.1f) _camera.orthographicSize = _cameraSizeBefore;
+        ExitCamera();
+        SetHudVisible(true);
 
         if (_rooms != null) _rooms.StartRunFromLobby();
 
@@ -200,6 +209,83 @@ public class LobbyRoom : MonoBehaviour
         }
 
         _player.position = position;
+    }
+
+    // ---------------------------------------------------------------- 相机 / HUD
+
+    /// <summary>
+    /// 大厅取景：相机原本挂在玩家身上（横板时一直跟着人），但大厅要「看见整间房」，
+    /// 跟着站在门边的玩家就会把上半间房顶出画面。所以这里把相机摘下来放到房间正中，
+    /// 再按房间尺寸和当前窗口比例算正交大小 —— 宽屏按宽度算、窄屏按高度算，两边都装得下。
+    /// </summary>
+    private void EnterCamera()
+    {
+        if (_camera == null) return;
+
+        _cameraSizeBefore = _camera.orthographicSize;
+        _cameraPositionBefore = _camera.transform.position;
+        _cameraParentBefore = _camera.transform.parent;
+        _cameraLocalBefore = _camera.transform.localPosition;
+
+        Vector3 roomCenter = transform.position + new Vector3(roomSize.x * 0.5f, roomSize.y * 0.5f, 0f);
+        _camera.transform.SetParent(null, true);
+        _camera.transform.position = new Vector3(roomCenter.x, roomCenter.y, _cameraPositionBefore.z);
+
+        float halfWidth = roomSize.x * 0.5f + cameraMargin;
+        float halfHeight = roomSize.y * 0.5f + cameraMargin;
+        float aspect = Mathf.Max(0.5f, _camera.aspect);
+
+        _camera.orthographicSize = Mathf.Max(halfHeight, halfWidth / aspect, 0.1f);
+        lobbyCameraSize = _camera.orthographicSize;
+    }
+
+    private void ExitCamera()
+    {
+        if (_camera == null) return;
+
+        _camera.orthographicSize = _cameraSizeBefore > 0.1f ? _cameraSizeBefore : 5f;
+
+        if (_cameraParentBefore != null)
+        {
+            _camera.transform.SetParent(_cameraParentBefore, false);
+            _camera.transform.localPosition = _cameraLocalBefore;
+        }
+        else
+        {
+            _camera.transform.position = _cameraPositionBefore;
+        }
+    }
+
+    /// <summary>
+    /// 大厅里不显示血条 / 蓝条 / 技能栏：那套 HUD 的坐标是按关卡算的，
+    /// 挂在大厅画面上既没用又挡视线（而且大厅里根本不会掉血）。
+    /// </summary>
+    private void SetHudVisible(bool visible)
+    {
+        if (_hudCanvas == null)
+        {
+            HUDController hud = FindObjectOfType<HUDController>();
+            if (hud != null) _hudCanvas = hud.GetComponentInParent<Canvas>();
+            if (_hudCanvas == null) _hudCanvas = FindHudCanvas();
+            if (_hudCanvas == null) return;
+
+            _hudWasEnabled = _hudCanvas.enabled;
+        }
+
+        _hudCanvas.enabled = visible && _hudWasEnabled;
+    }
+
+    private static Canvas FindHudCanvas()
+    {
+        foreach (Canvas canvas in Resources.FindObjectsOfTypeAll<Canvas>())
+        {
+            if (canvas == null || !canvas.gameObject.scene.IsValid()) continue;
+            if (canvas.GetComponentInParent<LobbyRoom>() != null) continue;
+            if (canvas.renderMode != RenderMode.ScreenSpaceOverlay) continue;
+            if (canvas.GetComponentInChildren<StatBar>(true) != null) return canvas;
+        }
+
+        return null;
     }
 
     // ---------------------------------------------------------------- 每帧
