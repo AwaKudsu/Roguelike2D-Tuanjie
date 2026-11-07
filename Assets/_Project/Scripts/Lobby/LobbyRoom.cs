@@ -53,14 +53,11 @@ public class LobbyRoom : MonoBehaviour
     [SerializeField] private float autoEnterDelay = 0.8f;
 
     [Header("视角")]
-    [Tooltip("大厅用多大的正交视野（比关卡大一点，能看见整间房）")]
-    [SerializeField] private float lobbyCameraSize = 6f;
+    [Tooltip("大厅用的正交视野。房间 20x10，取一半高度 = 5，16:9 下正好铺满整屏（17.8 x 10 单位）")]
+    [SerializeField] private float lobbyCameraSize = 5f;
 
-    [Tooltip("房间内部尺寸（宽 x 高）。相机按它算取景，保证整间房都在画面里")]
+    [Tooltip("房间内部尺寸（宽 x 高）。相机放在它的正中，地板比它多铺一圈，任何窗口比例都不露底")]
     [SerializeField] private Vector2 roomSize = new Vector2(20f, 10f);
-
-    [Tooltip("取景时四周留多少空")]
-    [SerializeField] private float cameraMargin = 1.2f;
 
     [Header("门口的颜色")]
     [SerializeField] private Color portalLockedColor = new Color(0.30f, 0.33f, 0.40f, 0.9f);
@@ -159,6 +156,12 @@ public class LobbyRoom : MonoBehaviour
         // 还没选人：先把玩家藏起来，选完再出现 —— 否则会和立牌站在一起，看不出在挑谁
         if (_playerSprite != null) _playerSprite.enabled = false;
 
+        // 两尊雕像都回到「立着」的状态（上一局被点走的那尊要重新站起来）
+        foreach (LobbyPedestal pedestal in pedestals)
+        {
+            if (pedestal != null) pedestal.SetAlive(true);
+        }
+
         Teleport(spawnPoint != null ? spawnPoint.position : transform.position);
 
         EnterCamera();
@@ -214,9 +217,10 @@ public class LobbyRoom : MonoBehaviour
     // ---------------------------------------------------------------- 相机 / HUD
 
     /// <summary>
-    /// 大厅取景：相机原本挂在玩家身上（横板时一直跟着人），但大厅要「看见整间房」，
-    /// 跟着站在门边的玩家就会把上半间房顶出画面。所以这里把相机摘下来放到房间正中，
-    /// 再按房间尺寸和当前窗口比例算正交大小 —— 宽屏按宽度算、窄屏按高度算，两边都装得下。
+    /// 大厅取景：相机原本挂在玩家身上（横板时一直跟着人），但大厅要「整间房铺满画面」，
+    /// 跟着玩家就会把房间顶出画面。所以这里把相机摘下来放到房间正中，正交大小取
+    /// 房间高度的一半 —— 16:9 时画面正好是 17.8 x 10 单位，地板比房间多铺了一圈，
+    /// 任何窗口比例下都不会露出相机底色。
     /// </summary>
     private void EnterCamera()
     {
@@ -231,12 +235,7 @@ public class LobbyRoom : MonoBehaviour
         _camera.transform.SetParent(null, true);
         _camera.transform.position = new Vector3(roomCenter.x, roomCenter.y, _cameraPositionBefore.z);
 
-        float halfWidth = roomSize.x * 0.5f + cameraMargin;
-        float halfHeight = roomSize.y * 0.5f + cameraMargin;
-        float aspect = Mathf.Max(0.5f, _camera.aspect);
-
-        _camera.orthographicSize = Mathf.Max(halfHeight, halfWidth / aspect, 0.1f);
-        lobbyCameraSize = _camera.orthographicSize;
+        _camera.orthographicSize = Mathf.Max(0.1f, lobbyCameraSize);
     }
 
     private void ExitCamera()
@@ -392,12 +391,20 @@ public class LobbyRoom : MonoBehaviour
         RefreshHint("点「确认」就用 " + pedestal.DisplayName + " 开局");
     }
 
-    /// <summary>确认：把职业装到玩家身上、显示玩家、交给俯视控制器</summary>
+    /// <summary>
+    /// 确认：让「立牌上的那个人」活过来 —— 玩家直接落在选中立牌的脚底位置、立牌本身藏起来，
+    /// 所以看到的是同一个角色解除了雕像状态、开始能走动；而不是凭空冒出一个新角色。
+    /// </summary>
     public void ConfirmPick()
     {
         if (_stage != Stage.Selecting || _picked == null) return;
 
         if (_switcher != null) _switcher.SetClass(_picked.classData);
+
+        // 雕像 ⟶ 活人：先把玩家挪到他站的那块台子上，再把立绘收起来
+        Vector3 standPoint = _picked.transform.position;
+        Teleport(new Vector3(standPoint.x, standPoint.y - 0.1f, 0f));
+        _picked.SetAlive(false);
 
         if (_playerSprite != null) _playerSprite.enabled = true;
         if (_avatar != null) _avatar.SetActive(true);
@@ -407,7 +414,7 @@ public class LobbyRoom : MonoBehaviour
         _stage = Stage.Walking;
         SetPanelVisible(false);
         if (_titleText != null) _titleText.text = "出发";
-        RefreshHint("走到下面的门口开始游戏");
+        RefreshHint("用 WASD 走动，走到下面的门口开始游戏");
     }
 
     private int IndexOf(LobbyPedestal pedestal)

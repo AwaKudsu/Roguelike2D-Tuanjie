@@ -29,6 +29,7 @@ public class LobbyPedestal : MonoBehaviour
     private float _idleTimer;
     private float _currentScale = 1f;
     private Vector3 _baseScale = Vector3.one;
+    private bool _alive = true;
 
     public string DisplayName =>
         classData != null && !string.IsNullOrEmpty(classData.className) ? classData.className : "未知职业";
@@ -41,10 +42,24 @@ public class LobbyPedestal : MonoBehaviour
         if (portrait == null) portrait = GetComponentInChildren<SpriteRenderer>();
     }
 
+    /// <summary>
+    /// 雕像 / 活人。
+    /// 确认选人时把这个立牌设成 false：人已经「走下来」变成玩家了，
+    /// 台上再站一个就会看到两个人叠在一起。
+    /// </summary>
+    public void SetAlive(bool alive)
+    {
+        _alive = alive;
+        if (portrait != null) portrait.enabled = alive;
+        if (glow != null && !alive) glow.color = new Color(glowChosen.r, glowChosen.g, glowChosen.b, 0.06f);
+    }
+
+    public bool IsAlive => _alive;
+
     /// <summary>每帧由大厅调用：慢慢换帧，站着也有点气</summary>
     public void Breathe(float deltaTime)
     {
-        if (portrait == null) return;
+        if (portrait == null || !_alive) return;
 
         if (idleFrames != null && idleFrames.Length > 1)
         {

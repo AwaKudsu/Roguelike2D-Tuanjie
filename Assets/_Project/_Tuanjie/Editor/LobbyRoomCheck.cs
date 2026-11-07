@@ -177,10 +177,28 @@ namespace Tuanjie.PortCheck
 
                 float halfW = camera != null ? camera.orthographicSize * camera.aspect : 0f;
                 float halfH = camera != null ? camera.orthographicSize : 0f;
-                Check(halfW >= 10f + 0.5f && halfH >= 5f + 0.5f,
-                      "[FAIL]|整间房都在画面里|可视 " + (halfW * 2f).ToString("0.0") + " x " + (halfH * 2f).ToString("0.0"),
-                      "[PASS]|整间房都在画面里|可视 " + (halfW * 2f).ToString("0.0") + " x " + (halfH * 2f).ToString("0.0") +
-                      "（房 20 x 10）", ref fail, ref pass);
+
+                Check(camera != null && Mathf.Abs(camera.orthographicSize - 5f) < 0.01f,
+                      "[FAIL]|大厅视野|正交 " + (camera != null ? camera.orthographicSize.ToString("0.0") : "?"),
+                      "[PASS]|大厅视野|正交 5.0（画面 " + (halfW * 2f).ToString("0.0") + " x " + (halfH * 2f).ToString("0.0") +
+                      " 单位，房间铺满整屏）", ref fail, ref pass);
+
+                // 地板铺得比房间大：相机矩形必须整块落在地板里，否则屏幕边缘会露出相机底色
+                SpriteRenderer floorRenderer = floor != null ? floor.GetComponent<SpriteRenderer>() : null;
+                bool covered = false;
+                if (floorRenderer != null && camera != null)
+                {
+                    Bounds bound = floorRenderer.bounds;
+                    Vector3 camPos = camera.transform.position;
+                    covered = bound.min.x <= camPos.x - halfW && bound.max.x >= camPos.x + halfW &&
+                              bound.min.y <= camPos.y - halfH && bound.max.y >= camPos.y + halfH;
+                }
+
+                Check(covered, "[FAIL]|整屏被地板铺满|地板没盖住相机矩形，边上会露底色",
+                      "[PASS]|整屏被地板铺满|地板 " +
+                      (floorRenderer != null ? floorRenderer.bounds.size.x.ToString("0.0") + " x " +
+                                               floorRenderer.bounds.size.y.ToString("0.0") : "?") +
+                      " 盖住画面", ref fail, ref pass);
 
                 Check(hudCanvas != null && !hudCanvas.enabled,
                       "[FAIL]|大厅里不显示血条蓝条|HUD 还画着",
@@ -210,6 +228,21 @@ namespace Tuanjie.PortCheck
                 Check(switcher != null && switcher.CurrentClassName != null && switcher.CurrentClassName.Contains("法"),
                       "[FAIL]|确认后职业已装上|当前是 " + (switcher != null ? switcher.CurrentClassName : "?"),
                       "[PASS]|确认后职业已装上|当前是 " + (switcher != null ? switcher.CurrentClassName : "?"), ref fail, ref pass);
+
+                // 确认 = 台上那尊雕像「活过来」：玩家挪到它脚下，它的立绘收起来
+                LobbyPedestal picked = room.Pedestals[1];
+                float toPick = Vector2.Distance(player.transform.position, picked.transform.position);
+                Check(toPick < 0.5f, "[FAIL]|玩家站在选中的台子上|离台子 " + toPick.ToString("0.00"),
+                      "[PASS]|玩家站在选中的台子上|离台子 " + toPick.ToString("0.00"), ref fail, ref pass);
+
+                Check(picked != null && picked.portrait != null && !picked.portrait.enabled && !picked.IsAlive,
+                      "[FAIL]|选中的人变成玩家了|台上还站着一个，会看到两个",
+                      "[PASS]|选中的人变成玩家了|立牌收起、玩家接管", ref fail, ref pass);
+
+                LobbyPedestal other = room.Pedestals[0];
+                Check(other != null && other.portrait != null && other.portrait.enabled,
+                      "[FAIL]|没被选的人还站着|另一个立牌的立绘被藏了",
+                      "[PASS]|没被选的人还站着|另一个立牌没动", ref fail, ref pass);
 
                 // 走到门口
                 Transform portal = GameObject.Find("LobbyRoom/Portal").transform;
