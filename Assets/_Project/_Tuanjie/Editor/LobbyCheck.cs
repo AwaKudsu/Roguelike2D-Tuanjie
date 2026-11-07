@@ -121,11 +121,80 @@ namespace Tuanjie.PortCheck
             Report(sb, warrior != null && !string.IsNullOrEmpty(warrior.description), "战士说明 | 有文案", ref fail);
             Report(sb, mage != null && !string.IsNullOrEmpty(mage.description), "法师说明 | 有文案", ref fail);
 
+            CheckBootOpensLobby(sb, ref fail);
+
             sb.AppendLine($"[SUMMARY] 失败 | {fail}");
 
             System.IO.Directory.CreateDirectory("_Tuanjie");
             System.IO.File.WriteAllText(ReportPath, sb.ToString(), new UTF8Encoding(false));
             Debug.Log("[LobbyCheck]\n" + sb);
+        }
+
+        /// <summary>
+        /// 真正的入口自检：直接调 <see cref="GameBootstrap"/> 的 Boot（平时由
+        /// [RuntimeInitializeOnLoadMethod] 自动跑），看它有没有把大厅推开。
+        ///
+        /// 这条是为了抓住「代码都在、但一按 Play 直接开打」这种整体失效：
+        /// 光验 LobbyUI 自己能不能显示，是抓不住的。
+        /// </summary>
+        private static void CheckBootOpensLobby(StringBuilder sb, ref int fail)
+        {
+            GameObject bootRoot = null;
+            try
+            {
+                MethodInfo boot = typeof(GameBootstrap).GetMethod("Boot", BindingFlags.NonPublic | BindingFlags.Static);
+                if (boot == null)
+                {
+                    Report(sb, false, "启动入口 | 找不到 GameBootstrap.Boot", ref fail);
+                    return;
+                }
+
+                // 前面那段「开始游戏会把职业装上」已经点过 StartGame，它会把标记置成 false
+                //（这一局已经开始过了）—— 先恢复成「还没开局」，才是在验「按 Play 先进大厅」。
+                typeof(GameBootstrap).GetField("ShowLobbyOnStart", BindingFlags.Public | BindingFlags.Static)
+                                     ?.SetValue(null, true);
+
+                boot.Invoke(null, null);
+
+                LobbyUI lobby = GameBootstrap.Lobby;
+                Report(sb, lobby != null, "启动入口 | Boot 建出了大厅", ref fail);
+                if (lobby == null) return;
+
+                Report(sb, lobby.IsOpen, $"按 Play 先进大厅 | IsOpen = {lobby.IsOpen}", ref fail);
+
+                Canvas canvas = lobby.GetComponentInChildren<Canvas>(true);
+                Report(sb, canvas != null && canvas.enabled && canvas.renderMode == RenderMode.ScreenSpaceOverlay,
+                       $"大厅界面真的在画 | 渲染模式={(canvas != null ? canvas.renderMode.ToString() : "★无 Canvas")} / 启用={(canvas != null && canvas.enabled)}",
+                       ref fail);
+
+                Transform panel = lobby.transform.Find("LobbyCanvas/Panel");
+                Report(sb, panel != null && panel.gameObject.activeSelf,
+                       "大厅面板是显示的 | 不是只剩一个空 Canvas", ref fail);
+
+                bootRoot = lobby.transform.root.gameObject;
+            }
+            catch (System.Exception e)
+            {
+                Report(sb, false, $"Boot 抛异常 | {(e.InnerException != null ? e.InnerException.Message : e.Message)}", ref fail);
+            }
+            finally
+            {
+                // 把 Boot 建的常驻物体和静态引用都清掉，免得影响同一进程里的后续自检
+                TimeFreeze.UnfreezeAll();
+                if (bootRoot != null) Object.DestroyImmediate(bootRoot);
+                ClearBootStatics();
+            }
+        }
+
+        /// <summary>把 GameBootstrap 的静态字段清空（否则下次 Boot 会以为已经初始化过）</summary>
+        private static void ClearBootStatics()
+        {
+            BindingFlags flags = BindingFlags.NonPublic | BindingFlags.Static;
+            foreach (string name in new[] { "_root", "_menu", "_lobby" })
+            {
+                typeof(GameBootstrap).GetField(name, flags)?.SetValue(null, null);
+            }
+            typeof(GameBootstrap).GetField("ShowLobbyOnStart", BindingFlags.Public | BindingFlags.Static)?.SetValue(null, true);
         }
 
         private static System.Collections.Generic.List<string> ClassNames(PlayerVisualSwitcher switcher)

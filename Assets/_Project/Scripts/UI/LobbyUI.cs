@@ -80,6 +80,10 @@ public class LobbyUI : MonoBehaviour
 
     public void Show()
     {
+        // 兜底：正常流程 Awake 已经搭过了，但编辑模式自检 / 组件被禁用的场合 Awake 不会跑，
+        // 那时 Show 会「以为什么都没有、于是什么都不显示」—— 大厅就不见了。
+        if (_canvas == null) Build();
+
         Refresh();
         SetVisible(true);
     }

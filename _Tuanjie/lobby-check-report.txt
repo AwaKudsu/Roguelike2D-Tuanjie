@@ -19,4 +19,8 @@
 [PASS] 法师头像 | 已接（大厅卡片用）
 [PASS] 战士说明 | 有文案
 [PASS] 法师说明 | 有文案
+[PASS] 启动入口 | Boot 建出了大厅
+[PASS] 按 Play 先进大厅 | IsOpen = True
+[PASS] 大厅界面真的在画 | 渲染模式=ScreenSpaceOverlay / 启用=True
+[PASS] 大厅面板是显示的 | 不是只剩一个空 Canvas
 [SUMMARY] 失败 | 0

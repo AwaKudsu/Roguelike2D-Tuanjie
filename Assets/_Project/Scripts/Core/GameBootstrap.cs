@@ -26,6 +26,22 @@ public static class GameBootstrap
     /// <summary>大厅实例（自检要拿它验「选角色 → 开局」）</summary>
     public static LobbyUI Lobby => _lobby;
 
+    /// <summary>
+    /// 每次进 Play 前把静态状态清干净。
+    ///
+    /// 编辑器可以关掉「进入播放模式时重载域」，那时候静态字段会**跨 Play 保留**：
+    /// 上一局点过「开始游戏」把 ShowLobbyOnStart 置成 false，下一次按 Play 就直接开打、
+    /// 再也不出大厅 —— 表现正是「等待大厅没了」。这个回调在两种设置下都会跑。
+    /// </summary>
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    private static void ResetStatics()
+    {
+        _root = null;
+        _menu = null;
+        _lobby = null;
+        ShowLobbyOnStart = true;
+    }
+
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
     private static void Boot()
     {
@@ -35,7 +51,9 @@ public static class GameBootstrap
 
         // 带 RectTransform 建出来：GameMenuUI 的整块界面靠锚点铺满屏幕，普通 Transform 撑不起来
         _root = new GameObject("__GameMenu", typeof(RectTransform));
-        Object.DontDestroyOnLoad(_root);
+
+        // 编辑模式的自检会直接调 Boot，那时不许调 DontDestroyOnLoad（Unity 会报错）
+        if (Application.isPlaying) Object.DontDestroyOnLoad(_root);
 
         _menu = _root.AddComponent<GameMenuUI>();
 
