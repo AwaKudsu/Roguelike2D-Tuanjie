@@ -1,24 +1,34 @@
 [PASS]|已打开场景|Assets/_Project/Scenes/Game.unity
 [PASS]|大厅组件|LobbyRoom 在场景里
-[PASS]|角色台数量|2 个
-[PASS]|角色台 0|战士
-[PASS]|角色台 0 立绘|Warrior_Idle
-[PASS]|角色台 1|法师
-[PASS]|角色台 1 立绘|Mage_Idle
-[PASS]|地板碰撞|Floor_1 在 Ground 层，带 BoxCollider2D
+[PASS]|角色立牌数量|2 个
+[PASS]|立牌 0|战士
+[PASS]|立牌 0 立绘|Warrior_Idle
+[PASS]|立牌 1|法师
+[PASS]|立牌 1 立绘|Mage_Idle
+[PASS]|地板碰撞|Floor 在 Ground 层，带 BoxCollider2D
+[PASS]|四面墙|4 面都在，带碰撞
 [PASS]|RoomManager 大厅接口|SuspendForLobby / StartRunFromLobby 都在
 [PASS]|启动入口类型|GameBootstrap.Lobby 是 LobbyRoom
+[PASS]|俯视走路组件|LobbyAvatar + Pick/ConfirmPick 都在
 [PASS]|玩家|找到 Player
+[PASS]|进大厅是「选人」状态|等待鼠标点角色
 [PASS]|进大厅会停建房|RoomManager 已待命
-[PASS]|玩家被挪进大厅|离出生点 0.00
-[PASS]|大厅里不开火|攻击与技能已停
-[PASS]|大厅提示文字|LobbyHud 已显示
-[PASS]|走近台子会被识别|FocusIndex=1（法师台）
-[PASS]|按 E 能选职业|已选 法师
-[PASS]|选了法师就换人|当前是 法师
-[PASS]|走到门口会被识别|PortalFocused=True
+[PASS]|玩家被放进暗房间|离出生点 0.00
+[PASS]|确认前玩家不露面|还没选人，人物是隐藏的
+[PASS]|确认前不能动|俯视控制器没开
+[PASS]|大厅里横板控制器与战斗都关着|重力/跳跃/攻击全停
+[PASS]|大厅视角变大|正交 6.0（能看见整间房）
+[PASS]|大厅提示界面|LobbyHud 已显示
+[PASS]|选中角色会弹确认框|已选法师，确认框出现
+[PASS]|确认后进入可走动状态|可以走动了
+[PASS]|确认后俯视控制器打开|四方向走路生效
+[PASS]|确认后玩家出现|按选的职业显示
+[PASS]|确认后职业已装上|当前是 法师
+[PASS]|走到门口会被识别|IsNearDoor=True
+[PASS]|出发后离开大厅|
 [PASS]|出发会恢复建房|RoomManager 已恢复
 [PASS]|出发后建出第一间|Room_02
-[PASS]|出发后战斗恢复|攻击与技能已恢复
+[PASS]|出发后横板控制器与战斗恢复|重力/跳跃/攻击回来了
+[PASS]|出发后视角还原|正交 5.0
 [SUMMARY] 失败 | 0
-[SUMMARY] 通过 | 22
+[SUMMARY] 通过 | 32

@@ -1,49 +1,47 @@
 using UnityEngine;
 
 /// <summary>
-/// 大厅里的一个「角色台」：台子上站着一个职业，走近就能选。
+/// 大厅里站在暗处的「角色立牌」：一个职业一个人，鼠标点它就算选中。
 ///
-/// 只放数据与零件引用，判定和动画都在 <see cref="LobbyRoom"/> 里做 ——
-/// 台子多了以后，逻辑集中一处更好改。
+/// 只放数据与零件引用，判定（鼠标点没点到）和流程（确认后才给走）都在 <see cref="LobbyRoom"/> 里。
 /// </summary>
 public class LobbyPedestal : MonoBehaviour
 {
-    [Tooltip("这个台子代表哪个职业")]
+    [Tooltip("这个立牌代表哪个职业")]
     public ClassData classData;
 
-    [Tooltip("台子上站着的那个人（显示用，不参与战斗）")]
+    [Tooltip("站在那里的那个人（显示用，不参与战斗）")]
     public SpriteRenderer portrait;
 
-    [Tooltip("台座本身，走近时会被顶起来一点")]
-    public SpriteRenderer stand;
-
-    [Tooltip("选中时亮起来的光圈，可以是空的")]
+    [Tooltip("鼠标移上去 / 选中时亮起来的地面光圈")]
     public SpriteRenderer glow;
 
-    [Tooltip("走近时台座抬多高")]
-    public float raiseHeight = 0.12f;
+    public Color glowIdle = new Color(1f, 0.86f, 0.35f, 0.10f);
+    public Color glowHover = new Color(1f, 0.88f, 0.42f, 0.55f);
+    public Color glowChosen = new Color(0.55f, 0.95f, 0.65f, 0.65f);
 
-    [Header("颜色")]
-    public Color standIdle = new Color(0.24f, 0.27f, 0.34f, 1f);
-    public Color standFocus = new Color(0.36f, 0.42f, 0.55f, 1f);
-    public Color standChosen = new Color(0.42f, 0.36f, 0.16f, 1f);
+    [Tooltip("被点中时放大到多少（给个「被拿起来」的手感）")]
+    public float hoverScale = 1.06f;
 
-    [Tooltip("台子上那个人的待机图（会做很慢的呼吸）")]
+    [Tooltip("待机用的帧（会做很慢的呼吸），可以只放一张")]
     public Sprite[] idleFrames;
 
     private float _idleTimer;
-    private int _idleIndex;
-    private Vector3 _standBasePosition;
+    private float _currentScale = 1f;
+    private Vector3 _baseScale = Vector3.one;
 
-    public string DisplayName => classData != null && !string.IsNullOrEmpty(classData.className) ? classData.className : "未知职业";
+    public string DisplayName =>
+        classData != null && !string.IsNullOrEmpty(classData.className) ? classData.className : "未知职业";
+
+    public bool IsPicked => classData != null;
 
     private void Awake()
     {
-        if (stand != null) _standBasePosition = stand.transform.localPosition;
+        _baseScale = transform.localScale;
         if (portrait == null) portrait = GetComponentInChildren<SpriteRenderer>();
     }
 
-    /// <summary>每帧由大厅调用：跟着时间轻轻上下呼吸</summary>
+    /// <summary>每帧由大厅调用：慢慢换帧，站着也有点气</summary>
     public void Breathe(float deltaTime)
     {
         if (portrait == null) return;
@@ -51,24 +49,30 @@ public class LobbyPedestal : MonoBehaviour
         if (idleFrames != null && idleFrames.Length > 1)
         {
             _idleTimer += deltaTime;
-            _idleIndex = Mathf.FloorToInt(_idleTimer / 0.62f) % idleFrames.Length;
-            Sprite frame = idleFrames[_idleIndex];
+            int index = Mathf.FloorToInt(_idleTimer / 0.62f) % idleFrames.Length;
+            Sprite frame = idleFrames[index];
             if (frame != null && portrait.sprite != frame) portrait.sprite = frame;
         }
     }
 
-    /// <summary>三种状态：远处 / 走近 / 已经被选中</summary>
-    public void SetState(bool focused, bool chosen)
+    /// <summary>三种状态：暗着待命 / 鼠标移上去 / 已选中</summary>
+    public void SetState(bool hovered, bool chosen)
     {
-        if (stand != null)
+        if (glow != null)
         {
-            stand.color = chosen ? standChosen : focused ? standFocus : standIdle;
-
-            Vector3 p = _standBasePosition;
-            if (focused) p.y += raiseHeight;
-            stand.transform.localPosition = Vector3.Lerp(stand.transform.localPosition, p, 0.35f);
+            Color target = chosen ? glowChosen : hovered ? glowHover : glowIdle;
+            glow.color = Color.Lerp(glow.color, target, 0.25f);
         }
 
-        if (glow != null) glow.enabled = focused || chosen;
+        float targetScale = hovered || chosen ? hoverScale : 1f;
+        _currentScale = Mathf.Lerp(_currentScale, targetScale, 0.2f);
+        transform.localScale = _baseScale * _currentScale;
+    }
+
+    /// <summary>鼠标点在没点上：用「脚底位置」判断，别用贴图包围盒</summary>
+    public bool HitTest(Vector2 worldPoint, float radius)
+    {
+        Vector2 feet = transform.position;
+        return Vector2.Distance(worldPoint, feet) <= radius;
     }
 }

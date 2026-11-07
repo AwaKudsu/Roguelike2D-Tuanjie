@@ -11,11 +11,11 @@ using UnityEngine.UI;
 namespace Tuanjie.PortCheck
 {
     /// <summary>
-    /// 验「元气骑士式大厅」：场景里那间房搭齐了没有、进大厅会不会真的把玩家挪进去、
-    /// 走近台子能不能选职业、走到门口能不能出发。
+    /// 验「元气骑士式俯视大厅」：房间搭齐没有、进大厅人是不是被藏起来不能动、
+    /// 鼠标选中 + 确认之后能不能走、走到门口会不会出发。
     ///
     /// 批处理下不能按 Play（`EnterPlaymode` 会卡在加载备份场景上），所以这里用反射直接调
-    /// 运行时会跑的那几个方法，等价于「玩家已经在场景里走了两步」。
+    /// 运行时会跑的那几个方法，等价于「玩家已经点完角色、走到门口」。
     /// </summary>
     public static class LobbyRoomCheck
     {
@@ -32,41 +32,53 @@ namespace Tuanjie.PortCheck
             int pass = 0;
 
             EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single);
-            Info(sb => sb.AppendLine("[PASS]|已打开场景|" + ScenePath), ref pass);
+            Lines.Add("[PASS]|已打开场景|" + ScenePath);
+            pass++;
 
             LobbyRoom room = UnityEngine.Object.FindObjectOfType<LobbyRoom>();
-            Check(room != null, "[FAIL]|场景里没有 LobbyRoom|先跑「团结/生成元气骑士式大厅」", "[PASS]|大厅组件|LobbyRoom 在场景里", ref fail, ref pass);
             if (room == null)
             {
-                Finish(fail, pass);
+                Lines.Add("[FAIL]|场景里没有 LobbyRoom|先跑「团结/生成元气骑士式大厅」");
+                Finish(1, pass);
                 return;
             }
 
+            Lines.Add("[PASS]|大厅组件|LobbyRoom 在场景里");
+            pass++;
+
             Check(room.Pedestals != null && room.Pedestals.Count == 2,
-                  "[FAIL]|角色台数量|期望 2 个，实际 " + (room.Pedestals == null ? 0 : room.Pedestals.Count),
-                  "[PASS]|角色台数量|2 个", ref fail, ref pass);
+                  "[FAIL]|角色立牌数量|期望 2 个，实际 " + (room.Pedestals == null ? 0 : room.Pedestals.Count),
+                  "[PASS]|角色立牌数量|2 个", ref fail, ref pass);
 
             for (int i = 0; i < room.Pedestals.Count; i++)
             {
                 LobbyPedestal pedestal = room.Pedestals[i];
-                string tag = "角色台 " + i;
+                string tag = "立牌 " + i;
                 Check(pedestal != null && pedestal.classData != null,
-                      "[FAIL]|" + tag + "|没接职业", "[PASS]|" + tag + "|" + (pedestal != null ? pedestal.DisplayName : "?"),
-                      ref fail, ref pass);
+                      "[FAIL]|" + tag + "|没接职业",
+                      "[PASS]|" + tag + "|" + (pedestal != null ? pedestal.DisplayName : "?"), ref fail, ref pass);
                 Check(pedestal != null && pedestal.portrait != null && pedestal.portrait.sprite != null,
-                      "[FAIL]|" + tag + " 立绘|没有贴图（台子上会是空的）",
+                      "[FAIL]|" + tag + " 立绘|没有贴图",
                       "[PASS]|" + tag + " 立绘|" + (pedestal != null && pedestal.portrait != null ? pedestal.portrait.sprite.name : "?"),
                       ref fail, ref pass);
             }
 
-            // 场地：地板要有碰撞，否则玩家会掉下去
-            GameObject floor = GameObject.Find("LobbyRoom/Shell/Floor_1");
+            GameObject floor = GameObject.Find("LobbyRoom/Shell/Floor");
             BoxCollider2D floorCollider = floor != null ? floor.GetComponent<BoxCollider2D>() : null;
             Check(floorCollider != null && floor.layer == LayerMask.NameToLayer("Ground"),
-                  "[FAIL]|地板碰撞|Floor_1 缺 BoxCollider2D 或不在 Ground 层",
-                  "[PASS]|地板碰撞|Floor_1 在 Ground 层，带 BoxCollider2D", ref fail, ref pass);
+                  "[FAIL]|地板碰撞|Floor 缺 BoxCollider2D 或不在 Ground 层",
+                  "[PASS]|地板碰撞|Floor 在 Ground 层，带 BoxCollider2D", ref fail, ref pass);
 
-            // RoomManager 得能"停"和"从大厅开局"
+            int wallCount = 0;
+            foreach (string wall in new[] { "Wall_Top", "Wall_Bottom", "Wall_Left", "Wall_Right" })
+            {
+                GameObject go = GameObject.Find("LobbyRoom/Shell/" + wall);
+                if (go != null && go.GetComponent<BoxCollider2D>() != null) wallCount++;
+            }
+
+            Check(wallCount == 4, "[FAIL]|四面墙|只有 " + wallCount + " 面带碰撞",
+                  "[PASS]|四面墙|4 面都在，带碰撞", ref fail, ref pass);
+
             RoomManager rooms = UnityEngine.Object.FindObjectOfType<RoomManager>();
             MethodInfo suspend = typeof(RoomManager).GetMethod("SuspendForLobby", BindingFlags.Instance | BindingFlags.Public);
             MethodInfo startRun = typeof(RoomManager).GetMethod("StartRunFromLobby", BindingFlags.Instance | BindingFlags.Public);
@@ -74,28 +86,38 @@ namespace Tuanjie.PortCheck
                   "[FAIL]|RoomManager 大厅接口|缺 SuspendForLobby / StartRunFromLobby",
                   "[PASS]|RoomManager 大厅接口|SuspendForLobby / StartRunFromLobby 都在", ref fail, ref pass);
 
-            // GameBootstrap 拿到的类型要对
             PropertyInfo lobbyProperty = typeof(GameBootstrap).GetProperty("Lobby", BindingFlags.Static | BindingFlags.Public);
             Check(lobbyProperty != null && lobbyProperty.PropertyType == typeof(LobbyRoom),
                   "[FAIL]|启动入口类型|GameBootstrap.Lobby 不是 LobbyRoom",
                   "[PASS]|启动入口类型|GameBootstrap.Lobby 是 LobbyRoom", ref fail, ref pass);
 
-            // ---- 真跑一遍：进大厅 → 选职业 → 出发
+            Check(typeof(LobbyAvatar) != null && typeof(LobbyRoom).GetMethod("Pick") != null,
+                  "[FAIL]|俯视走路组件|缺 LobbyAvatar 或 Pick()",
+                  "[PASS]|俯视走路组件|LobbyAvatar + Pick/ConfirmPick 都在", ref fail, ref pass);
+
             GameObject player = GameObject.FindGameObjectWithTag("Player");
-            Check(player != null, "[FAIL]|找不到玩家|场景里没有 Tag=Player 的物体", "[PASS]|玩家|找到 Player", ref fail, ref pass);
-            if (player == null || rooms == null)
+            if (player == null)
             {
-                Finish(fail, pass);
+                Lines.Add("[FAIL]|找不到玩家|场景里没有 Tag=Player 的物体");
+                Finish(fail + 1, pass);
                 return;
             }
 
+            Lines.Add("[PASS]|玩家|找到 Player");
+            pass++;
+
             Vector3 playerOrigin = player.transform.position;
-            RoomManager roomManager = rooms;
             bool attackerWasOn = false;
             bool casterWasOn = false;
+            bool controllerWasOn = false;
+            float cameraBefore = 0f;
+
             PlayerAttacker attacker = player.GetComponent<PlayerAttacker>();
             SkillCaster caster = player.GetComponent<SkillCaster>();
+            PlayerController controller = player.GetComponent<PlayerController>();
             PlayerVisualSwitcher switcher = player.GetComponent<PlayerVisualSwitcher>();
+            SpriteRenderer sprite = player.GetComponent<SpriteRenderer>();
+            Camera camera = Camera.main;
 
             try
             {
@@ -104,75 +126,114 @@ namespace Tuanjie.PortCheck
 
                 if (attacker != null) attackerWasOn = attacker.enabled;
                 if (caster != null) casterWasOn = caster.enabled;
+                if (controller != null) controllerWasOn = controller.enabled;
+                if (camera != null) cameraBefore = camera.orthographicSize;
 
                 room.Enter();
 
+                Check(room.IsSelecting, "[FAIL]|进大厅是「选人」状态|" + room.IsInside,
+                      "[PASS]|进大厅是「选人」状态|等待鼠标点角色", ref fail, ref pass);
+
                 bool suspended = (bool)(typeof(RoomManager)
                     .GetField("_suspended", BindingFlags.Instance | BindingFlags.NonPublic)
-                    ?.GetValue(roomManager) ?? false);
-                Check(suspended, "[FAIL]|进大厅会停建房|RoomManager 还在建房", "[PASS]|进大厅会停建房|RoomManager 已待命", ref fail, ref pass);
+                    ?.GetValue(rooms) ?? false);
+                Check(suspended, "[FAIL]|进大厅会停建房|RoomManager 还在建房",
+                      "[PASS]|进大厅会停建房|RoomManager 已待命", ref fail, ref pass);
 
                 float toSpawn = Vector2.Distance(player.transform.position,
                     GameObject.Find("LobbyRoom/SpawnPoint").transform.position);
-                Check(toSpawn < 1.5f, "[FAIL]|玩家被挪进大厅|离出生点 " + toSpawn.ToString("0.00"),
-                      "[PASS]|玩家被挪进大厅|离出生点 " + toSpawn.ToString("0.00"), ref fail, ref pass);
+                Check(toSpawn < 1.5f, "[FAIL]|玩家被放进暗房间|离出生点 " + toSpawn.ToString("0.00"),
+                      "[PASS]|玩家被放进暗房间|离出生点 " + toSpawn.ToString("0.00"), ref fail, ref pass);
 
-                Check(attacker != null && !attacker.enabled && caster != null && !caster.enabled,
-                      "[FAIL]|大厅里不开火|攻击/技能还开着", "[PASS]|大厅里不开火|攻击与技能已停", ref fail, ref pass);
+                Check(sprite != null && !sprite.enabled,
+                      "[FAIL]|确认前玩家不露面|人物已经画出来了", "[PASS]|确认前玩家不露面|还没选人，人物是隐藏的", ref fail, ref pass);
+
+                LobbyAvatar avatar = player.GetComponent<LobbyAvatar>();
+                Check(avatar != null && !avatar.IsActive,
+                      "[FAIL]|确认前不能动|俯视控制器已经开了", "[PASS]|确认前不能动|俯视控制器没开", ref fail, ref pass);
+
+                Check(controller != null && !controller.enabled && attacker != null && !attacker.enabled,
+                      "[FAIL]|大厅里横板控制器与战斗都关着|还有组件开着",
+                      "[PASS]|大厅里横板控制器与战斗都关着|重力/跳跃/攻击全停", ref fail, ref pass);
+
+                Check(camera != null && Mathf.Abs(camera.orthographicSize - 6f) < 0.01f,
+                      "[FAIL]|大厅视角变大|正交 " + (camera != null ? camera.orthographicSize.ToString("0.0") : "?"),
+                      "[PASS]|大厅视角变大|正交 6.0（能看见整间房）", ref fail, ref pass);
 
                 Transform hud = room.transform.Find("LobbyHud");
                 Check(hud != null && hud.gameObject.activeSelf,
-                      "[FAIL]|大厅提示文字|没搭出 LobbyHud", "[PASS]|大厅提示文字|LobbyHud 已显示", ref fail, ref pass);
+                      "[FAIL]|大厅提示界面|没搭出 LobbyHud", "[PASS]|大厅提示界面|LobbyHud 已显示", ref fail, ref pass);
 
-                // 走近第二个台子（法师）
-                player.transform.position = room.Pedestals[1].transform.position;
-                InvokePrivate(room, "Update");
-                Check(room.FocusIndex == 1, "[FAIL]|走近台子会被识别|FocusIndex=" + room.FocusIndex,
-                      "[PASS]|走近台子会被识别|FocusIndex=1（法师台）", ref fail, ref pass);
+                // 鼠标选中（自检里直接调 Pick，等价于点中第二个人）
+                room.Pick(1);
+                Transform panel = room.transform.Find("LobbyHud/ConfirmPanel");
+                Check(room.PickedIndex == 1 && panel != null && panel.gameObject.activeSelf,
+                      "[FAIL]|选中角色会弹确认框|PickedIndex=" + room.PickedIndex,
+                      "[PASS]|选中角色会弹确认框|已选法师，确认框出现", ref fail, ref pass);
 
-                room.Select(1);
-                Check(room.HasChosen, "[FAIL]|按 E 能选职业|HasChosen=False", "[PASS]|按 E 能选职业|已选 " + (switcher != null ? switcher.CurrentClassName : "?"),
-                      ref fail, ref pass);
+                room.ConfirmPick();
+                Check(room.IsConfirmed, "[FAIL]|确认后进入可走动状态|仍是选人",
+                      "[PASS]|确认后进入可走动状态|可以走动了", ref fail, ref pass);
 
-                if (switcher != null)
-                {
-                    Check(switcher.CurrentClassName != null && switcher.CurrentClassName.Contains("法"),
-                          "[FAIL]|选了法师就换人|当前是 " + switcher.CurrentClassName,
-                          "[PASS]|选了法师就换人|当前是 " + switcher.CurrentClassName, ref fail, ref pass);
-                }
+                Check(avatar != null && avatar.IsActive, "[FAIL]|确认后俯视控制器打开|没打开",
+                      "[PASS]|确认后俯视控制器打开|四方向走路生效", ref fail, ref pass);
 
-                // 走到门口出发
+                Check(sprite != null && sprite.enabled, "[FAIL]|确认后玩家出现|人物还是隐藏的",
+                      "[PASS]|确认后玩家出现|按选的职业显示", ref fail, ref pass);
+
+                Check(switcher != null && switcher.CurrentClassName != null && switcher.CurrentClassName.Contains("法"),
+                      "[FAIL]|确认后职业已装上|当前是 " + (switcher != null ? switcher.CurrentClassName : "?"),
+                      "[PASS]|确认后职业已装上|当前是 " + (switcher != null ? switcher.CurrentClassName : "?"), ref fail, ref pass);
+
+                // 走到门口
                 Transform portal = GameObject.Find("LobbyRoom/Portal").transform;
                 player.transform.position = portal.position;
                 InvokePrivate(room, "Update");
-                Check(room.PortalFocused, "[FAIL]|走到门口会被识别|PortalFocused=False",
-                      "[PASS]|走到门口会被识别|PortalFocused=True", ref fail, ref pass);
+                Check(room.IsNearDoor, "[FAIL]|走到门口会被识别|IsNearDoor=False",
+                      "[PASS]|走到门口会被识别|IsNearDoor=True", ref fail, ref pass);
 
                 room.Leave();
 
+                Check(!room.IsInside, "[FAIL]|出发后离开大厅|IsInside 仍为 True",
+                      "[PASS]|出发后离开大厅|", ref fail, ref pass);
+
                 bool stillSuspended = (bool)(typeof(RoomManager)
                     .GetField("_suspended", BindingFlags.Instance | BindingFlags.NonPublic)
-                    ?.GetValue(roomManager) ?? true);
+                    ?.GetValue(rooms) ?? true);
                 Check(!stillSuspended, "[FAIL]|出发会恢复建房|RoomManager 还在停着",
                       "[PASS]|出发会恢复建房|RoomManager 已恢复", ref fail, ref pass);
 
-                Check(roomManager.CurrentRoom != null, "[FAIL]|出发后建出第一间|CurrentRoom 为空",
-                      "[PASS]|出发后建出第一间|" + (roomManager.CurrentRoom != null ? roomManager.CurrentRoom.name : "?"), ref fail, ref pass);
+                Check(rooms.CurrentRoom != null, "[FAIL]|出发后建出第一间|CurrentRoom 为空",
+                      "[PASS]|出发后建出第一间|" + (rooms.CurrentRoom != null ? rooms.CurrentRoom.name : "?"), ref fail, ref pass);
 
-                Check(attacker != null && attacker.enabled && caster != null && caster.enabled,
-                      "[FAIL]|出发后战斗恢复|攻击/技能还停着", "[PASS]|出发后战斗恢复|攻击与技能已恢复", ref fail, ref pass);
+                Check(controller != null && controller.enabled && attacker != null && attacker.enabled && caster != null && caster.enabled,
+                      "[FAIL]|出发后横板控制器与战斗恢复|还有组件停着",
+                      "[PASS]|出发后横板控制器与战斗恢复|重力/跳跃/攻击回来了", ref fail, ref pass);
+
+                Check(camera != null && Mathf.Abs(camera.orthographicSize - cameraBefore) < 0.01f,
+                      "[FAIL]|出发后视角还原|" + (camera != null ? camera.orthographicSize.ToString("0.0") : "?"),
+                      "[PASS]|出发后视角还原|正交 " + (camera != null ? camera.orthographicSize.ToString("0.0") : "?"), ref fail, ref pass);
             }
             catch (Exception e)
             {
-                Lines.Add("[FAIL]|大厅流程抛异常|" + e.GetType().Name + ": " + e.Message);
+                Exception inner = e is TargetInvocationException && e.InnerException != null ? e.InnerException : e;
+                Lines.Add("[FAIL]|大厅流程抛异常|" + inner.GetType().Name + ": " + inner.Message);
                 fail++;
             }
             finally
             {
-                // 还原现场：玩家位置、组件开关、房间、静态标记，一律不留痕
                 player.transform.position = playerOrigin;
                 if (attacker != null) attacker.enabled = attackerWasOn;
                 if (caster != null) caster.enabled = casterWasOn;
+                if (controller != null) controller.enabled = controllerWasOn;
+                if (sprite != null) sprite.enabled = true;
+                if (camera != null && cameraBefore > 0.1f) camera.orthographicSize = cameraBefore;
+
+                LobbyAvatar avatar = player.GetComponent<LobbyAvatar>();
+                if (avatar != null) avatar.SetActive(false);
+
+                Rigidbody2D body = player.GetComponent<Rigidbody2D>();
+                if (body != null) body.gravityScale = 1f;
 
                 rooms.SuspendForLobby();
                 GameBootstrap.ShowLobbyOnStart = true;
@@ -198,14 +259,6 @@ namespace Tuanjie.PortCheck
                 Lines.Add(failLine);
                 fail++;
             }
-        }
-
-        private static void Info(Action<StringBuilder> write, ref int pass)
-        {
-            var sb = new StringBuilder();
-            write(sb);
-            Lines.Add(sb.ToString().TrimEnd());
-            pass++;
         }
 
         /// <summary>
