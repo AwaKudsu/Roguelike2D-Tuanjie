@@ -1,0 +1,55 @@
+%YAML 1.1
+%TAG !u! tag:yousandi.cn,2023:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 83d985721c7f2114c89426c6a47067ad, type: 3}
+  m_Name: Skill_ArrowRain
+  m_EditorClassIdentifier: Assembly-CSharp::SkillData
+  skillId: archer_arrow_rain
+  displayName: "\u7BAD\u96E8"
+  icon: {fileID: 21300000, guid: f1011658b29852642b5dab2cbcbbd21e, type: 3}
+  description: "\u5728\u8EAB\u524D\u533A\u57DF\u53EC\u5524 9 \u652F\u7BAD\u4F9D\u6B21\u843D\u4E0B\uFF0C\u6301\u7EED 1.2 \u79D2\uFF1B\u9002\u5408\u5C01\u8D70\u4F4D\u3001\u6E05\u5C0F\u602A"
+  manaCost: 25
+  cooldown: 12
+  castType: 4
+  attack: {fileID: 11400000, guid: af5d6728741999d418292b6faa42b92c, type: 2}
+  duration: 0
+  tickInterval: 0.22
+  fearDuration: 3.5
+  fearRadius: 12
+  ringDuration: 0.45
+  ringSprite: {fileID: 21300000, guid: 1acd2637401963545b4ec9ab102cdf24, type: 3}
+  swordSprite: {fileID: 0}
+  auraSprite: {fileID: 0}
+  rainDistance: 5
+  rainRadius: 4
+  rainCount: 9
+  rainDuration: 1.2
+  rainHeight: 8
+  rainFallSpeed: 17
+  buffDuration: 6
+  buffAttackSpeed: 0.35
+  buffCritChance: 0.15
+  buffMoveSpeed: 0
+  projectilePrefab: {fileID: 746189112167610233, guid: ea538a49d2cfc224895ad3ded7151526, type: 3}
+  projectileCount: 1
+  spreadAngle: 10
+  chargeable: 0
+  chargeTime: 1.1
+  chargeMinScale: 0.7
+  chargeMaxScale: 2.2
+  chargeMaxSpeedBonus: 1.9
+  chargeMaxDamageBonus: 2
+  healAmount: 6
+  healDuration: 2.4
+  healTickInterval: 0.3
+  circleSprite: {fileID: 0}
+  circleDiameter: 3.2
+  healColor: {r: 0.45, g: 1, b: 0.55, a: 1}

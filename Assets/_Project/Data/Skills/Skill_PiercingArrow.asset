@@ -1,0 +1,55 @@
+%YAML 1.1
+%TAG !u! tag:yousandi.cn,2023:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 83d985721c7f2114c89426c6a47067ad, type: 3}
+  m_Name: Skill_PiercingArrow
+  m_EditorClassIdentifier: Assembly-CSharp::SkillData
+  skillId: archer_piercing_arrow
+  displayName: "\u7A7F\u900F\u7BAD"
+  icon: {fileID: 21300000, guid: 4b60450d2e80e8e44801fb48987a489d, type: 3}
+  description: "\u84C4\u529B\u5C04\u51FA\u4E00\u652F\u8D2F\u7A7F\u7BAD\uFF0C\u6700\u591A\u7A7F\u900F 4 \u4E2A\u654C\u4EBA\uFF0C\u9020\u6210 220% \u653B\u51FB\u529B\u4F24\u5BB3"
+  manaCost: 18
+  cooldown: 8
+  castType: 1
+  attack: {fileID: 11400000, guid: dcfb8ccbc0026f94b8c568ae2c4e8154, type: 2}
+  duration: 0
+  tickInterval: 0.22
+  fearDuration: 3.5
+  fearRadius: 12
+  ringDuration: 0.45
+  ringSprite: {fileID: 0}
+  swordSprite: {fileID: 0}
+  auraSprite: {fileID: 0}
+  rainDistance: 5
+  rainRadius: 4
+  rainCount: 9
+  rainDuration: 1.2
+  rainHeight: 8
+  rainFallSpeed: 17
+  buffDuration: 6
+  buffAttackSpeed: 0.35
+  buffCritChance: 0.15
+  buffMoveSpeed: 0
+  projectilePrefab: {fileID: 746189112167610233, guid: 46acc0d185bc2f24c83d2f09c08e2263, type: 3}
+  projectileCount: 1
+  spreadAngle: 0
+  chargeable: 0
+  chargeTime: 1.1
+  chargeMinScale: 0.7
+  chargeMaxScale: 2.2
+  chargeMaxSpeedBonus: 1.9
+  chargeMaxDamageBonus: 2
+  healAmount: 6
+  healDuration: 2.4
+  healTickInterval: 0.3
+  circleSprite: {fileID: 0}
+  circleDiameter: 3.2
+  healColor: {r: 0.45, g: 1, b: 0.55, a: 1}

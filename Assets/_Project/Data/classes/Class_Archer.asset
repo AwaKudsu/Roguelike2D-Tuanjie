@@ -1,0 +1,36 @@
+%YAML 1.1
+%TAG !u! tag:yousandi.cn,2023:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7cec368ec76244144a4ce3189eb6d4c8, type: 3}
+  m_Name: Class_Archer
+  m_EditorClassIdentifier: Assembly-CSharp::ClassData
+  className: "\u5C04\u624B"
+  icon: {fileID: 21300000, guid: 66232b0f027429043bc345873764178a, type: 3}
+  description: "\u8FDC\u7A0B\u8F93\u51FA\uFF0C\u9760\u8D70\u4F4D\u548C\u7BAD\u96E8\u63A7\u573A\u3002\u8840\u8584\u3001\u6015\u8D34\u8138\uFF0C\u4F46\u80FD\u628A\u6574\u6761\u8D70\u5ECA\u53D8\u6210\u81EA\u5DF1\u7684\u5C04\u7A0B\u3002"
+  lobbyFront: {fileID: 21300000, guid: 3cc98eb39d459394fa11541c6415e4ef, type: 3}
+  lobbyBack: {fileID: 0}
+  lobbySide: {fileID: 0}
+  maxHealth: 95
+  attack: 11
+  moveSpeed: 8.5
+  attackSpeed: 1.15
+  critChance: 0.1
+  critMultiplier: 1.6
+  defense: 0.03
+  cooldownRate: 0
+  maxMana: 80
+  manaRegen: 7
+  basicAttack: {fileID: 11400000, guid: dcaf8c8a2a1606e4abdd22acc5b82c8f, type: 2}
+  startingSkills:
+  - {fileID: 11400000, guid: 79295a4b81da4254694f3cf8b9e7b21d, type: 2}
+  - {fileID: 11400000, guid: 645476992794c5345a34e012b5e8a84d, type: 2}
+  - {fileID: 11400000, guid: 151444d4fcbca224cbaa9b05dd1e8cc7, type: 2}
+  - {fileID: 11400000, guid: 7a114ae563a68e94da8bfae533a3f798, type: 2}

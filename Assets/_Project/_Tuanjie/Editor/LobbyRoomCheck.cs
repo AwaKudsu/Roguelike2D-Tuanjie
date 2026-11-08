@@ -46,9 +46,10 @@ namespace Tuanjie.PortCheck
             Lines.Add("[PASS]|大厅组件|LobbyRoom 在场景里");
             pass++;
 
-            Check(room.Pedestals != null && room.Pedestals.Count == 2,
-                  "[FAIL]|角色立牌数量|期望 2 个，实际 " + (room.Pedestals == null ? 0 : room.Pedestals.Count),
-                  "[PASS]|角色立牌数量|2 个", ref fail, ref pass);
+            Check(room.Pedestals != null && room.Pedestals.Count >= 3,
+                  "[FAIL]|角色立牌数量|期望至少 3 个（战士 / 法师 / 射手），实际 " +
+                  (room.Pedestals == null ? 0 : room.Pedestals.Count),
+                  "[PASS]|角色立牌数量|" + (room.Pedestals == null ? 0 : room.Pedestals.Count) + " 个", ref fail, ref pass);
 
             for (int i = 0; i < room.Pedestals.Count; i++)
             {
@@ -62,6 +63,11 @@ namespace Tuanjie.PortCheck
                       "[PASS]|" + tag + " 立绘|" + (pedestal != null && pedestal.portrait != null ? pedestal.portrait.sprite.name : "?"),
                       ref fail, ref pass);
             }
+
+            // 三个职业都要能选：射手是新加的那个，少它就等于大厅没得选
+            Check(FindPedestalIndex(room, "射") >= 0,
+                  "[FAIL]|射手立牌|大厅里没有射手职业的立牌（选人界面缺一个职业）",
+                  "[PASS]|射手立牌|射手在大厅里可选", ref fail, ref pass);
 
             GameObject floor = GameObject.Find("LobbyRoom/Shell/Floor");
             BoxCollider2D floorCollider = floor != null ? floor.GetComponent<BoxCollider2D>() : null;
@@ -237,9 +243,14 @@ namespace Tuanjie.PortCheck
                       "[FAIL]|大厅提示界面|没搭出 LobbyHud", "[PASS]|大厅提示界面|LobbyHud 已显示", ref fail, ref pass);
 
                 // 鼠标选中（自检里直接调 Pick，等价于点中第二个人）
-                room.Pick(1);
+                // 挑法师那尊台子来验「点选 → 确认」：顺序随时会变（现在是大厅里三尊台），
+                // 所以按职业名找下标，不写死 1
+                int mageIndex = FindPedestalIndex(room, "法");
+                if (mageIndex < 0) mageIndex = 0;
+
+                room.Pick(mageIndex);
                 Transform panel = room.transform.Find("LobbyHud/ConfirmPanel");
-                Check(room.PickedIndex == 1 && panel != null && panel.gameObject.activeSelf,
+                Check(room.PickedIndex == mageIndex && panel != null && panel.gameObject.activeSelf,
                       "[FAIL]|选中角色会弹确认框|PickedIndex=" + room.PickedIndex,
                       "[PASS]|选中角色会弹确认框|已选法师，确认框出现", ref fail, ref pass);
 
@@ -258,7 +269,7 @@ namespace Tuanjie.PortCheck
                       "[PASS]|确认后职业已装上|当前是 " + (switcher != null ? switcher.CurrentClassName : "?"), ref fail, ref pass);
 
                 // 确认 = 台上那尊雕像「活过来」：玩家挪到它脚下，它的立绘收起来
-                LobbyPedestal picked = room.Pedestals[1];
+                LobbyPedestal picked = room.Pedestals[mageIndex];
                 float toPick = Vector2.Distance(player.transform.position, picked.transform.position);
                 Check(toPick < 0.5f, "[FAIL]|玩家站在选中的台子上|离台子 " + toPick.ToString("0.00"),
                       "[PASS]|玩家站在选中的台子上|离台子 " + toPick.ToString("0.00"), ref fail, ref pass);
@@ -267,7 +278,7 @@ namespace Tuanjie.PortCheck
                       "[FAIL]|选中的人变成玩家了|台上还站着一个，会看到两个",
                       "[PASS]|选中的人变成玩家了|立牌收起、玩家接管", ref fail, ref pass);
 
-                LobbyPedestal other = room.Pedestals[0];
+                LobbyPedestal other = room.Pedestals[mageIndex == 0 ? room.Pedestals.Count - 1 : 0];
                 Check(other != null && other.portrait != null && other.portrait.enabled,
                       "[FAIL]|没被选的人还站着|另一个立牌的立绘被藏了",
                       "[PASS]|没被选的人还站着|另一个立牌没动", ref fail, ref pass);
@@ -361,6 +372,26 @@ namespace Tuanjie.PortCheck
                 Lines.Add(failLine);
                 fail++;
             }
+        }
+
+        /// <summary>
+        /// 按职业名里的关键字找立牌下标（"射" → 射手、"法" → 法师）。
+        /// 立牌顺序会随大厅扩展变，所以自检按名字找，不写死下标。
+        /// </summary>
+        private static int FindPedestalIndex(LobbyRoom room, string keyword)
+        {
+            if (room == null || room.Pedestals == null) return -1;
+
+            for (int i = 0; i < room.Pedestals.Count; i++)
+            {
+                LobbyPedestal pedestal = room.Pedestals[i];
+                if (pedestal == null || pedestal.classData == null) continue;
+
+                string name = pedestal.classData.className;
+                if (!string.IsNullOrEmpty(name) && name.Contains(keyword)) return i;
+            }
+
+            return -1;
         }
 
         /// <summary>

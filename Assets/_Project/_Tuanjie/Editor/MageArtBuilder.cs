@@ -99,7 +99,7 @@ namespace Tuanjie.PortCheck
                 : "[WARN] 蓄力预览 | 没有 Mage_Fireball，蓄力时看不到球");
             mageSo.ApplyModifiedPropertiesWithoutUndo();
 
-            // 切换器：两套动画 + 两个职业
+            // 切换器：几套动画 + 几个职业
             var switcher = player.GetComponent<PlayerVisualSwitcher>();
             if (switcher == null) switcher = player.AddComponent<PlayerVisualSwitcher>();
             sb.AppendLine(switcher != null ? "[PASS] 挂上组件 | PlayerVisualSwitcher" : "[FAIL] 挂不上 PlayerVisualSwitcher");
@@ -113,20 +113,25 @@ namespace Tuanjie.PortCheck
 
             ClassData warriorClass = AssetDatabase.LoadAssetAtPath<ClassData>(ClassesDir + "/Class_Warrior.asset");
             ClassData mageClass = AssetDatabase.LoadAssetAtPath<ClassData>(ClassesDir + "/Class_Mage.asset");
+            ClassData archerClass = AssetDatabase.LoadAssetAtPath<ClassData>(ClassesDir + "/Class_Archer.asset");
 
+            // 职业表按「战士 / 法师 / 射手」写。射手只是**追加**：没有射手资产就写两个，
+            // 但绝不能把已有列表整个覆盖成两项 —— 否则重跑一次本菜单就把射手从选人表里删掉了
             SerializedProperty classList = switcherSo.FindProperty("classes");
             if (classList != null)
             {
-                classList.arraySize = 2;
+                classList.arraySize = archerClass != null ? 3 : 2;
                 classList.GetArrayElementAtIndex(0).objectReferenceValue = warriorClass;
                 classList.GetArrayElementAtIndex(1).objectReferenceValue = mageClass;
+                if (archerClass != null) classList.GetArrayElementAtIndex(2).objectReferenceValue = archerClass;
             }
 
             SerializedProperty startIndex = switcherSo.FindProperty("currentIndex");
             if (startIndex != null) startIndex.intValue = stats != null && stats.Class == mageClass ? 1 : 0;
             switcherSo.ApplyModifiedPropertiesWithoutUndo();
 
-            sb.AppendLine($"[PASS] 职业表 | 战士 {(warriorClass != null ? "有" : "缺")} / 法师 {(mageClass != null ? "有" : "缺")}");
+            sb.AppendLine($"[PASS] 职业表 | 战士 {(warriorClass != null ? "有" : "缺")} / 法师 {(mageClass != null ? "有" : "缺")}" +
+                          (archerClass != null ? " / 射手 有" : "（没有射手资产，职业表保持两个）"));
             if (warriorClass == null || mageClass == null) fail++;
 
             // ---------- ③ 技能资产 ----------

@@ -1,0 +1,55 @@
+%YAML 1.1
+%TAG !u! tag:yousandi.cn,2023:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 83d985721c7f2114c89426c6a47067ad, type: 3}
+  m_Name: Skill_HunterFocus
+  m_EditorClassIdentifier: Assembly-CSharp::SkillData
+  skillId: archer_hunter_focus
+  displayName: "\u730E\u4EBA\u4E13\u6CE8"
+  icon: {fileID: 21300000, guid: 79957f6b535d0a34ba7cf33944aa4985, type: 3}
+  description: "6 \u79D2\u5185\u653B\u901F +35%\u3001\u66B4\u51FB\u7387 +15%\uFF1B\u6309\u4E0B\u53BB\u5C31\u8981\u51C6\u5907\u597D\u628A\u8F93\u51FA\u6253\u6EE1"
+  manaCost: 20
+  cooldown: 14
+  castType: 5
+  attack: {fileID: 0}
+  duration: 0
+  tickInterval: 0.22
+  fearDuration: 3.5
+  fearRadius: 12
+  ringDuration: 0.45
+  ringSprite: {fileID: 21300000, guid: 1acd2637401963545b4ec9ab102cdf24, type: 3}
+  swordSprite: {fileID: 0}
+  auraSprite: {fileID: 0}
+  rainDistance: 5
+  rainRadius: 4
+  rainCount: 9
+  rainDuration: 1.2
+  rainHeight: 8
+  rainFallSpeed: 17
+  buffDuration: 6
+  buffAttackSpeed: 0.35
+  buffCritChance: 0.15
+  buffMoveSpeed: 0
+  projectilePrefab: {fileID: 0}
+  projectileCount: 1
+  spreadAngle: 10
+  chargeable: 0
+  chargeTime: 1.1
+  chargeMinScale: 0.7
+  chargeMaxScale: 2.2
+  chargeMaxSpeedBonus: 1.9
+  chargeMaxDamageBonus: 2
+  healAmount: 6
+  healDuration: 2.4
+  healTickInterval: 0.3
+  circleSprite: {fileID: 0}
+  circleDiameter: 3.2
+  healColor: {r: 0.45, g: 1, b: 0.55, a: 1}

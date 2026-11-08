@@ -222,8 +222,10 @@ namespace Tuanjie.PortCheck
             Report(slotsOk, slotsOk ? "[PASS] 技能栏跟着换 | 槽 1 变成火球" : "[FAIL] 技能栏没换 | 槽 1 还是 " + slot0);
             Report(visualsOk, visualsOk ? "[PASS] 动画层跟着换 | 法师开、战士关" : "[FAIL] 动画层没换");
 
-            // 换回战士，别把场景留在法师状态
-            switcher.CycleClass();
+            // 换回第一个职业，别把场景留在法师状态。
+            // 职业表现在有三项（战士 / 法师 / 射手），所以不能只转一格 —— 转到回到开头为止
+            int guard = 0;
+            while (switcher.CurrentClassIndex != 0 && guard++ < 8) switcher.CycleClass();
         }
 
         private static void InvokeIfPresent(object target, string method)

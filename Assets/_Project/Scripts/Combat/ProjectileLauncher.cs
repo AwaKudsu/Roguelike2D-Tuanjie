@@ -47,6 +47,31 @@ public static class ProjectileLauncher
         float sizeScale = 1f,
         float speedScale = 1f)
     {
+        return FireDirected(data, prefab, stats, owner, origin, new Vector2(facing, 0f),
+                            count, spreadAngle, damageMultiplier, sizeScale, speedScale);
+    }
+
+    /// <summary>
+    /// 朝任意方向发射（箭雨用：方向是垂直向下）。
+    /// 扇形仍然按「大致朝向」镜像，所以朝左放多重射击不会有一发往回打。
+    /// </summary>
+    /// <param name="speedOverride">覆盖预制体上的速度（箭雨要把箭压慢一点），0 = 用预制体值</param>
+    /// <param name="lifeTimeOverride">覆盖存活时间，0 = 用预制体值</param>
+    public static int FireDirected(
+        AttackData data,
+        GameObject prefab,
+        CharacterStats stats,
+        GameObject owner,
+        Vector2 origin,
+        Vector2 direction,
+        int count = 1,
+        float spreadAngle = 10f,
+        float damageMultiplier = 1f,
+        float sizeScale = 1f,
+        float speedScale = 1f,
+        float speedOverride = 0f,
+        float lifeTimeOverride = 0f)
+    {
         if (data == null)
         {
             Debug.LogWarning("[ProjectileLauncher] AttackData 是空的，什么都没发出去");
@@ -59,6 +84,9 @@ public static class ProjectileLauncher
             return 0;
         }
 
+        Vector2 baseDir = direction.sqrMagnitude > 0.0001f ? direction.normalized : Vector2.right;
+        int facing = baseDir.x < 0f ? -1 : 1;
+
         count = Mathf.Clamp(count, 1, 8);
         int fired = 0;
 
@@ -69,7 +97,7 @@ public static class ProjectileLauncher
             float offsetAngle = count == 1 ? 0f : (i - (count - 1) * 0.5f) * spreadAngle;
             float angle       = offsetAngle * facing;
 
-            Vector2 direction = Quaternion.Euler(0f, 0f, angle) * new Vector2(facing, 0f);
+            Vector2 shotDir = Quaternion.Euler(0f, 0f, angle) * baseDir;
 
             GameObject go = Object.Instantiate(prefab, origin, Quaternion.identity);
 
@@ -88,7 +116,8 @@ public static class ProjectileLauncher
                 damage.Amount *= damageMultiplier;
             }
 
-            projectile.Launch(direction, damage, data.targetLayers, sizeScale, speedScale);
+            projectile.Launch(shotDir, damage, data.targetLayers, sizeScale, speedScale,
+                              speedOverride, lifeTimeOverride);
             fired++;
         }
 

@@ -40,8 +40,17 @@ public class SkillCaster : MonoBehaviour
     private int   _chargeSlot = -1;
     private float _chargeTimer;
 
-    // 当前启用的表现层（战士 / 法师），换职业后会自动换人
+    // 当前启用的表现层（战士 / 法师 / 射手），换职业后会自动换人
     private IPlayerAnim _anim;
+
+    /// <summary>
+    /// 技能真的放出来之后触发（蓝和冷却都结算完了）。
+    ///
+    /// 为什么要这个事件：普通攻击有 <see cref="PlayerAttacker.AttackStarted"/> 通知外观层，
+    /// 但技能走的是另一条路 —— 不补这个事件，射手的拉弓姿势就永远播不出来
+    /// （箭雨、多重射击在视觉上都是「拉弓」，和普通攻击不是同一份数据）。
+    /// </summary>
+    public event System.Action<SkillData> SkillCast;
 
     private void Awake()
     {
@@ -251,6 +260,15 @@ public class SkillCaster : MonoBehaviour
         {
             if (circle != null) circle.FinishNow(settle: true);
         }
+
+        // 箭雨：挂在玩家身上的组件不吃房间销毁，不主动收的话上一间房的箭会落进新房间
+        var rain = GetComponent<ArrowRainCast>();
+        if (rain != null) rain.StopNow();
+
+        // 猎人专注是「持续增益」，换房间按结算处理：剩余时间不用补，
+        // 但修饰符必须立刻撤掉 —— 否则会带着上一间的攻速加成进门。
+        var focus = GetComponent<HunterFocus>();
+        if (focus != null) focus.StopNow();
     }
 
     // ---------------- 查询接口（技能栏 UI 用） ----------------
@@ -350,7 +368,12 @@ public class SkillCaster : MonoBehaviour
             case SkillCastType.Projectile: CastProjectile(skill); break;
             case SkillCastType.Warcry:     CastWarcry(skill);     break;
             case SkillCastType.Heal:       CastHeal(skill);       break;
+            case SkillCastType.ArrowRain:  CastArrowRain(skill);  break;
+            case SkillCastType.Buff:       CastBuff(skill);       break;
         }
+
+        // 表现层最后收到通知：此时蓝和冷却都已经结算，播姿势不会反过来影响逻辑
+        SkillCast?.Invoke(skill);
     }
 
     /// <summary>
@@ -463,6 +486,42 @@ public class SkillCaster : MonoBehaviour
         ResolveAnim()?.PlayCast(Mathf.Min(skill.healDuration, 0.8f));
 
         Log($"{skill.displayName}：{skill.healDuration:0.0} 秒内每 {skill.healTickInterval:0.0} 秒回 {skill.healAmount:0} 点");
+    }
+
+    /// <summary>
+    /// 箭雨：交给 ArrowRainCast 按时间撒一串往下落的箭。
+    /// 这里只负责把它挂上，具体落点 / 节奏 / 收尾都在那个组件里，
+    /// 免得 SkillCaster 变成一个什么都会的巨型 switch。
+    /// </summary>
+    private void CastArrowRain(SkillData skill)
+    {
+        if (skill.attack == null || skill.projectilePrefab == null)
+        {
+            Debug.LogWarning($"[SkillCaster]「{skill.displayName}」缺 Attack Data 或投射物预制体，箭雨放不出来", this);
+            return;
+        }
+
+        var rain = GetComponent<ArrowRainCast>();
+        if (rain == null) rain = gameObject.AddComponent<ArrowRainCast>();
+
+        rain.Setup(skill, _stats, attacker != null ? attacker.Facing : 1);
+
+        Log($"{skill.displayName}：{skill.rainCount} 支箭落在身前 {skill.rainDistance:0.0} 处");
+    }
+
+    /// <summary>
+    /// 增益：交给 HunterFocus 挂一段时间的属性修饰符。
+    /// 射手的「猎人专注」就是这一种 —— 它不碰任何攻击代码，
+    /// 只是往 CharacterStats 上加几条修饰符，攻击 / 暴击 / 移速那边每次现读。
+    /// </summary>
+    private void CastBuff(SkillData skill)
+    {
+        var focus = GetComponent<HunterFocus>();
+        if (focus == null) focus = gameObject.AddComponent<HunterFocus>();
+
+        focus.Setup(skill, _stats);
+
+        Log($"{skill.displayName}：{skill.buffDuration:0.0} 秒内攻速 +{skill.buffAttackSpeed * 100f:0}%、暴击率 +{skill.buffCritChance * 100f:0}%");
     }
 
     /// <summary>投射物技能：算好伤害 → 生成预制体 → 剩下交给 Projectile 自己飞</summary>

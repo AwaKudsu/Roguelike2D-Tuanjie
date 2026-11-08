@@ -136,10 +136,12 @@ namespace Tuanjie.PortCheck
             }
             Report(sb, singles == 3, $"单帧姿势 | {singles}/3 已接（跳/受击/死亡）", ref fail);
 
-            // 两套动画都实现了接口
+            // 几套动画都要实现接口（加第三套时最容易漏这一条）
             bool warriorAnim = typeof(IPlayerAnim).IsAssignableFrom(typeof(WarriorVisual));
             bool mageAnim = typeof(IPlayerAnim).IsAssignableFrom(typeof(MageVisual));
-            Report(sb, warriorAnim && mageAnim, "两套动画都实现 IPlayerAnim | 技能层不用区分职业", ref fail);
+            bool archerAnim = typeof(IPlayerAnim).IsAssignableFrom(typeof(ArcherVisual));
+            Report(sb, warriorAnim && mageAnim && archerAnim,
+                   "三套动画都实现 IPlayerAnim | 技能层不用区分职业", ref fail);
 
             var switcher = player.GetComponent<PlayerVisualSwitcher>();
             Report(sb, switcher != null, "玩家身上有 PlayerVisualSwitcher", ref fail);
@@ -149,13 +151,15 @@ namespace Tuanjie.PortCheck
                 var sso = new SerializedObject(switcher);
                 SerializedProperty classes = sso.FindProperty("classes");
                 int count = classes != null ? classes.arraySize : 0;
-                Report(sb, count == 2, $"职业表 | {count} 个职业可切", ref fail);
+                Report(sb, count >= 3, $"职业表 | {count} 个职业可切（战士 / 法师 / 射手）", ref fail);
 
                 SerializedProperty warrior = sso.FindProperty("warrior");
                 SerializedProperty mageVisual = sso.FindProperty("mage");
+                SerializedProperty archerVisual = sso.FindProperty("archer");
                 Report(sb, warrior != null && warrior.objectReferenceValue != null
-                           && mageVisual != null && mageVisual.objectReferenceValue != null,
-                       "切换器引用 | 战士 / 法师 两套动画都指到了", ref fail);
+                           && mageVisual != null && mageVisual.objectReferenceValue != null
+                           && archerVisual != null && archerVisual.objectReferenceValue != null,
+                       "切换器引用 | 战士 / 法师 / 射手 三套动画都指到了", ref fail);
             }
 
             var stats = player.GetComponent<CharacterStats>();

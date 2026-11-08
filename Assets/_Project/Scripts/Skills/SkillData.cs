@@ -23,6 +23,21 @@ public enum SkillCastType
     /// 见 SkillCaster.CastHeal 和 HealCircle。
     /// </summary>
     Heal,
+
+    // ⚠️ 下面两项是新加的，**只能追加、不能插到前面** ——
+    // 资产的 castType 是按整数存的，往中间插一项等于把后面所有技能的施放方式整体错位一位。
+
+    /// <summary>
+    /// 箭雨：在身前一片区域里从天上落下一串投射物（射手的箭雨）。
+    /// 见 SkillCaster.CastArrowRain 和 ArrowRainCast。
+    /// </summary>
+    ArrowRain,
+
+    /// <summary>
+    /// 增益：给自己挂一段时间的属性修饰符（射手的猎人专注）。
+    /// 见 SkillCaster.CastBuff 和 HunterFocus。
+    /// </summary>
+    Buff,
 }
 
 /// <summary>
@@ -89,6 +104,39 @@ public class SkillData : ScriptableObject
 
     [Tooltip("持续型近战（旋风斩）绕在身上的漩涡贴图；留空就只有刀光")]
     public Sprite auraSprite;
+
+    [Header("箭雨（castType = ArrowRain 时使用）")]
+    [Tooltip("落点区域中心离玩家多远（会按朝向翻边）")]
+    public float rainDistance = 5f;
+
+    [Tooltip("落点区域的半宽。总宽度 = 这个值 × 2")]
+    public float rainRadius = 4f;
+
+    [Tooltip("一次落几支箭")]
+    [Range(1, 40)]
+    public int rainCount = 9;
+
+    [Tooltip("整轮箭雨持续多久（秒）。箭按这个时间均匀落下")]
+    public float rainDuration = 1.2f;
+
+    [Tooltip("箭从多高的地方开始落")]
+    public float rainHeight = 8f;
+
+    [Tooltip("下落速度（世界单位/秒）。太快看不清、太慢又不像箭")]
+    public float rainFallSpeed = 17f;
+
+    [Header("增益（castType = Buff 时使用）")]
+    [Tooltip("增益持续多久（秒）")]
+    public float buffDuration = 6f;
+
+    [Tooltip("攻速加成，0.35 = +35%（走百分比加算）")]
+    public float buffAttackSpeed = 0.35f;
+
+    [Tooltip("暴击率加成，0.15 = +15%（走加算）")]
+    public float buffCritChance = 0.15f;
+
+    [Tooltip("移速加成，0 = 不加")]
+    public float buffMoveSpeed = 0f;
 
     [Header("投射物（castType = Projectile 时使用）")]
     public GameObject projectilePrefab;

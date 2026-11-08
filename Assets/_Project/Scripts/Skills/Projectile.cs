@@ -145,10 +145,19 @@ public class Projectile : MonoBehaviour
     /// <param name="targets">能打到的层，来自技能的 AttackData</param>
     /// <param name="sizeScale">整体缩放倍率，蓄力火球靠它变大（碰撞体也跟着变）</param>
     /// <param name="speedScale">速度倍率，蓄得越久飞得越快</param>
-    public void Launch(Vector2 direction, DamageInfo damage, LayerMask targets, float sizeScale = 1f, float speedScale = 1f)
+    /// <param name="speedOverride">覆盖预制体上的速度（箭雨要把箭压慢一点），0 = 用预制体值</param>
+    /// <param name="lifeTimeOverride">覆盖存活时间（箭雨从很高的地方落下，要比普攻活得久），0 = 用预制体值</param>
+    public void Launch(Vector2 direction, DamageInfo damage, LayerMask targets,
+                       float sizeScale = 1f, float speedScale = 1f,
+                       float speedOverride = 0f, float lifeTimeOverride = 0f)
     {
         // 兜底：正常流程里 Awake 已经取过了，但实例化顺序不受控时可能还没跑
         if (_rb == null) _rb = GetComponent<Rigidbody2D>();
+
+        // 速度和存活时间都是实例自己的字段：同一个箭预制体既能当普攻（快、短），
+        // 也能当箭雨（慢、从天而降），不需要多做几个预制体
+        if (speedOverride    > 0f) speed    = speedOverride;
+        if (lifeTimeOverride > 0f) lifeTime = lifeTimeOverride;
 
         _damage    = damage;
         _lifeTimer = lifeTime;

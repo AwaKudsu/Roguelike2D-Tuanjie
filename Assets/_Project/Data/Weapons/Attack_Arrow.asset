@@ -1,0 +1,28 @@
+%YAML 1.1
+%TAG !u! tag:yousandi.cn,2023:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 27c5b5c33a3c0214a94e22dbb0c29198, type: 3}
+  m_Name: Attack_Arrow
+  m_EditorClassIdentifier: Assembly-CSharp::AttackData
+  displayName: "\u5C04\u51FB"
+  icon: {fileID: 21300000, guid: 6e9a8e68856f15040ac56243e9489ba4, type: 3}
+  damageMultiplier: 1
+  knockbackForce: 3.5
+  bonusCritChance: 0
+  element: 0
+  hitboxOffset: {x: 0.0, y: 0.0}
+  hitboxSize: {x: 0.4, y: 0.4}
+  targetLayers:
+    serializedVersion: 2
+    m_Bits: 128
+  isRanged: 1
+  projectilePrefab: {fileID: 746189112167610233, guid: ea538a49d2cfc224895ad3ded7151526, type: 3}
+  cooldown: 0.34

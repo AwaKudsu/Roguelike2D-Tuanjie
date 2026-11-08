@@ -19,6 +19,7 @@ namespace Tuanjie.PortCheck
         private const string ArtDir = "Assets/_Project/Art/Lobby";
         private const string WarriorClassPath = "Assets/_Project/Data/classes/Class_Warrior.asset";
         private const string MageClassPath = "Assets/_Project/Data/classes/Class_Mage.asset";
+        private const string ArcherClassPath = "Assets/_Project/Data/classes/Class_Archer.asset";
         private const string ReportPath = "_Tuanjie/lobby-room-report.txt";
 
         // 整间房摆在场景左边，离关卡（x >= -10）远一点，互不干扰
@@ -96,14 +97,21 @@ namespace Tuanjie.PortCheck
 
             ClassData warrior = AssetDatabase.LoadAssetAtPath<ClassData>(WarriorClassPath);
             ClassData mage = AssetDatabase.LoadAssetAtPath<ClassData>(MageClassPath);
+            ClassData archer = AssetDatabase.LoadAssetAtPath<ClassData>(ArcherClassPath);
             Sprite warriorIdle = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/_Project/Art/Characters/Warrior/Warrior_Idle.png");
             Sprite mageIdle = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/_Project/Art/Characters/Mage/Mage_Idle.png");
+            Sprite archerIdle = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/_Project/Art/Characters/Archer/Archer_Idle.png");
 
             if (warrior == null || mage == null || warriorIdle == null || mageIdle == null)
             {
                 sb.AppendLine("[FAIL] 缺职业或立绘 | Class_Warrior / Class_Mage / Warrior_Idle / Mage_Idle");
                 Finish(sb, 1);
                 return;
+            }
+
+            if (archer == null || archerIdle == null)
+            {
+                sb.AppendLine("[WARN] 缺射手 | Class_Archer / Archer_Idle 没找到，这次只摆两座台");
             }
 
             GameObject existing = GameObject.Find("LobbyRoom");
@@ -119,9 +127,15 @@ namespace Tuanjie.PortCheck
             Transform portal = NewPoint(root.transform, "Portal", new Vector3(RoomWidth * 0.5f, 1f, 0f));
             SpriteRenderer portalGlow = BuildDoor(portal, sprites, sb);
 
-            LobbyPedestal first = BuildPedestal(root.transform, "Pedestal_Warrior", new Vector3(6.6f, 6.3f, 0f),
+            // 三座台均匀摆开：房间内部 20 宽，5.4 的间距既不会挤在一起，
+            // 也能让鼠标在 6 号正交视野下轻松点到中间那个
+            LobbyPedestal first = BuildPedestal(root.transform, "Pedestal_Warrior", new Vector3(4.6f, 6.3f, 0f),
                                                 warrior, warriorIdle, sprites, sb);
-            LobbyPedestal second = BuildPedestal(root.transform, "Pedestal_Mage", new Vector3(13.4f, 6.3f, 0f),
+            LobbyPedestal middle = archer != null && archerIdle != null
+                ? BuildPedestal(root.transform, "Pedestal_Archer", new Vector3(10f, 6.3f, 0f),
+                                archer, archerIdle, sprites, sb)
+                : null;
+            LobbyPedestal second = BuildPedestal(root.transform, "Pedestal_Mage", new Vector3(15.4f, 6.3f, 0f),
                                                  mage, mageIdle, sprites, sb);
 
             var room = root.AddComponent<LobbyRoom>();
@@ -139,9 +153,13 @@ namespace Tuanjie.PortCheck
             SerializedProperty list = so.FindProperty("pedestals");
             if (list != null)
             {
-                list.arraySize = 2;
-                list.GetArrayElementAtIndex(0).objectReferenceValue = first;
-                list.GetArrayElementAtIndex(1).objectReferenceValue = second;
+                int count = middle != null ? 3 : 2;
+                list.arraySize = count;
+
+                int at = 0;
+                list.GetArrayElementAtIndex(at++).objectReferenceValue = first;
+                if (middle != null) list.GetArrayElementAtIndex(at++).objectReferenceValue = middle;
+                list.GetArrayElementAtIndex(at).objectReferenceValue = second;
             }
             else
             {
@@ -158,7 +176,10 @@ namespace Tuanjie.PortCheck
             sb.AppendLine("[PASS] 地板 | 平铺 " + (RoomWidth + FloorMarginX * 2f) + " x " + (RoomHeight + FloorMarginY * 2f) + "，比房间多铺一圈");
             sb.AppendLine("[PASS] 四面墙 | 都带 Ground 层碰撞，人在里面走不出去");
             sb.AppendLine("[PASS] 装饰 | 挂毯 / 地毯 / 2 个火把 / 2 根石柱 / 3 团灯光");
-            sb.AppendLine("[PASS] 角色立牌 | 战士 (" + first.DisplayName + ") / 法师 (" + second.DisplayName + ")");
+            sb.AppendLine("[PASS] 角色立牌 | 战士 (" + first.DisplayName + ")" +
+                          (middle != null ? " / 射手 (" + middle.DisplayName + ")" : "") +
+                          " / 法师 (" + second.DisplayName + ")" +
+                          (middle != null ? "" : "（射手资产没找到，只摆了两座）"));
             sb.AppendLine("[PASS] 门 | 本地位置 " + portal.localPosition + "（世界 " + portal.position + "）");
             sb.AppendLine("[PASS] 出生点 | " + spawn.localPosition + "（世界 " + spawn.position + "）");
             sb.AppendLine("[PASS] 场景已存盘 | " + ScenePath);
