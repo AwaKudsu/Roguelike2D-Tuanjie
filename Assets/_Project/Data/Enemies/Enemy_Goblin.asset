@@ -1,0 +1,89 @@
+%YAML 1.1
+%TAG !u! tag:yousandi.cn,2023:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0a8f821962624b041bb9bdc2e6b608fb, type: 3}
+  m_Name: Enemy_Goblin
+  m_EditorClassIdentifier: 
+  displayName: "\u54E5\u5E03\u6797"
+  behavior: 0
+  element: 0
+  detectRange: 9
+  attackRange: 1.15
+  loseTargetRange: 14
+  meleeAttack: {fileID: 11400000, guid: 05a5a58391be95b44b8fe973cb5c7fa8, type: 2}
+  meleeCooldown: 1.4
+  meleeWindup: 0.28
+  projectilePrefab: {fileID: 0}
+  rangedRange: 7
+  rangedCooldown: 2.2
+  retreatDistance: 2.6
+  chargeTime: 0.5
+  jumpDistance: 3.6
+  jumpDuration: 0.55
+  jumpHeight: 1.5
+  landRest: 0.9
+  landRadius: 1.1
+  landDamage: 8
+  hoverDistance: 2.8
+  hoverHeight: 1.4
+  diveSpeed: 10
+  diveDuration: 0.45
+  diveCooldown: 1.8
+  diveDamage: 7
+  shieldReduction: 0.6
+  shieldArc: 100
+  chargeTriggerRange: 5
+  chargeWindup: 0.55
+  chargeSpeed: 9
+  chargeDuration: 0.6
+  chargeDamage: 12
+  chargeCooldown: 3
+  idleFrames:
+  - {fileID: 21300000, guid: a761ffda712fc3c47ad578f4b9016d22, type: 3}
+  - {fileID: 21300000, guid: c65a91f107bdd3046988e281c23d8e3a, type: 3}
+  - {fileID: 21300000, guid: ce87d3cb50b8f0b4289635641c306948, type: 3}
+  - {fileID: 21300000, guid: 54a901c0667e90b4689354960ad2b176, type: 3}
+  moveFrames:
+  - {fileID: 21300000, guid: f44bb197da8e5fd4ab0176087b9b015f, type: 3}
+  - {fileID: 21300000, guid: 76082925b5dfd674286f5e75115e8a68, type: 3}
+  - {fileID: 21300000, guid: c8901fda8919edf44958f9ec660a2c63, type: 3}
+  - {fileID: 21300000, guid: c81e319b7e916a4488aeb909e9b17ce7, type: 3}
+  - {fileID: 21300000, guid: f4b9fd1ba07d4ad43acec5f5b209dd93, type: 3}
+  - {fileID: 21300000, guid: b62112617781d234eb375f450cb8d2e3, type: 3}
+  - {fileID: 21300000, guid: 4735144d353989e448d4d1a4f0a7dbd1, type: 3}
+  attackFrames:
+  - {fileID: 21300000, guid: 4450af28705b7514b8a0365d589cd73c, type: 3}
+  - {fileID: 21300000, guid: 64c30965af4c7d64e888d976a845b459, type: 3}
+  - {fileID: 21300000, guid: dcb36c9c2544fb3479c4bb49bf74ede0, type: 3}
+  - {fileID: 21300000, guid: bdb6bf4c67ddc554ebea5cd9bd72e0be, type: 3}
+  - {fileID: 21300000, guid: f444faafdc9fffe4fba6880c7fe0605f, type: 3}
+  - {fileID: 21300000, guid: d19669a4c11328a4fbee9824b97579c3, type: 3}
+  - {fileID: 21300000, guid: 91d7a4b17ded7ca4a9ff468b98dc1144, type: 3}
+  hurtFrames:
+  - {fileID: 21300000, guid: 73fba1a2e1575ec4081a9fed2c877de5, type: 3}
+  - {fileID: 21300000, guid: 6197ec66f5c405740bbe691c3406b06b, type: 3}
+  - {fileID: 21300000, guid: 50977fe89e6147f4ab45f70fc5c354c3, type: 3}
+  - {fileID: 21300000, guid: 5ca447ead1a32954eb2df6fd294c5c49, type: 3}
+  - {fileID: 21300000, guid: 1e9be0261a9e0234eb666f5fe3a9cfa5, type: 3}
+  - {fileID: 21300000, guid: 389e2d722f3ed734a888b2e3d668e04f, type: 3}
+  deathFrames:
+  - {fileID: 21300000, guid: 2884eaae71186e84b941b5ba85179615, type: 3}
+  - {fileID: 21300000, guid: 353012a67d1b3c34b863481ac4335ea8, type: 3}
+  - {fileID: 21300000, guid: 3eb0df5fc5d3a0c49bcdbb0268ba65e2, type: 3}
+  - {fileID: 21300000, guid: 9eac0b3c97e91964faf443ccba117cba, type: 3}
+  - {fileID: 21300000, guid: b0d55c944ca89e542a22638a7d58559e, type: 3}
+  - {fileID: 21300000, guid: eb4f86c6d025c814d83c3561282a0fac, type: 3}
+  - {fileID: 21300000, guid: 3af47f3b9d3b87841b147ebcec4a5e98, type: 3}
+  idleFps: 6
+  moveFps: 10
+  attackFps: 12
+  hurtFps: 12
+  deathFps: 8

@@ -33,6 +33,12 @@ public class Health : MonoBehaviour, IDamageable
     /// <summary>回血成功时触发，参数是这一下**实际**回了多少</summary>
     public event Action<float> Healed;
 
+    /// <summary>
+    /// 伤害过滤：防御与元素抗性算完之后、写回 info.Amount 之前再插一道。
+    /// 返回过滤后的伤害值；返回 0 就是完全挡下。持盾战士按「来向」用它。
+    /// </summary>
+    public Func<float, DamageInfo, float> DamageFilter;
+
     private CharacterStats _stats;
     private float _invincibilityTimer;
 
@@ -62,6 +68,10 @@ public class Health : MonoBehaviour, IDamageable
         // 元素抗性再过一道，上限 90%（留 10% 保底，不然火抗堆满就无敌了）
         float resist = Mathf.Clamp(DamageCalculator.ResistFor(_stats, info.Element), 0f, 0.9f);
         if (resist > 0f) amount *= 1f - resist;
+
+        // 最后一道「外部过滤」：持盾战士用它按「来向」再减一次（正面挡、背面不挡）。
+        // 放在防御/抗性之后、写回 info 之前 —— 飘字看到的仍然是实际伤害。
+        if (DamageFilter != null) amount = Mathf.Max(0f, DamageFilter(amount, info));
 
         // 写回 info：飘字、受击特效拿到的都是**实际**伤害，不是面板值
         info.Amount = amount;

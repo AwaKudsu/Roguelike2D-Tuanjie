@@ -1,0 +1,88 @@
+%YAML 1.1
+%TAG !u! tag:yousandi.cn,2023:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0a8f821962624b041bb9bdc2e6b608fb, type: 3}
+  m_Name: Enemy_Bat
+  m_EditorClassIdentifier: 
+  displayName: "\u8759\u8760"
+  behavior: 3
+  element: 0
+  detectRange: 10
+  attackRange: 1.2
+  loseTargetRange: 15
+  meleeAttack: {fileID: 0}
+  meleeCooldown: 1.4
+  meleeWindup: 0.25
+  projectilePrefab: {fileID: 0}
+  rangedRange: 7
+  rangedCooldown: 2.2
+  retreatDistance: 2.6
+  chargeTime: 0.5
+  jumpDistance: 3.6
+  jumpDuration: 0.55
+  jumpHeight: 1.5
+  landRest: 0.9
+  landRadius: 1.1
+  landDamage: 8
+  hoverDistance: 2.8
+  hoverHeight: 1.4
+  diveSpeed: 10
+  diveDuration: 0.45
+  diveCooldown: 1.8
+  diveDamage: 7
+  shieldReduction: 0.6
+  shieldArc: 100
+  chargeTriggerRange: 5
+  chargeWindup: 0.55
+  chargeSpeed: 9
+  chargeDuration: 0.6
+  chargeDamage: 12
+  chargeCooldown: 3
+  idleFrames:
+  - {fileID: 21300000, guid: 3fd61c0049e25e04c8f211a58a82dcc3, type: 3}
+  - {fileID: 21300000, guid: 3d950bf284ffdba4d94481e1bcdc8fb0, type: 3}
+  - {fileID: 21300000, guid: dd6f47af13d83b24bb3b0f8351d33a7b, type: 3}
+  - {fileID: 21300000, guid: 40f441acbb9d6564585c28da8e8a5d5b, type: 3}
+  moveFrames:
+  - {fileID: 21300000, guid: fd0877e5815e69840953cfba67bb3a80, type: 3}
+  - {fileID: 21300000, guid: 623c22a11471f934fb4adc3e54c12a0b, type: 3}
+  - {fileID: 21300000, guid: 81519cc40d9a205428233cd1febd9f1d, type: 3}
+  - {fileID: 21300000, guid: af415a688b9616d4aa73e2e124ace2c8, type: 3}
+  - {fileID: 21300000, guid: f79f6236e26f0dd42b53c7a865804a71, type: 3}
+  - {fileID: 21300000, guid: 44c0b5adb7b61ae47ac7136566f1d397, type: 3}
+  - {fileID: 21300000, guid: 5551f8286caa10d48b3d6557ffda93f5, type: 3}
+  attackFrames:
+  - {fileID: 21300000, guid: 68a3f13b1a93af942aed5e65d31cd631, type: 3}
+  - {fileID: 21300000, guid: 700901de26e9ceb408d91cf367dcccae, type: 3}
+  - {fileID: 21300000, guid: cb54ae8b3cf6bf0418533ea981c70645, type: 3}
+  - {fileID: 21300000, guid: 6c94c38dfb9d0714aa66c75a664a95bd, type: 3}
+  - {fileID: 21300000, guid: 8193e660416f1f54f94cceb9d5392844, type: 3}
+  - {fileID: 21300000, guid: 2bda874b0561dc641aca795746890379, type: 3}
+  - {fileID: 21300000, guid: 4574c757d08f6dd47acafbebd93bfdb7, type: 3}
+  hurtFrames:
+  - {fileID: 21300000, guid: 13a95e29ea26da54fbafe46f1c31f78c, type: 3}
+  - {fileID: 21300000, guid: 4fade4227d911dd41b86be59a60f3e86, type: 3}
+  - {fileID: 21300000, guid: 88189c3c809871241a4256ffd640f296, type: 3}
+  - {fileID: 21300000, guid: b27f9ead330d9ef47880436cc5531a23, type: 3}
+  - {fileID: 21300000, guid: 931409e05db7abc499eba0eebc0a0675, type: 3}
+  deathFrames:
+  - {fileID: 21300000, guid: 07989ab6fe0117444985c265181e3673, type: 3}
+  - {fileID: 21300000, guid: 9b6d93488d8604443b0b51d2bb171d79, type: 3}
+  - {fileID: 21300000, guid: 9d67109a810f1394598f3df4562ca6ef, type: 3}
+  - {fileID: 21300000, guid: c6583cadd25fd0942ac223d528d8b02c, type: 3}
+  - {fileID: 21300000, guid: d4424257cd17d984480a578a30f0fc98, type: 3}
+  - {fileID: 21300000, guid: 14847a5222dfc814689038f12e70ee58, type: 3}
+  - {fileID: 21300000, guid: 5a8ea4851b690ed4a9f1ea03833f4529, type: 3}
+  idleFps: 10
+  moveFps: 14
+  attackFps: 14
+  hurtFps: 12
+  deathFps: 10
