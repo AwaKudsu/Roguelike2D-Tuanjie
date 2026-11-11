@@ -263,8 +263,11 @@ namespace Tuanjie.PortCheck
             AddCollider(right.gameObject, new Vector2(1f, RoomHeight));
 
             // 挂毯（挂在上墙内侧）
+            // ★ 排序必须比台座(-170)和立绘(-169)更低：中间那座台是射手，
+            //   人和挂毯在画面上是重叠的，挂毯画在前面就会把射手的头挡住（曾经就是这样）。
+            //   -176 = 在石台光圈(-180)之后、台座(-170)之前，人站在挂毯前面。
             SpriteRenderer banner = NewSprite(shell, "Banner", new Vector3(RoomWidth * 0.5f, 8.5f, 0f),
-                                              sprites["LobbyBanner"], Color.white, -160);
+                                              sprites["LobbyBanner"], Color.white, -176);
 
             // 地毯
             NewSprite(shell, "Rug", new Vector3(RoomWidth * 0.5f, 4.3f, 0f), sprites["LobbyRug"],

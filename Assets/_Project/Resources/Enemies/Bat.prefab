@@ -84,8 +84,8 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 5
-  m_Sprite: {fileID: 21300000, guid: 1622f347918d6d344918a4aa53fdbacc, type: 3}
-  m_Color: {r: 0.55, g: 0.42, b: 0.68, a: 1}
+  m_Sprite: {fileID: 21300000, guid: 3fd61c0049e25e04c8f211a58a82dcc3, type: 3}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
@@ -120,7 +120,7 @@ Rigidbody2D:
     m_Bits: 0
   m_Interpolate: 1
   m_SleepingMode: 1
-  m_CollisionDetection: 0
+  m_CollisionDetection: 1
   m_Constraints: 4
 --- !u!70 &6088745144922882393
 CapsuleCollider2D:

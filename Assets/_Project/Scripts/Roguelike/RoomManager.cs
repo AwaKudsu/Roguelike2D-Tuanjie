@@ -72,6 +72,20 @@ public class RoomManager : MonoBehaviour
     /// </summary>
     public int Seed => _resolvedSeed;
 
+    /// <summary>
+    /// 同 <see cref="Seed"/>，但保证随机源已经建好（房间刷怪要用它算种子）。
+    /// 正常流程里抽第一间房时就已经建好了；只有「场景里手摆了一间房、不自动建房」那种
+    /// 情况才会走到这里临时补一个。
+    /// </summary>
+    public int RunSeed
+    {
+        get
+        {
+            EnsureRandom();
+            return _resolvedSeed;
+        }
+    }
+
     /// <summary>是否在用房间池（否则走旧列表）</summary>
     public bool UsingPool => roomPool != null && roomPool.Count > 0;
 

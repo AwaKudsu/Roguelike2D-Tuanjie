@@ -105,6 +105,18 @@ public class EnemyController : MonoBehaviour
     private float _frameTimer;
     private int _frameIndex;
 
+    /// <summary>
+    /// 这只怪的行为配置。
+    /// <para>
+    /// Room 用 <c>HasConfig</c> 区分「真怪物」和「占位怪」：房间预制体里那些
+    /// 没配 config 的紫色方块只是刷怪点，开打前会被换成真的怪。
+    /// </para>
+    /// </summary>
+    public EnemyConfig Config => config;
+
+    /// <summary>是否挂了行为配置。false = 房间里的占位怪（旧版走近就砍的方块）</summary>
+    public bool HasConfig => config != null;
+
     private void Awake()
     {
         _rb          = GetComponent<Rigidbody2D>();
@@ -125,8 +137,22 @@ public class EnemyController : MonoBehaviour
         if (config != null && config.behavior == EnemyBehavior.Shielder && _health != null)
             _health.DamageFilter = FilterShield;
 
-        if (config != null) PlayIdle();
+        if (config != null)
+        {
+            // 预制体上的贴图是「占位方块 + 颜色」，颜色本意是给白方块染色的。
+            // 一旦换成真·逐帧贴图，这层颜色就会把整只怪染色（哥布林会被染成荧光绿、
+            // 背景没抠干净的棋盘格也会跟着变绿）。贴图自己有颜色，这里必须还原成白色。
+            if (_sprite != null && HasAnyFrame) _sprite.color = Color.white;
+
+            PlayIdle();
+        }
     }
+
+    /// <summary>配置里有没有任何一套帧。没有就说明这只怪还没接美术，保持预制体原样的占位方块</summary>
+    private bool HasAnyFrame =>
+        config != null &&
+        ((config.idleFrames != null && config.idleFrames.Length > 0) ||
+         (config.moveFrames != null && config.moveFrames.Length > 0));
 
     private void OnEnable()
     {

@@ -17,7 +17,10 @@ using UnityEngine;
 public static class EnemyBuilder
 {
     private const string ConfigDir = "Assets/_Project/Data/enemies";
-    private const string PrefabDir = "Assets/_Project/Prefabs/Enemies";
+
+    // ★ 必须放在 Resources 下：房间是运行时随机刷怪的（Room.SpawnRandomEnemies →
+    //   EnemySpawning.Pool → Resources.LoadAll("Enemies")），预制体不在 Resources 里就刷不出来。
+    private const string PrefabDir = "Assets/_Project/Resources/Enemies";
     private const string PlaceholderPath = "Assets/_Project/Art/Placeholder/Square.png";
     private const string FireballPath = "Assets/_Project/Prefabs/Fireball.prefab";
     private const string EnemyAttackPath = "Assets/_Project/Data/Weapons/Attack_Enemy.asset";
@@ -63,7 +66,7 @@ public static class EnemyBuilder
             c.meleeCooldown = 1.4f; c.meleeWindup = 0.28f;
             c.meleeAttack = enemySwing;
         });
-        ok += MakePrefab("Goblin", goblin, placeholder, new Color(0.45f, 0.72f, 0.35f), 28f, 6f, 3.4f, 0f, false, playerLayer, enemyLayer) ? 1 : 0;
+        ok += MakePrefab("Goblin", goblin, placeholder, 28f, 6f, 3.4f, 0f, false, playerLayer, enemyLayer) ? 1 : 0;
 
         // ---- 骷髅弓箭手 ----
         EnemyConfig archer = NewConfig("Enemy_SkeletonArcher", c =>
@@ -74,7 +77,7 @@ public static class EnemyBuilder
             c.rangedRange = 8f; c.rangedCooldown = 2.2f; c.retreatDistance = 3f; c.chargeTime = 0.5f;
             c.projectilePrefab = arrow;
         });
-        ok += MakePrefab("SkeletonArcher", archer, placeholder, new Color(0.85f, 0.84f, 0.78f), 22f, 5f, 2.8f, 0f, false, playerLayer, enemyLayer) ? 1 : 0;
+        ok += MakePrefab("SkeletonArcher", archer, placeholder, 22f, 5f, 2.8f, 0f, false, playerLayer, enemyLayer) ? 1 : 0;
 
         // ---- 史莱姆 ----
         EnemyConfig slime = NewConfig("Enemy_Slime", c =>
@@ -86,7 +89,7 @@ public static class EnemyBuilder
             c.jumpDistance = 3.6f; c.jumpDuration = 0.55f; c.jumpHeight = 1.5f; c.landRest = 0.9f;
             c.landRadius = 1.2f; c.landDamage = 8f;
         });
-        ok += MakePrefab("Slime", slime, placeholder, new Color(0.42f, 0.68f, 0.30f), 30f, 4f, 2.2f, 0f, false, playerLayer, enemyLayer) ? 1 : 0;
+        ok += MakePrefab("Slime", slime, placeholder, 30f, 4f, 2.2f, 0f, false, playerLayer, enemyLayer) ? 1 : 0;
 
         // ---- 蝙蝠 ----
         EnemyConfig bat = NewConfig("Enemy_Bat", c =>
@@ -97,7 +100,7 @@ public static class EnemyBuilder
             c.hoverDistance = 2.8f; c.hoverHeight = 1.4f;
             c.diveSpeed = 10f; c.diveDuration = 0.45f; c.diveCooldown = 1.8f; c.diveDamage = 7f;
         });
-        ok += MakePrefab("Bat", bat, placeholder, new Color(0.55f, 0.42f, 0.68f), 18f, 4f, 3.2f, 0f, true, playerLayer, enemyLayer) ? 1 : 0;
+        ok += MakePrefab("Bat", bat, placeholder, 18f, 4f, 3.2f, 0f, true, playerLayer, enemyLayer) ? 1 : 0;
 
         // ---- 火焰法师 ----
         EnemyConfig caster = NewConfig("Enemy_FireMage", c =>
@@ -109,7 +112,7 @@ public static class EnemyBuilder
             c.rangedRange = 8f; c.rangedCooldown = 2.6f; c.retreatDistance = 3.5f; c.chargeTime = 0.9f;
             c.projectilePrefab = fireball;
         });
-        ok += MakePrefab("FireMage", caster, placeholder, new Color(0.85f, 0.35f, 0.25f), 24f, 8f, 2.6f, 0f, false, playerLayer, enemyLayer) ? 1 : 0;
+        ok += MakePrefab("FireMage", caster, placeholder, 24f, 8f, 2.6f, 0f, false, playerLayer, enemyLayer) ? 1 : 0;
 
         // ---- 持盾战士 ----
         EnemyConfig shielder = NewConfig("Enemy_ShieldKnight", c =>
@@ -123,7 +126,7 @@ public static class EnemyBuilder
             c.chargeTriggerRange = 5f; c.chargeWindup = 0.55f;
             c.chargeSpeed = 9f; c.chargeDuration = 0.6f; c.chargeDamage = 12f; c.chargeCooldown = 3f;
         });
-        ok += MakePrefab("ShieldKnight", shielder, placeholder, new Color(0.62f, 0.66f, 0.72f), 60f, 8f, 2.4f, 0.15f, false, playerLayer, enemyLayer) ? 1 : 0;
+        ok += MakePrefab("ShieldKnight", shielder, placeholder, 60f, 8f, 2.4f, 0.15f, false, playerLayer, enemyLayer) ? 1 : 0;
 
         AssetDatabase.SaveAssets();
         AssetDatabase.Refresh();
@@ -132,31 +135,32 @@ public static class EnemyBuilder
     }
 
     /// <summary>
-    /// 往房间预制体里塞怪：Room_01 放 哥布林×2 + 弓箭手，Room_02 放 史莱姆 + 蝙蝠。
-    /// 位置是固定的几个点，房间地板大约 20×10，y=1.1 是站在地面上的高度。
+    /// 往房间预制体里撒「刷怪点」。
+    ///
+    /// ★ 房间不再直接摆某一只具体的怪：摆的是没配 EnemyConfig 的占位怪（紫色方块），
+    ///   Room.Awake 把它当刷怪点，Start 时按本局种子随机换成真怪
+    ///   （见 Room.SpawnRandomEnemies / EnemySpawning）。
+    ///   所以这个菜单只在「房间预制体里一个刷怪点都没有」时才需要手动跑一次。
     /// </summary>
-    [MenuItem("团结/往房间加怪物", false, 71)]
+    [MenuItem("团结/往房间撒刷怪点", false, 71)]
     public static void FillRooms()
     {
         FillRoom("Assets/_Project/Prefabs/Rooms/Room_01.prefab", new[]
         {
-            ("Goblin", new Vector3(6f, 0.15f)),
-            ("Goblin", new Vector3(9f, 0.15f)),
-            ("SkeletonArcher", new Vector3(14f, 0.15f)),
+            new Vector3(7.6f, -1.9f),
         });
 
         FillRoom("Assets/_Project/Prefabs/Rooms/Room_02.prefab", new[]
         {
-            // 脚底贴地：轴心在脚底，y=1.1 会让小个子（史莱姆只有 1.1 高）出生就在半空
-            ("Slime", new Vector3(7f, 0.15f)),
-            ("Bat", new Vector3(12f, 3.2f)),
+            new Vector3(7f, -1.9f),
+            new Vector3(12f, -1.9f),
         });
 
         AssetDatabase.SaveAssets();
         AssetDatabase.Refresh();
     }
 
-    private static void FillRoom(string roomPath, (string prefab, Vector3 position)[] enemies)
+    private static void FillRoom(string roomPath, Vector3[] positions)
     {
         GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(roomPath);
         if (prefab == null)
@@ -166,29 +170,31 @@ public static class EnemyBuilder
         }
 
         GameObject root = PrefabUtility.LoadPrefabContents(roomPath);
-        int added = 0;
 
-        foreach (var (prefabName, position) in enemies)
+        // 已经有刷怪点就跳过，方便反复点
+        var existing = root.GetComponentsInChildren<EnemyController>(true);
+        int kept = 0;
+        foreach (var enemy in existing)
         {
-            string path = PrefabDir + "/" + prefabName + ".prefab";
-            GameObject enemyPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(path);
-            if (enemyPrefab == null)
-            {
-                Debug.LogWarning("[EnemyBuilder] 缺少 " + path + "，先跑一次「生成怪物资源」。");
-                continue;
-            }
+            if (!enemy.HasConfig) kept++;
+        }
+        if (kept > 0)
+        {
+            Debug.Log("[EnemyBuilder] " + System.IO.Path.GetFileName(roomPath) + " 已经有 " + kept + " 个刷怪点，跳过");
+            PrefabUtility.UnloadPrefabContents(root);
+            return;
+        }
 
-            // 已经有这个品种就不重复塞，方便反复点
-            bool already = false;
-            foreach (Transform child in root.transform)
-            {
-                if (child.name.StartsWith(prefabName + "_")) { already = true; break; }
-            }
-            if (already) continue;
+        int added = 0;
+        foreach (Vector3 position in positions)
+        {
+            var go = new GameObject("EnemySpawn_" + added);
+            go.transform.SetParent(root.transform, false);
+            go.transform.localPosition = position;
 
-            var instance = (GameObject)PrefabUtility.InstantiatePrefab(enemyPrefab, root.transform);
-            instance.transform.localPosition = position;
-            instance.name = prefabName + "_" + added;
+            // 刷怪点的「身份」就是一个没配 EnemyConfig 的 EnemyController（见 Room.Awake）。
+            // 挂上空组件就够了：它只是占位，真怪由 Room.Start 刷出来。
+            go.AddComponent<EnemyController>();
             added++;
         }
 
@@ -251,7 +257,7 @@ public static class EnemyBuilder
         return config;
     }
 
-    private static bool MakePrefab(string prefabName, EnemyConfig config, Sprite sprite, Color tint,
+    private static bool MakePrefab(string prefabName, EnemyConfig config, Sprite sprite,
                                    float maxHealth, float attack, float moveSpeed, float defense,
                                    bool noGravity, int playerLayer, int enemyLayer)
     {
@@ -261,7 +267,7 @@ public static class EnemyBuilder
         if (AssetDatabase.LoadAssetAtPath<GameObject>(path) != null)
         {
             GameObject contents = PrefabUtility.LoadPrefabContents(path);
-            ApplyEnemySettings(contents, config, sprite, tint, maxHealth, attack, moveSpeed,
+            ApplyEnemySettings(contents, config, sprite, maxHealth, attack, moveSpeed,
                                defense, noGravity, playerLayer, enemyLayer);
             PrefabUtility.SaveAsPrefabAsset(contents, path);
             PrefabUtility.UnloadPrefabContents(contents);
@@ -270,7 +276,7 @@ public static class EnemyBuilder
         }
 
         var go = new GameObject(prefabName);
-        ApplyEnemySettings(go, config, sprite, tint, maxHealth, attack, moveSpeed,
+        ApplyEnemySettings(go, config, sprite, maxHealth, attack, moveSpeed,
                            defense, noGravity, playerLayer, enemyLayer);
         PrefabUtility.SaveAsPrefabAsset(go, path);
         Object.DestroyImmediate(go);
@@ -282,7 +288,7 @@ public static class EnemyBuilder
     /// ★ 层一定要设成 Enemy：玩家的攻击判定是按 targetLayers=Enemy 找碰撞体的，
     ///   留在 Default 上就是「打不着、也不打你」。
     /// </summary>
-    private static void ApplyEnemySettings(GameObject go, EnemyConfig config, Sprite sprite, Color tint,
+    private static void ApplyEnemySettings(GameObject go, EnemyConfig config, Sprite sprite,
                                            float maxHealth, float attack, float moveSpeed, float defense,
                                            bool noGravity, int playerLayer, int enemyLayer)
     {
@@ -291,8 +297,11 @@ public static class EnemyBuilder
 
         SpriteRenderer sr = go.GetComponent<SpriteRenderer>();
         if (sr == null) sr = go.AddComponent<SpriteRenderer>();
+        // ★ 这里只是占位方块，颜色必须是白的：EnemyController 一跑起来就会把 sprite 换成
+        //   真·逐帧贴图，如果这层还带着颜色，整只怪会被染色（哥布林会变成荧光绿）。
+        //   真贴图自带颜色，不需要 tint。
         sr.sprite = sprite;
-        sr.color = tint;
+        sr.color = Color.white;
         sr.sortingOrder = 5;
 
         Rigidbody2D rb = go.GetComponent<Rigidbody2D>();
